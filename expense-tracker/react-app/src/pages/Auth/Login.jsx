@@ -13,8 +13,14 @@ const Login = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-900 text-white">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-sm">
-        <div className="flex items-center justify-center mb-6">
+      <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-sm relative">
+        <div className="absolute top-4 left-4">
+          <Link to="/" className="text-sm text-gray-400 hover:text-gray-300">
+            ← back to home
+          </Link>
+        </div>
+
+        <div className="flex items-center justify-center mb-6 mt-6"> 
           <img
             src="/spendwise.jpg"
             alt="SpendWise Logo"
