@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 const Landing = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-900 text-white">
-      <nav className="bg-gray-800 shadow-md py-6 px-10 flex justify-between items-center">
+      <nav className="bg-gray-800 shadow-md py-6 px-10 flex justify-between items-center fixed top-0 left-0 w-full z-50">
         <div 
           className="flex items-center space-x-3 cursor-pointer" 
           onClick={() => window.location.reload()}
