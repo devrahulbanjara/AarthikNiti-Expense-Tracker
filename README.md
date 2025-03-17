@@ -16,46 +16,11 @@ AarthikNiti is a financial management tool designed for tracking expenses, analy
 - **Shreeya Pandey**: Frontend Engineer
 - **Diwash Adhikari**: Backend and Database Engineer
 - **Prajwal Dahal**: Frontend Engineer
-  
+
 ## Directory Structure
 ```
 AarthikNiti-Expense-Tracker/
 │── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── auth.py
-│   │   │   ├── budgeting.py
-│   │   │   ├── expenses.py
-│   │   │   ├── income.py
-│   │   │   ├── reports.py
-│   │   │   └── settings.py
-│   │   ├── core/
-│   │   │   ├── config.py
-│   │   │   ├── database.py
-│   │   │   └── utils.py
-│   │   ├── models/
-│   │   │   ├── budgeting.py
-│   │   │   ├── expense.py
-│   │   │   ├── income.py
-│   │   │   ├── report.py
-│   │   │   └── user.py
-│   │   ├── schemas/
-│   │   │   ├── auth.py
-│   │   │   ├── budgeting.py
-│   │   │   ├── expense.py
-│   │   │   ├── income.py
-│   │   │   ├── report.py
-│   │   │   └── user.py
-│   │   ├── services/
-│   │   │   ├── auth.py
-│   │   │   ├── budgeting.py
-│   │   │   ├── expense.py
-│   │   │   ├── income.py
-│   │   │   └── report.py
-│   │   ├── main.py
-│   │   ├── requirements.txt
-│   ├── docker-compose.yml
-│   ├── Dockerfile
 │── frontend/
 │── expense-tracker/
 │── docker-compose.yaml
@@ -69,13 +34,6 @@ AarthikNiti-Expense-Tracker/
 - Node.js, pnpm
 - Docker (optional)
 - MongoDB
-
-### Backend (FastAPI)
-```sh
-cd backend
-pip install -r app/requirements.txt
-uvicorn app.main:app --reload
-```
 
 ### Frontend (Next.js & Tailwind CSS)
 ```sh
@@ -105,5 +63,5 @@ MIT License - see [LICENSE](LICENSE).
 - **Deployment**: Docker, Vercel
 
 ## Contact
-For issues or feature requests, open an issue on [GitHub](https://github.com/devrahulbanjara/SpendWise---Expense-Tracker/issues).
+For issues or feature requests, open an issue on [GitHub](https://github.com/devrahulbanjara/AarthikNiti-Expense-Tracker/issues).
 
