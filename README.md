@@ -1,6 +1,6 @@
-# SpendWise - Expense Tracker
+# AarthikNiti - Expense Tracker
 
-SpendWise is a financial management tool designed for tracking expenses, analyzing income, and managing budgets effectively.
+AarthikNiti is a financial management tool designed for tracking expenses, analyzing income, and managing budgets effectively.
 
 ## Features
 - **Authentication**: Secure JWT-based login, Google OAuth.
@@ -13,7 +13,7 @@ SpendWise is a financial management tool designed for tracking expenses, analyzi
 
 ## Directory Structure
 ```
-SpendWise---Expense-Tracker/
+AarthikNiti-Expense-Tracker/
 │── backend/
 │   ├── app/
 │   │   ├── api/
