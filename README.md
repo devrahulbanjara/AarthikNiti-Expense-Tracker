@@ -11,6 +11,12 @@ AarthikNiti is a financial management tool designed for tracking expenses, analy
 - **Budgeting & Alerts**: Real-time spending alerts, AI-driven insights.
 - **Profile & Settings**: Account management, linked bank accounts, security settings.
 
+## Roles
+- **Rahul Dev Banjara**: Backend and Machine Learning Engineer
+- **Shreeya Pandey**: Frontend Engineer
+- **Diwash Adhikari**: Backend and Database Engineer
+- **Prajwal Dahal**: Frontend Engineer
+  
 ## Directory Structure
 ```
 AarthikNiti-Expense-Tracker/
