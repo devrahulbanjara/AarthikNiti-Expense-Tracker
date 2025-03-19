@@ -3,29 +3,38 @@ import jwt
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+from fastapi import HTTPException, status
 
-# Load environment variables
 load_dotenv()
-JWT_SECRET = os.getenv("JWT_SECRET")
+JWT_SECRET = os.getenv("SECRET_KEY")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
 
-# Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Hash password
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
-# Verify password
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
-# Generate JWT token
 def create_jwt_token(data: dict, expires_delta: timedelta = timedelta(hours=1)) -> str:
+    """Creates a JWT token with an expiration time."""
     to_encode = data.copy()
-    to_encode.update({"exp": datetime.utcnow() + expires_delta})
+    expire = datetime.utcnow() + expires_delta
+    to_encode.update({"exp": expire})
+    
     return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
-# Decode JWT token
 def decode_jwt_token(token: str) -> dict:
-    return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+    """Decodes JWT and validates it."""
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired"
+        )
+    except jwt.JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
