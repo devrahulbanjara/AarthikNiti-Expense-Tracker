@@ -5,12 +5,17 @@ from core.security import hash_password, verify_password, create_jwt_token
 from core.config import get_current_user
 from datetime import timedelta
 from bson import ObjectId
+from services.profile_service import create_default_profile  
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
+
 
 async def get_next_user_id():
     last_user = await users_collection.find_one({}, sort=[("user_id", -1)])
     return (last_user["user_id"] + 1) if last_user else 1
+
+
 
 @router.post("/signup", response_model=UserResponse)
 async def signup(user: SignupRequest):
@@ -27,21 +32,15 @@ async def signup(user: SignupRequest):
         "email": user.email,
         "password": hashed_password,
         "currency_preference": user.currency_preference,
+        "profiles": []
     }
     await users_collection.insert_one(new_user)
 
-    # ✅ Create default profile in profiles_collection
-    default_profile = {
-        "user_id": user_id,
-        "profile_id": 1,  # First profile
-        "profile_name": "Personal",
-        "profile_total_income": 0,
-        "profile_total_expense": 0,
-        "profile_total_balance": 0,
-    }
-    await profiles_collection.insert_one(default_profile)
+    await create_default_profile(user_id)
 
     return UserResponse(**new_user)
+
+
 
 
 @router.post("/login")
@@ -53,6 +52,9 @@ async def login(user: LoginRequest):
     token = create_jwt_token({"user_id": db_user["user_id"], "email": db_user["email"]}, expires_delta=timedelta(hours=1))
     
     return {"access_token": token, "token_type": "bearer"}
+
+
+
 
 @router.get("/me", response_model=UserResponse)
 async def get_user_data(user: dict = Depends(get_current_user)):
