@@ -18,6 +18,11 @@ class IncomeUpdateRequest(BaseModel):
 async def update_income_endpoint(request: IncomeUpdateRequest, user: dict = Depends(get_current_user)):
     return await update_income(user["user_id"], request.amount)
 
+
+class AddExpenseRequest(BaseModel):
+    description: str
+    amount: float
+
 @router.post("/add_expense")
-async def add_expense_endpoint(description: str, amount: float, user: dict = Depends(get_current_user)):
-    return await add_expense(user["user_id"], description, amount)
+async def add_expense_endpoint(request: AddExpenseRequest, user: dict = Depends(get_current_user)):
+    return await add_expense(user["user_id"], request.description, request.amount)
