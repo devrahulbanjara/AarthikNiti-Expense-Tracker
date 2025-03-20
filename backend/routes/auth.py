@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from database import users_collection
+from database import users_collection, profiles_collection
 from models.user import SignupRequest, LoginRequest, UserResponse
 from core.security import hash_password, verify_password, create_jwt_token
 from core.config import get_current_user
@@ -27,11 +27,22 @@ async def signup(user: SignupRequest):
         "email": user.email,
         "password": hashed_password,
         "currency_preference": user.currency_preference,
-        "profiles": []  # Empty profiles list at first
     }
     await users_collection.insert_one(new_user)
 
+    # ✅ Create default profile in profiles_collection
+    default_profile = {
+        "user_id": user_id,
+        "profile_id": 1,  # First profile
+        "profile_name": "Personal",
+        "profile_total_income": 0,
+        "profile_total_expense": 0,
+        "profile_total_balance": 0,
+    }
+    await profiles_collection.insert_one(default_profile)
+
     return UserResponse(**new_user)
+
 
 @router.post("/login")
 async def login(user: LoginRequest):
