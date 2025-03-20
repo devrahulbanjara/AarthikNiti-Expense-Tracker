@@ -1,17 +1,19 @@
 from fastapi import FastAPI
-from routes import auth
 from fastapi.middleware.cors import CORSMiddleware
+from routes import auth
 
 app = FastAPI()
 
+# ✅ Allow frontend to make requests to backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change this to your frontend URL later
+    allow_origins=["http://localhost:5173"],  # ✅ Change to your frontend URL
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # ✅ Allow all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],  # ✅ Allow all headers (Authorization, Content-Type, etc.)
 )
 
+# Include authentication routes
 app.include_router(auth.router)
 
 @app.get("/")
