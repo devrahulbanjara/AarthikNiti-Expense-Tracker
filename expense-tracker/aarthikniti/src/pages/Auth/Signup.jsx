@@ -46,9 +46,9 @@ function Signup() {
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex flex-col sm:flex-row h-screen">
       {/* Left Panel */}
-      <div className="w-1/2 bg-[#065336] text-white flex flex-col items-start justify-between p-8">
+      <div className="w-screen sm:w-1/2 bg-[#065336] text-white flex flex-col items-start justify-between p-8">
         <div className="flex flex-col items-start justify-center w-full h-full mb-4 border-b border-white">
           <img
             src="aarthikniti.png"
@@ -67,7 +67,7 @@ function Signup() {
       </div>
 
       {/* Right Panel */}
-      <div className="w-1/2 flex flex-col items-center justify-center p-8">
+      <div className="w-screen sm:w-1/2 flex flex-col items-center justify-center p-8">
         <h2 className="text-3xl mb-2 mt-4">Create an account</h2>
         <p className="mb-4 text-gray-700">Enter your details to sign up</p>
         <form onSubmit={handleSubmit} className="w-full max-w-md">
