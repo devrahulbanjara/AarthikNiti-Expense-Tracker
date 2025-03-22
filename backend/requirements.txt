@@ -1,8 +1,8 @@
-fastapi
-uvicorn
-motor
-pymongo
-python-dotenv
-passlib
-bcrypt
-pyjwt
+fastapi==0.115.8
+uvicorn==0.34.0
+motor==3.7.0
+python-dotenv==1.0.1
+passlib==1.7.4
+bcrypt==4.0.1
+pyjwt==2.10.1
+pymongo[srv]==3.6
