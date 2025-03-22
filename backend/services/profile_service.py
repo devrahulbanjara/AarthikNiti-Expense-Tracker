@@ -56,20 +56,36 @@ async def create_default_profile(user_id: int):
     return 1  # Default profile_id
 
 
-async def update_income(user_id: int, amount: float):
-    """Adds income to the active profile."""
+async def update_income(user_id: int, amount: float, description: str):
+    """Adds income to the active profile and stores it in transactions."""
+    
     user = await users_collection.find_one({"user_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     profile = await get_active_profile(user_id)
 
     new_income = profile["profile_total_income"] + amount
     new_balance = profile["profile_total_balance"] + amount
 
+    # Insert income transaction into transactions_collection
+    await transactions_collection.insert_one({
+        "user_id": user_id,
+        "profile_id": user["active_profile_id"],
+        "transaction_type": "income",
+        "transaction_description": description,
+        "transaction_amount": amount,
+        "timestamp": datetime.utcnow()
+    })
+
+    # Update the profile with new income & balance
     await profiles_collection.update_one(
         {"user_id": user_id, "profile_id": user["active_profile_id"]},
         {"$set": {"profile_total_income": new_income, "profile_total_balance": new_balance}}
     )
 
     return {"message": "Income updated successfully"}
+
 
 
 async def add_expense(user_id: int, description: str, amount: float):
@@ -115,3 +131,25 @@ async def create_profile(user_id: int, profile_name: str):
     })
 
     return {"message": "Profile created successfully", "profile_id": new_profile_id}
+
+
+async def get_recent_transactions(user_id: int, limit: int = 5):
+    """Fetches the latest transactions (income & expenses) for the active profile."""
+    
+    user = await users_collection.find_one({"user_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    active_profile_id = user.get("active_profile_id")
+    if not active_profile_id:
+        raise HTTPException(status_code=404, detail="No active profile found")
+
+    transactions = await transactions_collection.find(
+        {"user_id": user_id, "profile_id": active_profile_id}
+    ).sort("timestamp", -1).limit(limit).to_list(length=limit)
+
+    # Convert `_id` to string for JSON compatibility
+    for transaction in transactions:
+        transaction["_id"] = str(transaction["_id"])
+
+    return transactions
