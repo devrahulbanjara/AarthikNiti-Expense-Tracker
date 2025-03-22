@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from core.config import get_current_user
 from services.profile_service import (
-    get_active_profile, update_income, add_expense, create_profile, switch_profile
+    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions
 )
 from pydantic import BaseModel
 
@@ -16,12 +16,13 @@ async def dashboard(user: dict = Depends(get_current_user)):
 
 class IncomeUpdateRequest(BaseModel):
     amount: float
+    description: str
 
 
 @router.post("/update_income")
 async def update_income_endpoint(request: IncomeUpdateRequest, user: dict = Depends(get_current_user)):
     """Updates income for the active profile."""
-    return await update_income(user["user_id"], request.amount)
+    return await update_income(user["user_id"], request.amount, request.description)
 
 
 class AddExpenseRequest(BaseModel):
@@ -53,3 +54,8 @@ class ProfileSwitchRequest(BaseModel):
 async def switch_profile_endpoint(request: ProfileSwitchRequest, user: dict = Depends(get_current_user)):
     """Switches to another profile."""
     return await switch_profile(user["user_id"], request.profile_id)
+
+@router.get("/recent_transactions")
+async def recent_transactions(user: dict = Depends(get_current_user)):
+    """Fetches the top 10 recent transactions for the active profile."""
+    return await get_recent_transactions(user["user_id"])
