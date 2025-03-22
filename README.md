@@ -36,7 +36,7 @@ AarthikNiti-Expense-Tracker/
 ### Prerequisites
 
 - Node.js & npm
-- Python 3.x
+- Python 3.10.x
 - Docker (optional)
 - MongoDB
 
