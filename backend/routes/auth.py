@@ -31,7 +31,7 @@ async def signup(user: SignupRequest):
         "email": user.email,
         "password": hashed_password,
         "currency_preference": user.currency_preference,
-        "active_profile_id": None  # Will be set after creating the default profile
+        "active_profile_id": None  
     }
     await users_collection.insert_one(new_user)
 

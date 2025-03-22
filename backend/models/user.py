@@ -5,7 +5,7 @@ class SignupRequest(BaseModel):
     full_name: str
     email: EmailStr
     password: str
-    currency_preference: Literal["NPR", "INR", "USD"]
+    currency_preference: Literal["NPR", "INR", "USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CNY"]
 
 class LoginRequest(BaseModel):
     email: EmailStr
