@@ -144,7 +144,6 @@ const DashboardPage = () => {
 
         <main className="grid gap-6 p-4 md:p-6">
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Transactions */}
             <div className="rounded-lg border bg-white shadow-sm">
               <div className="flex items-center justify-between p-4 border-b">
                 <h3 className="font-medium">Recent Transactions</h3>
