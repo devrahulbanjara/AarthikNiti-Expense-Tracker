@@ -3,6 +3,54 @@ from fastapi import HTTPException
 from datetime import datetime
 from bson import ObjectId
 
+async def get_expense_breakdown(user_id: int):
+    """Fetches the expense breakdown for the active profile with percentages rounded to 2 decimal places."""
+    
+    user = await users_collection.find_one({"user_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    active_profile_id = user.get("active_profile_id")
+    if not active_profile_id:
+        raise HTTPException(status_code=404, detail="No active profile found")
+
+    expenses = await transactions_collection.find(
+        {
+            "user_id": user_id,
+            "profile_id": active_profile_id,
+            "transaction_type": "expense"
+        }
+    ).to_list(length=None)
+
+    expense_breakdown = {}
+    total_expense = 0
+
+    for expense in expenses:
+        category = expense.get("transaction_category", "Uncategorized")
+        amount = expense.get("transaction_amount", 0)
+        total_expense += amount
+        expense_breakdown[category] = expense_breakdown.get(category, 0) + amount
+
+    if total_expense == 0:
+        return {"expense_breakdown": {}}
+
+    # Calculate percentages and round to 2 decimal places
+    expense_percentage = {
+        category: round((amount / total_expense) * 100, 2)
+        for category, amount in expense_breakdown.items()
+    }
+
+    # Adjust percentages to ensure the total is exactly 100
+    total_percentage = sum(expense_percentage.values())
+    if total_percentage != 100:
+        difference = 100 - total_percentage
+        # Adjust the largest category by the difference
+        largest_category = max(expense_percentage, key=expense_percentage.get)
+        expense_percentage[largest_category] += difference
+
+    return {"expense_breakdown": expense_percentage}
+
+
 
 async def get_active_profile(user_id: int):
     """Fetches the active profile for the user and converts ObjectId to string."""
@@ -88,7 +136,7 @@ async def update_income(user_id: int, amount: float, description: str):
 
 
 
-async def add_expense(user_id: int, description: str, amount: float):
+async def add_expense(user_id: int, description: str, amount: float, category: str):
     """Adds an expense to the active profile."""
     user = await users_collection.find_one({"user_id": user_id})
     profile = await get_active_profile(user_id)
@@ -104,6 +152,7 @@ async def add_expense(user_id: int, description: str, amount: float):
         "profile_id": user["active_profile_id"],
         "transaction_type": "expense",
         "transaction_description": description,
+        "transaction_category": category,
         "transaction_amount": amount,
         "timestamp": datetime.utcnow()
     })
