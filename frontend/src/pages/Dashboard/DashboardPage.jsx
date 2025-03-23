@@ -121,8 +121,8 @@ const DashboardPage = () => {
             {profileDropdownOpen && (
               <div className="absolute right-0 mt-2 w-56 rounded-md border bg-white shadow-lg">
                 <div className="p-2 border-b">
-                  <p className="text-sm font-medium">User</p>
-                  <p className="text-xs text-gray-500">user@example.com</p>
+                  <p className="text-sm font-medium">Shreeya</p>
+                  <p className="text-xs text-gray-500">shreeya@example.com</p>
                 </div>
                 <div className="p-1">
                   <Link to="/profile" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer" onClick={() => setProfileDropdownOpen(false)}>
