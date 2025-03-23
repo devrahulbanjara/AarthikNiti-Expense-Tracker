@@ -1,543 +1,317 @@
-import { useState, useRef, useEffect } from "react";
-import {
-  BarChart3,
-  CreditCard,
-  DollarSign,
-  Home,
-  Menu,
-  Moon,
-  PieChart,
-  Plus,
-  Settings,
-  Sun,
-  User,
-  X,
-  ChevronDown,
-} from "lucide-react";
-import girlImg from "../../assets/ExtraImg/girl.jpg";
+import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"
+import { ArrowDown, ArrowUp, ChevronDown, FileText, Home, LogOut, Menu, Plus, Search, Settings, User, X, Edit, Trash, StickyNoteIcon as NoteIcon } from 'lucide-react'
+import logo from "../../assets/Logo/aarthikniti.png";
 
-export default function DashboardPage() {
-  const [accountType, setAccountType] = useState("Personal");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [showAccountDropdown, setShowAccountDropdown] = useState(false);
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [activeTab, setActiveTab] = useState("transactions");
+// Sample data
+const transactions = [
+  { id: 1, type: "income", amount: 2500, category: "Salary", description: "Monthly salary", date: "2025-03-15" },
+  { id: 2, type: "expense", amount: 120, category: "Food", description: "Grocery shopping", date: "2025-03-14" },
+  { id: 3, type: "expense", amount: 45, category: "Transportation", description: "Uber ride", date: "2025-03-13" },
+  { id: 4, type: "expense", amount: 200, category: "Bills", description: "Electricity bill", date: "2025-03-10" },
+]
 
-  const accountDropdownRef = useRef(null);
-  const userDropdownRef = useRef(null);
+const expenseData = [
+  { name: "Food", value: 450, color: "#f97316" },
+  { name: "Transportation", value: 300, color: "#8b5cf6" },
+  { name: "Housing", value: 800, color: "#06b6d4" },
+  { name: "Entertainment", value: 200, color: "#22c55e" },
+  { name: "Shopping", value: 250, color: "#ec4899" },
+  { name: "Bills", value: 350, color: "#3b82f6" },
+]
 
-  // Check if mobile on mount and window resize
+const accounts = [
+  { name: "Personal", id: "personal" },
+  { name: "Business", id: "business" },
+  { name: "Travel", id: "travel" },
+  { name: "Other", id: "other" },
+]
+
+const navItems = [
+  { name: "Dashboard", icon: Home, href: "/" },
+  { name: "Income", icon: ArrowUp, href: "/income" },
+  { name: "Expenses", icon: ArrowDown, href: "/expenses" },
+  { name: "Reports", icon: NoteIcon, href: "/reports" },
+  { name: "Budgeting & Alerts", icon: FileText, href: "/budgeting" },
+]
+
+const DashboardPage = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
+  const [activeAccount, setActiveAccount] = useState("Personal")
+  const [showAllTransactions, setShowAllTransactions] = useState(false)
+  const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false)
+  const [transactionType, setTransactionType] = useState("income")
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false)
+  const [transactionList, setTransactionList] = useState(transactions)
+
   useEffect(() => {
-    const checkIfMobile = () => setIsMobile(window.innerWidth < 768);
-    checkIfMobile();
-    window.addEventListener("resize", checkIfMobile);
-    return () => window.removeEventListener("resize", checkIfMobile);
-  }, []);
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        accountDropdownRef.current &&
-        !accountDropdownRef.current.contains(event.target)
-      ) {
-        setShowAccountDropdown(false);
-      }
-      if (
-        userDropdownRef.current &&
-        !userDropdownRef.current.contains(event.target)
-      ) {
-        setShowUserDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Static data for the expense tracker
-  const accounts = {
-    Personal: { balance: 5840.25, spent: 1240.75, budget: 3000 },
-    Business: { balance: 12450.8, spent: 4320.45, budget: 8000 },
-    Travel: { balance: 2100.5, spent: 850.25, budget: 1500 },
-    Others: { balance: 750.3, spent: 320.1, budget: 1000 },
-  };
-
-  const recentTransactions = [
-    {
-      id: 1,
-      name: "Grocery Shopping",
-      category: "Food",
-      amount: -85.2,
-      date: "2025-03-20",
-    },
-    {
-      id: 2,
-      name: "Salary Deposit",
-      category: "Income",
-      amount: 3200.0,
-      date: "2025-03-15",
-    },
-    {
-      id: 3,
-      name: "Electric Bill",
-      category: "Utilities",
-      amount: -120.5,
-      date: "2025-03-12",
-    },
-    {
-      id: 4,
-      name: "Freelance Payment",
-      category: "Income",
-      amount: 450.0,
-      date: "2025-03-10",
-    },
-    {
-      id: 5,
-      name: "Restaurant Dinner",
-      category: "Food",
-      amount: -65.8,
-      date: "2025-03-08",
-    },
-    {
-      id: 6,
-      name: "Gym Membership",
-      category: "Health",
-      amount: -49.99,
-      date: "2025-03-05",
-    },
-  ];
-
-  const upcomingBills = [
-    { id: 1, name: "Rent Payment", amount: 1200.0, dueDate: "2025-04-01" },
-    { id: 2, name: "Internet Bill", amount: 59.99, dueDate: "2025-03-25" },
-    { id: 3, name: "Phone Bill", amount: 45.5, dueDate: "2025-03-28" },
-  ];
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const handleAccountChange = (account) => {
-    setAccountType(account);
-    setShowAccountDropdown(false);
-  };
-
-  const selectedAccount = accounts[accountType];
-  const spentPercentage =
-    (selectedAccount.spent / selectedAccount.budget) * 100;
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+      if (window.innerWidth < 768) setSidebarOpen(false)
+    }
+    checkIfMobile()
+    window.addEventListener("resize", checkIfMobile)
+    return () => window.removeEventListener("resize", checkIfMobile)
+  }, [])
 
   return (
-    <div className={`min-h-screen`}>
-      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Sidebar */}
-        <aside
-          className={`fixed inset-y-0 z-50 flex w-64 flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 transition-transform duration-300 md:static md:translate-x-0 ${
-            sidebarOpen || !isMobile ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          <div className="flex h-16 items-center justify-between border-b border-gray-200 dark:border-gray-700 px-4">
-            <div className="flex items-center gap-2">
-              <DollarSign className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                ExpenseTrack
-              </h1>
-            </div>
-            {isMobile && (
-              <button
-                className="rounded-md p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-                onClick={toggleSidebar}
-              >
-                <X className="h-5 w-5" />
-                <span className="sr-only">Close sidebar</span>
-              </button>
+    <div className="flex h-screen bg-gray-50">
+      {isMobile && sidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />}
+
+      {/* Sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r bg-green-700 text-white transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex h-16 items-center justify-between border-b border-green-600 px-4">
+        <Link to="/" className="flex items-center gap-2">
+        <img src="/aarthikniti.png" alt="Logo" width={32} height={32} className="logo" />
+        <span className="text-lg font-semibold">Aarthik Niti</span>
+        </Link>
+
+          {isMobile && <button className="p-2 rounded-md hover:bg-green-600 cursor-pointer" onClick={() => setSidebarOpen(false)}><X className="h-5 w-5" /></button>}
+        </div>
+
+        <div className="flex-1 overflow-auto py-4">
+          <div className="px-4 mb-6">
+            <button className="flex w-full items-center justify-between rounded-md border border-green-600 bg-green-600 p-2 text-left text-sm font-medium cursor-pointer" onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}>
+              {activeAccount}<ChevronDown className="h-4 w-4 ml-2" />
+            </button>
+            {accountDropdownOpen && (
+              <div className="absolute z-10 mt-1 w-full rounded-md border border-green-600 bg-green-700 shadow-lg">
+                {accounts.map(a => <button key={a.id} className="block w-full px-4 py-2 text-left text-sm hover:bg-green-600 cursor-pointer" onClick={() => {setActiveAccount(a.name); setAccountDropdownOpen(false)}}>{a.name}</button>)}
+                <button className="block w-full px-4 py-2 text-left text-sm hover:bg-green-600 border-t border-green-600 cursor-pointer" onClick={() => setAccountDropdownOpen(false)}>+ Add New Account</button>
+              </div>
             )}
           </div>
-          <nav className="flex-1 overflow-auto p-4">
-            <div className="space-y-1">
-              <a
-                href="#"
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-              >
-                <Home className="h-5 w-5" />
-                Dashboard
-              </a>
-              <a
-                href="#"
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-              >
-                <BarChart3 className="h-5 w-5" />
-                Analytics
-              </a>
-              <a
-                href="#"
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-              >
-                <CreditCard className="h-5 w-5" />
-                Accounts
-              </a>
-              <a
-                href="#"
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-              >
-                <PieChart className="h-5 w-5" />
-                Budgets
-              </a>
-              <a
-                href="#"
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-              >
-                <Settings className="h-5 w-5" />
-                Settings
-              </a>
-            </div>
+
+          <nav className="space-y-1 px-2">
+            {navItems.map(item => (
+              <Link key={item.name} to={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-green-600 cursor-pointer">
+                <item.icon className="h-5 w-5" />{item.name}
+              </Link>
+            ))}
           </nav>
-          <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-            <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                Rahul Banjara the Coder
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Rahul_the_bestCoder@gmail.com
-              </p>
-            </div>
+        </div>
+
+        <div className="border-t border-green-600 p-4">
+          <div className="flex items-center justify-between">
+            <Link to="/profile" className="flex items-center gap-2 text-sm font-medium cursor-pointer"><User className="h-5 w-5" />Profile</Link>
+            <Link to="/settings" className="flex items-center gap-2 text-sm font-medium cursor-pointer"><Settings className="h-5 w-5" />Settings</Link>
           </div>
-        </aside>
+          <div className="mt-4">
+            <button className="flex items-center gap-2 text-sm font-medium text-red-300 hover:text-red-200 cursor-pointer"><LogOut className="h-4 w-4" />Logout</button>
+          </div>
+        </div>
+      </div>
 
-        {/* Main content */}
-        <main className="flex-1 overflow-auto">
-          {/* Header */}
-          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 px-4 md:px-6">
-            {isMobile && (
-              <button
-                className="rounded-md p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-                onClick={toggleSidebar}
-              >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle sidebar</span>
-              </button>
+      {isMobile && !sidebarOpen && (
+        <button className="fixed left-4 top-4 z-40 rounded-md border bg-white p-2 shadow-md cursor-pointer" onClick={() => setSidebarOpen(true)}>
+          <Menu className="h-5 w-5 text-gray-500" />
+        </button>
+      )}
+
+      <div className={`flex-1 overflow-auto transition-all duration-300 ${sidebarOpen ? "ml-0 md:ml-64" : "ml-0"}`}>
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white px-4">
+          <h1 className="text-lg font-semibold md:text-2xl">Dashboard</h1>
+          <div className="relative">
+            <button className="flex items-center gap-2 rounded-full cursor-pointer" onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}>
+              <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <User className="h-5 w-5 text-gray-500" />
+              </div>
+            </button>
+            {profileDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-56 rounded-md border bg-white shadow-lg">
+                <div className="p-2 border-b">
+                  <p className="text-sm font-medium">User</p>
+                  <p className="text-xs text-gray-500">user@example.com</p>
+                </div>
+                <div className="p-1">
+                  <Link to="/profile" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer" onClick={() => setProfileDropdownOpen(false)}>
+                    <User className="h-4 w-4 text-gray-500" />Profile
+                  </Link>
+                  <Link to="/settings" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer" onClick={() => setProfileDropdownOpen(false)}>
+                    <Settings className="h-4 w-4 text-gray-500" />Settings
+                  </Link>
+                </div>
+                <div className="border-t p-1">
+                  <button className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer" onClick={() => setProfileDropdownOpen(false)}>
+                    <LogOut className="h-4 w-4" />Log out
+                  </button>
+                </div>
+              </div>
             )}
-            <div className="flex items-center gap-2">
-              <div className="relative" ref={accountDropdownRef}>
-                <button
-                  className="flex w-[180px] items-center justify-between rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
-                  onClick={() => setShowAccountDropdown(!showAccountDropdown)}
-                >
-                  <span>{accountType} Account</span>
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-                {showAccountDropdown && (
-                  <div className="absolute mt-1 w-full rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-1 shadow-lg">
-                    <button
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => handleAccountChange("Personal")}
-                    >
-                      Personal Account
-                    </button>
-                    <button
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => handleAccountChange("Business")}
-                    >
-                      Business Account
-                    </button>
-                    <button
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => handleAccountChange("Travel")}
-                    >
-                      Travel Account
-                    </button>
-                    <button
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => handleAccountChange("Others")}
-                    >
-                      Other Accounts
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="relative" ref={userDropdownRef}>
-                <button
-                  className="rounded-full"
-                  onClick={() => setShowUserDropdown(!showUserDropdown)}
-                >
-                  <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                    <img
-                      src={girlImg}
-                      alt="User"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                </button>
-                {showUserDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-1 shadow-lg">
-                    <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-2">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        My Account
-                      </p>
-                    </div>
-                    <button className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </button>
-                    <button className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
-                    </button>
-                    <div className="border-t border-gray-200 dark:border-gray-700">
-                      <button className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        Logout
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </header>
+          </div>
+        </header>
 
-          {/* Dashboard content */}
-          <div className="p-4 md:p-6 bg-gray-50 dark:bg-gray-900">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 shadow">
-                <div className="p-4">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Total Balance
-                  </h3>
-                  <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-                    ${selectedAccount.balance.toFixed(2)}
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    +2.5% from last month
-                  </p>
-                </div>
-              </div>
-              <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 shadow">
-                <div className="p-4">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Monthly Spent
-                  </h3>
-                  <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-                    ${selectedAccount.spent.toFixed(2)}
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {(
-                      (selectedAccount.spent / selectedAccount.budget) *
-                      100
-                    ).toFixed(1)}
-                    % of monthly budget
-                  </p>
-                </div>
-              </div>
-              <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 shadow">
-                <div className="p-4">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Monthly Budget
-                  </h3>
-                  <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-                    ${selectedAccount.budget.toFixed(2)}
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    $
-                    {(selectedAccount.budget - selectedAccount.spent).toFixed(
-                      2
-                    )}{" "}
-                    remaining
-                  </p>
-                </div>
-              </div>
-              <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 shadow">
-                <div className="p-4">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Budget Progress
-                  </h3>
-                  <div className="mt-2 h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
-                    <div
-                      className="h-2 rounded-full bg-blue-600 dark:bg-blue-500"
-                      style={{ width: `${spentPercentage}%` }}
-                    ></div>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                    <span>${selectedAccount.spent.toFixed(2)} spent</span>
-                    <span>${selectedAccount.budget.toFixed(2)} budget</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 p-1">
-                  <button
-                    className={`px-4 py-2 text-sm font-medium rounded-md ${
-                      activeTab === "transactions"
-                        ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                    }`}
-                    onClick={() => setActiveTab("transactions")}
-                  >
-                    Recent Transactions
+        <main className="grid gap-6 p-4 md:p-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Transactions */}
+            <div className="rounded-lg border bg-white shadow-sm">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h3 className="font-medium">Recent Transactions</h3>
+                <div className="flex items-center gap-2">
+                  <button className="flex items-center gap-1 rounded-md border px-2 py-1 text-sm hover:bg-gray-100 cursor-pointer" onClick={() => setIsAddTransactionOpen(true)}>
+                    <Plus className="h-4 w-4 mr-1" />Add
                   </button>
-                  <button
-                    className={`px-4 py-2 text-sm font-medium rounded-md ${
-                      activeTab === "upcoming"
-                        ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                    }`}
-                    onClick={() => setActiveTab("upcoming")}
-                  >
-                    Upcoming Bills
-                  </button>
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                    <input type="search" placeholder="Search..." className="w-[150px] rounded-md border pl-8 py-1 text-sm" />
+                  </div>
                 </div>
-                <button className="flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Transaction
-                </button>
               </div>
-
-              <div className="mt-4">
-                {activeTab === "transactions" && (
-                  <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 shadow">
-                    <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-                      <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                        Recent Transactions
-                      </h2>
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        Your recent financial activity across all accounts.
-                      </p>
-                    </div>
-                    <div className="p-6">
-                      <div className="space-y-4">
-                        {recentTransactions.map((transaction) => (
-                          <div
-                            key={transaction.id}
-                            className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0 last:pb-0"
-                          >
-                            <div className="flex items-start gap-3">
-                              <div
-                                className={`rounded-full p-2 ${
-                                  transaction.amount > 0
-                                    ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                                    : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
-                                }`}
-                              >
-                                {transaction.amount > 0 ? (
-                                  <DollarSign className="h-4 w-4" />
-                                ) : (
-                                  <CreditCard className="h-4 w-4" />
-                                )}
-                              </div>
-                              <div>
-                                <p className="font-medium text-gray-900 dark:text-white">
-                                  {transaction.name}
-                                </p>
-                                <div className="flex items-center gap-2">
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    {transaction.date}
-                                  </p>
-                                  <span className="inline-flex items-center rounded-full border border-gray-200 dark:border-gray-700 px-2 py-0.5 text-xs font-medium text-gray-800 dark:text-gray-200">
-                                    {transaction.category}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <p
-                              className={`font-medium ${
-                                transaction.amount > 0
-                                  ? "text-green-600 dark:text-green-400"
-                                  : "text-red-600 dark:text-red-400"
-                              }`}
-                            >
-                              {transaction.amount > 0 ? "+" : ""}
-                              {transaction.amount.toFixed(2)}
-                            </p>
-                          </div>
-                        ))}
+              <div className="p-4">
+                <div className="space-y-4">
+                  {transactionList.slice(0, showAllTransactions ? undefined : 5).map(t => (
+                    <div key={t.id} className="flex items-center justify-between rounded-lg border p-3 hover:bg-gray-50">
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-9 w-9 items-center justify-center rounded-full ${t.type === "income" ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"}`}>
+                          {t.type === "income" ? <ArrowUp className="h-5 w-5" /> : <ArrowDown className="h-5 w-5" />}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{t.category}</p>
+                          <p className="text-xs text-gray-500">{t.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <p className={`text-sm font-medium ${t.type === "income" ? "text-emerald-600" : "text-red-600"}`}>
+                            {t.type === "income" ? "+" : "-"}${t.amount.toFixed(2)}
+                          </p>
+                          <p className="text-xs text-gray-500">{new Date(t.date).toLocaleDateString()}</p>
+                        </div>
+                        <div className="flex">
+                          <button className="p-1 rounded-md hover:bg-gray-100 cursor-pointer" onClick={() => setIsAddTransactionOpen(true)}>
+                            <Edit className="h-4 w-4 text-gray-500" />
+                          </button>
+                          <button className="p-1 rounded-md hover:bg-gray-100 cursor-pointer" onClick={() => setTransactionList(transactionList.filter(item => item.id !== t.id))}>
+                            <Trash className="h-4 w-4 text-red-500" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {activeTab === "upcoming" && (
-                  <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 shadow">
-                    <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-                      <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                        Upcoming Bills
-                      </h2>
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        Bills and payments due in the next 30 days.
-                      </p>
-                    </div>
-                    <div className="p-6">
-                      <div className="space-y-4">
-                        {upcomingBills.map((bill) => (
-                          <div
-                            key={bill.id}
-                            className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0 last:pb-0"
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className="rounded-full bg-amber-100 p-2 text-amber-700 dark:bg-amber-900 dark:text-amber-300">
-                                <CreditCard className="h-4 w-4" />
-                              </div>
-                              <div>
-                                <p className="font-medium text-gray-900 dark:text-white">
-                                  {bill.name}
-                                </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  Due: {bill.dueDate}
-                                </p>
-                              </div>
-                            </div>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              ${bill.amount.toFixed(2)}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                  ))}
+                </div>
+                <div className="mt-4 text-center">
+                  <button className="flex items-center gap-1 mx-auto text-sm text-blue-600 hover:text-blue-700 cursor-pointer" onClick={() => setShowAllTransactions(!showAllTransactions)}>
+                    {showAllTransactions ? "Show Less" : "View All Transactions"}
+                    <ChevronDown className={`ml-1 h-4 w-4 transition-transform ${showAllTransactions ? "rotate-180" : ""}`} />
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 shadow">
-                <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                    Spending by Category
-                  </h2>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Your spending breakdown for the current month.
-                  </p>
-                </div>
-                <div className="flex h-[200px] items-center justify-center p-6">
-                  <div className="text-center text-gray-500 dark:text-gray-400">
-                    <PieChart className="mx-auto h-16 w-16 opacity-50" />
-                    <p className="mt-2">Chart visualization will appear here</p>
-                  </div>
-                </div>
+            {/* Expense Breakdown */}
+            <div className="rounded-lg border bg-white shadow-sm">
+              <div className="p-4 border-b">
+                <h3 className="font-medium">Expenses Breakdown</h3>
               </div>
-              <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 shadow">
-                <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                    Monthly Overview
-                  </h2>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Income vs. expenses for the last 6 months.
-                  </p>
+              <div className="p-4">
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={expenseData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value">
+                        {expenseData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                      </Pie>
+                      <Tooltip content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload
+                          const total = expenseData.reduce((sum, item) => sum + item.value, 0)
+                          return (
+                            <div className="rounded-lg border bg-white p-2 shadow-sm">
+                              <p className="font-medium">{data.name}</p>
+                              <p className="text-sm">${data.value.toFixed(2)}</p>
+                              <p className="text-xs text-gray-500">{((data.value / total) * 100).toFixed(1)}%</p>
+                            </div>
+                          )
+                        }
+                        return null
+                      }} />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
-                <div className="flex h-[200px] items-center justify-center p-6">
-                  <div className="text-center text-gray-500 dark:text-gray-400">
-                    <BarChart3 className="mx-auto h-16 w-16 opacity-50" />
-                    <p className="mt-2">Chart visualization will appear here</p>
-                  </div>
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  {expenseData.map((entry, index) => (
+                    <div key={`legend-${index}`} className="flex items-center gap-2">
+                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: entry.color }} />
+                      <span className="text-xs">{entry.name}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
         </main>
+
+        {/* Add Transaction Dialog */}
+        {isAddTransactionOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <div className="w-full max-w-md rounded-lg border bg-white shadow-lg">
+              <div className="p-4 border-b">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium">Add Transaction</h3>
+                  <button className="p-1 rounded-md hover:bg-gray-100 cursor-pointer" onClick={() => setIsAddTransactionOpen(false)}>
+                    <X className="h-5 w-5 text-gray-500" />
+                  </button>
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="flex rounded-md border mb-4">
+                  <button className={`flex-1 px-4 py-2 text-sm ${transactionType === "income" ? "bg-blue-600 text-white" : "hover:bg-gray-100"} rounded-l-md cursor-pointer`} onClick={() => setTransactionType("income")}>Income</button>
+                  <button className={`flex-1 px-4 py-2 text-sm ${transactionType === "expense" ? "bg-blue-600 text-white" : "hover:bg-gray-100"} rounded-r-md cursor-pointer`} onClick={() => setTransactionType("expense")}>Expense</button>
+                </div>
+                <form onSubmit={(e) => {e.preventDefault(); setIsAddTransactionOpen(false)}} className="space-y-4">
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium">Category</label>
+                    <select className="w-full rounded-md border px-3 py-2 cursor-pointer">
+                      <option value="">Select category</option>
+                      {(transactionType === "income" ? ["Salary", "Freelance", "Investments", "Gifts", "Other"] : ["Food", "Transportation", "Housing", "Entertainment", "Shopping", "Bills", "Health", "Education", "Travel", "Other"]).map(cat => (
+                        <option key={cat} value={cat.toLowerCase()}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium">Amount</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                      <input type="number" step="0.01" min="0" placeholder="0.00" className="w-full rounded-md border pl-7 px-3 py-2" />
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium">Date</label>
+                    <input type="date" className="w-full rounded-md border px-3 py-2 cursor-pointer" />
+                  </div>
+                  {transactionType === "expense" && (
+                    <div className="grid gap-2">
+                      <label className="text-sm font-medium">Payment Method</label>
+                      <select className="w-full rounded-md border px-3 py-2 cursor-pointer">
+                        <option value="">Select payment method</option>
+                        {["Cash", "Credit Card", "Debit Card", "Bank Transfer", "Mobile Payment", "Other"].map(method => (
+                          <option key={method} value={method.toLowerCase().replace(" ", "_")}>{method}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium">Description</label>
+                    <textarea placeholder="Add a description..." className="w-full rounded-md border px-3 py-2" rows={3} />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" id={`${transactionType}-recurring`} className="rounded border-gray-300 cursor-pointer" />
+                    <label htmlFor={`${transactionType}-recurring`} className="text-sm cursor-pointer">Recurring transaction</label>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-4 border-t">
+                    <button type="button" className="px-4 py-2 rounded-md border hover:bg-gray-100 cursor-pointer" onClick={() => setIsAddTransactionOpen(false)}>Cancel</button>
+                    <button type="submit" className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 cursor-pointer">Add Transaction</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
-  );
+  )
 }
+
+export default DashboardPage;

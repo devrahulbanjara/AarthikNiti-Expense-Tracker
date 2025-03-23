@@ -68,7 +68,7 @@ const App = () => {
               }
             />
             <Route
-              path="/expense"
+              path="/expenses"
               element={
                 <ProtectedRoute>
                   <Expense />
