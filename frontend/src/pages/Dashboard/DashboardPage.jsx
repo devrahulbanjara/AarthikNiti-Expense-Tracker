@@ -4,7 +4,6 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"
 import { ArrowDown, ArrowUp, ChevronDown, FileText, Home, LogOut, Menu, Plus, Search, Settings, User, X, Edit, Trash, StickyNoteIcon as NoteIcon } from 'lucide-react'
 import logo from "../../assets/Logo/aarthikniti.png";
 
-// Sample data
 const transactions = [
   { id: 1, type: "income", amount: 2500, category: "Salary", description: "Monthly salary", date: "2025-03-15" },
   { id: 2, type: "expense", amount: 120, category: "Food", description: "Grocery shopping", date: "2025-03-14" },
@@ -61,7 +60,6 @@ const DashboardPage = () => {
     <div className="flex h-screen bg-gray-50">
       {isMobile && sidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />}
 
-      {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r bg-green-700 text-white transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-16 items-center justify-between border-b border-green-600 px-4">
         <Link to="/" className="flex items-center gap-2">
@@ -201,7 +199,6 @@ const DashboardPage = () => {
               </div>
             </div>
 
-            {/* Expense Breakdown */}
             <div className="rounded-lg border bg-white shadow-sm">
               <div className="p-4 border-b">
                 <h3 className="font-medium">Expenses Breakdown</h3>
@@ -243,7 +240,6 @@ const DashboardPage = () => {
           </div>
         </main>
 
-        {/* Add Transaction Dialog */}
         {isAddTransactionOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
             <div className="w-full max-w-md rounded-lg border bg-white shadow-lg">
