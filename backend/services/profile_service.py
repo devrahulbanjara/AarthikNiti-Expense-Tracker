@@ -4,7 +4,7 @@ from datetime import datetime
 from bson import ObjectId
 
 async def get_expense_breakdown(user_id: int):
-    """Fetches the expense breakdown for the active profile with percentages rounded to 2 decimal places."""
+    """Fetches the expense breakdown for the active profile."""
     
     user = await users_collection.find_one({"user_id": user_id})
     if not user:
@@ -23,32 +23,12 @@ async def get_expense_breakdown(user_id: int):
     ).to_list(length=None)
 
     expense_breakdown = {}
-    total_expense = 0
-
     for expense in expenses:
         category = expense.get("transaction_category", "Uncategorized")
         amount = expense.get("transaction_amount", 0)
-        total_expense += amount
         expense_breakdown[category] = expense_breakdown.get(category, 0) + amount
 
-    if total_expense == 0:
-        return {"expense_breakdown": {}}
-
-    # Calculate percentages and round to 2 decimal places
-    expense_percentage = {
-        category: round((amount / total_expense) * 100, 2)
-        for category, amount in expense_breakdown.items()
-    }
-
-    # Adjust percentages to ensure the total is exactly 100
-    total_percentage = sum(expense_percentage.values())
-    if total_percentage != 100:
-        difference = 100 - total_percentage
-        # Adjust the largest category by the difference
-        largest_category = max(expense_percentage, key=expense_percentage.get)
-        expense_percentage[largest_category] += difference
-
-    return {"expense_breakdown": expense_percentage}
+    return {"expense_breakdown": expense_breakdown}
 
 
 
