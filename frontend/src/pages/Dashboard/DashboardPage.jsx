@@ -63,7 +63,7 @@ const DashboardPage = () => {
       <div className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r bg-green-700 text-white transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-16 items-center justify-between border-b border-green-600 px-4">
         <Link to="/" className="flex items-center gap-2">
-        <img src="/aarthikniti.png" alt="Logo" width={32} height={32} className="logo" />
+        <img src="/aarthikniti.png" alt="Logo" width={32} height={32} className="" />
         <span className="text-lg font-semibold">Aarthik Niti</span>
         </Link>
 
@@ -90,16 +90,6 @@ const DashboardPage = () => {
               </Link>
             ))}
           </nav>
-        </div>
-
-        <div className="border-t border-green-600 p-4">
-          <div className="flex items-center justify-between">
-            <Link to="/profile" className="flex items-center gap-2 text-sm font-medium cursor-pointer"><User className="h-5 w-5" />Profile</Link>
-            <Link to="/settings" className="flex items-center gap-2 text-sm font-medium cursor-pointer"><Settings className="h-5 w-5" />Settings</Link>
-          </div>
-          <div className="mt-4">
-            <button className="flex items-center gap-2 text-sm font-medium text-red-300 hover:text-red-200 cursor-pointer"><LogOut className="h-4 w-4" />Logout</button>
-          </div>
         </div>
       </div>
 
@@ -281,8 +271,10 @@ const DashboardPage = () => {
                       <label className="text-sm font-medium">Payment Method</label>
                       <select className="w-full rounded-md border px-3 py-2 cursor-pointer">
                         <option value="">Select payment method</option>
-                        {["Cash", "Credit Card", "Debit Card", "Bank Transfer", "Mobile Payment", "Other"].map(method => (
-                          <option key={method} value={method.toLowerCase().replace(" ", "_")}>{method}</option>
+                        {["Cash", "Credit Card", "Debit Card", "Bank Transfer", "Mobile Payment", "Other"].map
+                        (method => (
+                          <option key={method} value={method.toLowerCase().replace(" ", "_")}>{method}
+                        </option>
                         ))}
                       </select>
                     </div>
