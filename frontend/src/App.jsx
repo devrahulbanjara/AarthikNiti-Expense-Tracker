@@ -15,6 +15,8 @@ import {
   ProtectedRoute,
   PublicRoute,
 } from "./components/ProtectedRoute/ProtectedRoute";
+import Reports from "./pages/Dashboard/Reports";
+import Budgeting from "./pages/Dashboard/Budgeting";
 
 const App = () => {
   return (
@@ -77,6 +79,22 @@ const App = () => {
             />
             <Route path="/forgotpw" element={<ForgotPassword />} />
           </Route>
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <Reports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/budgeting"
+              element={
+                <ProtectedRoute>
+                  <Budgeting />
+                </ProtectedRoute>
+              }
+            />
         </Routes>
       </Router>
     </div>
