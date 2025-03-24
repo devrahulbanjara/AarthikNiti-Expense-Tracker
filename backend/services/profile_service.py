@@ -1,7 +1,28 @@
 from database import profiles_collection, transactions_collection, users_collection
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
 from datetime import datetime
 from bson import ObjectId
+from core.security import JWT_ALGORITHM, JWT_SECRET
+from fastapi.security import OAuth2PasswordBearer
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    """Decode JWT and fetch user details"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = payload.get("user_id")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        user = await users_collection.find_one({"user_id": user_id}, {"_id": 0, "password": 0})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return user
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication token")
+
 
 async def get_expense_breakdown(user_id: int):
     """Fetches the expense breakdown for the active profile."""
