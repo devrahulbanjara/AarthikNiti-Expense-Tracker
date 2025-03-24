@@ -17,12 +17,13 @@ async def dashboard(user: dict = Depends(get_current_user)):
 class IncomeUpdateRequest(BaseModel):
     amount: float
     description: str
+    category: str
 
 
 @router.post("/update_income")
 async def update_income_endpoint(request: IncomeUpdateRequest, user: dict = Depends(get_current_user)):
     """Updates income for the active profile."""
-    return await update_income(user["user_id"], request.amount, request.description)
+    return await update_income(user["user_id"], request.amount, request.description, request.category)
 
 
 class AddExpenseRequest(BaseModel):

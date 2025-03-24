@@ -84,7 +84,7 @@ async def create_default_profile(user_id: int):
     return 1  # Default profile_id
 
 
-async def update_income(user_id: int, amount: float, description: str):
+async def update_income(user_id: int, amount: float, description: str, category: str):
     """Adds income to the active profile and stores it in transactions."""
     
     user = await users_collection.find_one({"user_id": user_id})
@@ -102,6 +102,7 @@ async def update_income(user_id: int, amount: float, description: str):
         "profile_id": user["active_profile_id"],
         "transaction_type": "income",
         "transaction_description": description,
+        "transaction_category": category,
         "transaction_amount": amount,
         "timestamp": datetime.utcnow()
     })
