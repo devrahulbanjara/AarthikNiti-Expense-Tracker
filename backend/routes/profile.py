@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from core.config import get_current_user
 from services.profile_service import (
-    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown
+    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend
 )
 from pydantic import BaseModel
 
@@ -66,3 +66,12 @@ async def recent_transactions(user: dict = Depends(get_current_user)):
 async def expense_breakdown(user: dict = Depends(get_current_user)):
     """Fetches the expense breakdown for the active profile."""
     return await get_expense_breakdown(user["user_id"])
+
+@router.get("/net-saving-trend")
+async def net_saving_trend(n: int, user: dict = Depends(get_current_user)):
+    """Fetches the net saving trend for the last n months."""
+    active_profile = await get_active_profile(user["user_id"])
+    if not active_profile:
+        raise HTTPException(status_code=404, detail="Active profile not found")
+    
+    return await calculate_savings_trend(user["user_id"], active_profile["profile_id"], n)
