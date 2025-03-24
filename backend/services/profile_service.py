@@ -1,6 +1,7 @@
 from database import profiles_collection, transactions_collection, users_collection
 from fastapi import HTTPException, Depends
-from datetime import datetime
+from datetime import datetime,timedelta
+from dateutil.relativedelta import relativedelta
 from bson import ObjectId
 from core.security import JWT_ALGORITHM, JWT_SECRET
 from fastapi.security import OAuth2PasswordBearer
@@ -204,3 +205,35 @@ async def get_recent_transactions(user_id: int, limit: int = 5):
         transaction["_id"] = str(transaction["_id"])
 
     return transactions
+
+async def calculate_savings_trend(user_id: int, profile_id: int, n: int):
+    """Calculates savings trend for the last n months."""
+    
+    user_data = await users_collection.find_one({"user_id": user_id})
+    account_creation_date = user_data.get("created_at", datetime.utcnow())
+    
+    end_date = datetime.utcnow()
+    start_date = datetime(end_date.year, end_date.month, 1) - relativedelta(months=n-1)
+    
+    transactions = await transactions_collection.find(
+        {"user_id": user_id, "profile_id": profile_id, "timestamp": {"$gte": start_date, "$lte": end_date}}
+    ).to_list(length=None)
+    
+    savings_data = {}
+    for transaction in transactions:
+        timestamp = transaction["timestamp"].replace(tzinfo=None)
+        year = timestamp.year
+        month = timestamp.month
+        savings_data.setdefault((year, month), {"income": 0, "expense": 0})
+        
+        if transaction["transaction_type"] == "income":
+            savings_data[(year, month)]["income"] += transaction["transaction_amount"]
+        elif transaction["transaction_type"] == "expense":
+            savings_data[(year, month)]["expense"] += transaction["transaction_amount"]
+    
+    savings_trend = []
+    for (year, month), values in sorted(savings_data.items()):
+        savings = values["income"] - values["expense"]
+        savings_trend.append({"year": year, "month": month, "savings": savings})
+    
+    return {"time_range": f"last {n} months", "savings_trend": savings_trend}
