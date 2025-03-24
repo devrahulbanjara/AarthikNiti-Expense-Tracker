@@ -8,7 +8,7 @@ const initialTransactions = [
   { id: 2, type: "expense", amount: 120, category: "Food", description: "Grocery shopping", date: "2025-03-14" },
   { id: 3, type: "expense", amount: 45, category: "Transportation", description: "Uber ride", date: "2025-03-13" },
   { id: 4, type: "expense", amount: 200, category: "Bills", description: "Electricity bill", date: "2025-03-10" },
-  { id: 5, type: "expense", amount: 300, category: "Entertainment", description: "Movie tickets", date: "2025-03-09" },
+  { id: 5, type: "expense", amount: 60, category: "Entertainment", description: "Movie tickets", date: "2025-03-09" },
 ]
 
 const expenseCategories = [

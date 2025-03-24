@@ -13,12 +13,9 @@ import DashboardPage from "./pages/Dashboard/DashboardPage";
 import Layout from "./components/Layout/Layout";
 import Reports from "./pages/Dashboard/Reports";
 import Budgeting from "./pages/Dashboard/Budgeting";
-import {
-  ProtectedRoute,
-  PublicRoute,
-} from "./components/ProtectedRoute/ProtectedRoute";
+import { ProtectedRoute, PublicRoute } from "./components/ProtectedRoute/ProtectedRoute";
 
-const App = () => {
+function App() {
   return (
     <div>
       <ToastContainer
@@ -32,73 +29,76 @@ const App = () => {
         draggable
         pauseOnHover={false}
         theme="light"
-        transition={Bounce}
+        transition={Bounce} 
       />
       <Router>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route
-              index
+            {/* Use index to load the default login page */}
+            <Route 
+              index 
               element={
                 <PublicRoute>
                   <Login />
                 </PublicRoute>
-              }
+              } 
             />
-            <Route
-              path="/signup"
+            <Route 
+              path="/signup" 
               element={
                 <PublicRoute>
                   <Signup />
                 </PublicRoute>
-              }
+              } 
             />
-            <Route
-              path="/dashboard"
+            {/* Protected Routes */}
+            <Route 
+              path="/dashboard" 
               element={
                 <ProtectedRoute>
                   <DashboardPage />
                 </ProtectedRoute>
-              }
+              } 
             />
-            <Route
-              path="/income"
+            <Route 
+              path="/income" 
               element={
                 <ProtectedRoute>
                   <Income />
                 </ProtectedRoute>
-              }
+              } 
             />
-            <Route
-              path="/expenses"
+            <Route 
+              path="/expenses" 
               element={
                 <ProtectedRoute>
                   <Expense />
                 </ProtectedRoute>
-              }
+              } 
             />
             <Route path="/forgotpw" element={<ForgotPassword />} />
           </Route>
-            <Route
-              path="/reports"
-              element={
-                <ProtectedRoute>
-                  <Reports />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/budgeting"
-              element={
-                <ProtectedRoute>
-                  <Budgeting />
-                </ProtectedRoute>
-              }
-            />
+          {/* Other Protected Routes */}
+          <Route 
+            path="/reports" 
+            element={
+              <ProtectedRoute>
+                <Reports />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/budgeting" 
+            element={
+              <ProtectedRoute>
+                <Budgeting />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </Router>
     </div>
   );
-};
+}
 
 export default App;
