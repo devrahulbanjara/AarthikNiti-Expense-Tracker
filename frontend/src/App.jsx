@@ -11,12 +11,12 @@ import Expense from "./pages/Dashboard/Expense";
 import ForgotPassword from "./pages/Auth/Forgotpassword";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
 import Layout from "./components/Layout/Layout";
+import Reports from "./pages/Dashboard/Reports";
+import Budgeting from "./pages/Dashboard/Budgeting";
 import {
   ProtectedRoute,
   PublicRoute,
 } from "./components/ProtectedRoute/ProtectedRoute";
-import Reports from "./pages/Dashboard/Reports";
-import Budgeting from "./pages/Dashboard/Budgeting";
 
 const App = () => {
   return (
