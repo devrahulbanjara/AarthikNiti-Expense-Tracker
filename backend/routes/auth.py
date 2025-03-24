@@ -69,7 +69,8 @@ async def google_callback(request: Request):
         
         jwt_token = create_jwt_token({"user_id": user_id, "email": email}, expires_delta=timedelta(hours=1))
         
-        return {"access_token": jwt_token, "token_type": "bearer", "profile_picture": profile_picture}
+        frontend_redirect_url = f"http://localhost:5173/?access_token={jwt_token}"
+        return RedirectResponse(frontend_redirect_url)
     
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"OAuth Callback Failed: {str(e)}")
