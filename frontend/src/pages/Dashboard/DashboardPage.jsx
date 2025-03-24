@@ -504,7 +504,7 @@ const RecentTransactionsCard = ({
   const displayTransactions = showAll ? transactions : transactions.slice(0, 5)
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md">
+    <div className="bg-white p-4 rounded-lg shadow-md w-[750px] ml-auto">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Recent Transactions</h2>
         <div className="flex gap-2">
@@ -668,14 +668,14 @@ const ExpensesBreakdownCard = ({ data, activeIndex, setActiveIndex, totalExpense
   }
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md">
+    <div className="bg-white p-4 rounded-lg shadow-md h-[400px] w-[400px] ml-auto">
       <h2 className="text-lg font-semibold mb-4">Expenses Breakdown</h2>
 
       {data.length === 0 ? (
         <p className="text-center text-gray-500 py-4">No expense data available</p>
       ) : (
         <>
-          <div className="h-[200px] mb-4">
+          <div className="h-[180px] mb-4">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
