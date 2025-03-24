@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"
-import { Home,ArrowUp,ArrowDown,BarChart,Bell,Edit,Trash,Search,Filter,User,ChevronDown,Plus,X,Moon,Sun,DollarSign} from "lucide-react"
+import { Home,ArrowUp,ArrowDown,BarChart,Bell,Edit,Trash,Search,Filter,User,ChevronDown,Plus,X,Moon,Sun,DollarSign,Settings,LogOut,} from "lucide-react"
 
 //random just a sample data for now
 const initialTransactions = [
@@ -50,6 +50,7 @@ const DashboardPage = () => {
   const [activeIndex, setActiveIndex] = useState(null)
   const [activeAccount, setActiveAccount] = useState("Personal")
   const [showAccountDropdown, setShowAccountDropdown] = useState(false)
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false) // Added for profile dropdown
   const [filters, setFilters] = useState({
     category: "",
     dateFrom: "",
@@ -59,14 +60,14 @@ const DashboardPage = () => {
   const [showFilters, setShowFilters] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
 
-  // Calculate totals
+  // calcutale totals for income and exoenses
   const totalIncome = transactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
   const totalExpenses = transactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
   const totalBalance = totalIncome - totalExpenses
   const spentPercentage = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0
   const isOverBudget = spentPercentage > 80
 
-  // Filter transactions
+  // filter transactions
   const filteredTransactions = transactions.filter((t) => {
     return (
       (!searchTerm ||
@@ -79,7 +80,7 @@ const DashboardPage = () => {
     )
   })
 
-  // Calculate expense breakdown data
+  // calculate expenses breakdown dataa
   const expenseBreakdownData = expenseCategories
     .map((category) => {
       const totalForCategory = transactions
@@ -149,6 +150,23 @@ const DashboardPage = () => {
 
   const handleDelete = (id) => setTransactions(transactions.filter((t) => t.id !== id))
 
+  // close dropdown menu when clicking outside like for profile and accounts
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showProfileDropdown && !event.target.closest(".profile-dropdown-container")) {
+        setShowProfileDropdown(false)
+      }
+      if (showAccountDropdown && !event.target.closest(".account-dropdown-container")) {
+        setShowAccountDropdown(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [showProfileDropdown, showAccountDropdown])
+
   useEffect(() => {
     if (!isAddModalOpen) {
       setEditingTransaction(null)
@@ -170,8 +188,8 @@ const DashboardPage = () => {
 
         <hr className="my-3 border-gray-200" />
 
-        {/* Accounts */}
-        <div className="mb-4 relative">
+        {/* accounts personal and other with +add account */}
+        <div className="mb-4 relative account-dropdown-container">
           <div
             className="flex justify-between items-center p-2 border rounded-md cursor-pointer hover:bg-gray-50"
             onClick={() => setShowAccountDropdown(!showAccountDropdown)}
@@ -201,7 +219,7 @@ const DashboardPage = () => {
 
         <hr className="my-3 border-gray-200" />
 
-        {/* Navigation */}
+        {/* navigation nab bars  */}
         <ul>
           {navItems.map((item) => (
             <li key={item.name}>
@@ -219,9 +237,8 @@ const DashboardPage = () => {
         </ul>
       </div>
 
-      {/* Main Content */}
+      {/* main content dashboard  */}
       <div className="w-4/5 p-6 bg-gray-100 min-h-screen">
-
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -231,9 +248,38 @@ const DashboardPage = () => {
             <button className="p-2 bg-gray-200 rounded-full" onClick={() => setDarkMode(!darkMode)}>
               {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
-            <button className="p-2 bg-gray-200 rounded-full">
-              <User className="h-5 w-5 text-gray-600" />
-            </button>
+
+            {/* profile button with dropdown */}
+            <div className="relative profile-dropdown-container">
+              <button
+                className="p-2 bg-gray-200 rounded-full"
+                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+              >
+                <User className="h-5 w-5 text-gray-600" />
+              </button>
+
+              {/* prodile dropdown menu */}
+              {showProfileDropdown && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                  <a href="/profile" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    <User className="h-4 w-4 mr-2 text-gray-500" />
+                    Profile
+                  </a>
+                  <a href="/settings" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    <Settings className="h-4 w-4 mr-2 text-gray-500" />
+                    Settings
+                  </a>
+                  <div className="border-t border-gray-100 my-1"></div>
+                  <button
+                    className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    onClick={() => alert("Logged out successfully!")}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -259,7 +305,7 @@ const DashboardPage = () => {
           <BudgetCard percentage={spentPercentage} isOverBudget={isOverBudget} />
         </div>
 
-        {/* Recent Transactions a& Expenses Breakdown */}
+        {/* recent transactions and expenses breakdown menu */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           <RecentTransactionsCard
             transactions={filteredTransactions}
@@ -285,7 +331,7 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      {/* Add/Edit Transactions */}
+      {/* add and edit transactions */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
