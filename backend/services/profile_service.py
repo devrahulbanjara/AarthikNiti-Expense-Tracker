@@ -5,6 +5,9 @@ from dateutil.relativedelta import relativedelta
 from bson import ObjectId
 from core.security import JWT_ALGORITHM, JWT_SECRET
 from fastapi.security import OAuth2PasswordBearer
+from dateutil.relativedelta import relativedelta
+from bson import ObjectId
+from pymongo.collection import Collection
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -271,3 +274,59 @@ async def calculate_income_expense_trend(user_id: int, profile_id: int, n: int):
     income_expense_trend = sorted(trend_data.values(), key=lambda x: (x["year"], x["month"]))
 
     return {"time_range": f"last {n} months", "income_expense_trend": income_expense_trend}
+
+
+async def get_monthly_transaction_summary(user_id: int, profile_id: int, months: int = 6) -> List[dict]:
+    """
+    Returns a detailed monthly transaction report including:
+    - Year & Month
+    - All transactions (with type, amount, description, category, and timestamp)
+    - Total income and expenses for each month
+    """
+    end_date = datetime.utcnow()
+    start_date = datetime(end_date.year, end_date.month, 1) - relativedelta(months=months-1)
+
+    transactions = await transactions_collection.find(
+        {
+            "user_id": user_id,
+            "profile_id": profile_id,
+            "timestamp": {"$gte": start_date, "$lte": end_date}
+        }
+    ).to_list(length=None)
+
+    # Initialize monthly structure
+    monthly_data = {}
+    for i in range(months):
+        target_date = end_date - relativedelta(months=i)
+        monthly_data[(target_date.year, target_date.month)] = {
+            "year": target_date.year,
+            "month": target_date.month,
+            "transactions": [],
+            "total_income_this_month": 0,
+            "total_expense_this_month": 0
+        }
+
+    # Populate data from transactions
+    for transaction in transactions:
+        timestamp = transaction["timestamp"].replace(tzinfo=None)
+        key = (timestamp.year, timestamp.month)
+
+        transaction_data = {
+            "transaction_type": transaction["transaction_type"],
+            "amount": transaction["transaction_amount"],
+            "description": transaction["transaction_description"],
+            "category": transaction["transaction_category"],
+            "timestamp": timestamp.isoformat()  # Ensure timestamp is in ISO 8601 format
+        }
+
+        monthly_data[key]["transactions"].append(transaction_data)
+
+        if transaction["transaction_type"] == "income":
+            monthly_data[key]["total_income_this_month"] += transaction["transaction_amount"]
+        elif transaction["transaction_type"] == "expense":
+            monthly_data[key]["total_expense_this_month"] += transaction["transaction_amount"]
+
+    # Convert monthly_data dict to sorted list by year, then month
+    result = sorted(monthly_data.values(), key=lambda x: (x["year"], x["month"]))
+
+    return result
