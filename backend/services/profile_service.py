@@ -1,7 +1,57 @@
 from database import profiles_collection, transactions_collection, users_collection
-from fastapi import HTTPException
-from datetime import datetime
+from fastapi import HTTPException, Depends
+from datetime import datetime,timedelta
+from dateutil.relativedelta import relativedelta
 from bson import ObjectId
+from core.security import JWT_ALGORITHM, JWT_SECRET
+from fastapi.security import OAuth2PasswordBearer
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    """Decode JWT and fetch user details"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = payload.get("user_id")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        user = await users_collection.find_one({"user_id": user_id}, {"_id": 0, "password": 0})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return user
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication token")
+
+
+async def get_expense_breakdown(user_id: int):
+    """Fetches the expense breakdown for the active profile."""
+    
+    user = await users_collection.find_one({"user_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    active_profile_id = user.get("active_profile_id")
+    if not active_profile_id:
+        raise HTTPException(status_code=404, detail="No active profile found")
+
+    expenses = await transactions_collection.find(
+        {
+            "user_id": user_id,
+            "profile_id": active_profile_id,
+            "transaction_type": "expense"
+        }
+    ).to_list(length=None)
+
+    expense_breakdown = {}
+    for expense in expenses:
+        category = expense.get("transaction_category", "Uncategorized")
+        amount = expense.get("transaction_amount", 0)
+        expense_breakdown[category] = expense_breakdown.get(category, 0) + amount
+
+    return {"expense_breakdown": expense_breakdown}
+
 
 
 async def get_active_profile(user_id: int):
@@ -56,7 +106,7 @@ async def create_default_profile(user_id: int):
     return 1  # Default profile_id
 
 
-async def update_income(user_id: int, amount: float, description: str):
+async def update_income(user_id: int, amount: float, description: str, category: str):
     """Adds income to the active profile and stores it in transactions."""
     
     user = await users_collection.find_one({"user_id": user_id})
@@ -74,6 +124,7 @@ async def update_income(user_id: int, amount: float, description: str):
         "profile_id": user["active_profile_id"],
         "transaction_type": "income",
         "transaction_description": description,
+        "transaction_category": category,
         "transaction_amount": amount,
         "timestamp": datetime.utcnow()
     })
@@ -88,7 +139,7 @@ async def update_income(user_id: int, amount: float, description: str):
 
 
 
-async def add_expense(user_id: int, description: str, amount: float):
+async def add_expense(user_id: int, description: str, amount: float, category: str):
     """Adds an expense to the active profile."""
     user = await users_collection.find_one({"user_id": user_id})
     profile = await get_active_profile(user_id)
@@ -104,6 +155,7 @@ async def add_expense(user_id: int, description: str, amount: float):
         "profile_id": user["active_profile_id"],
         "transaction_type": "expense",
         "transaction_description": description,
+        "transaction_category": category,
         "transaction_amount": amount,
         "timestamp": datetime.utcnow()
     })
@@ -153,3 +205,35 @@ async def get_recent_transactions(user_id: int, limit: int = 5):
         transaction["_id"] = str(transaction["_id"])
 
     return transactions
+
+async def calculate_savings_trend(user_id: int, profile_id: int, n: int):
+    """Calculates savings trend for the last n months."""
+    
+    user_data = await users_collection.find_one({"user_id": user_id})
+    account_creation_date = user_data.get("created_at", datetime.utcnow())
+    
+    end_date = datetime.utcnow()
+    start_date = datetime(end_date.year, end_date.month, 1) - relativedelta(months=n-1)
+    
+    transactions = await transactions_collection.find(
+        {"user_id": user_id, "profile_id": profile_id, "timestamp": {"$gte": start_date, "$lte": end_date}}
+    ).to_list(length=None)
+    
+    savings_data = {}
+    for transaction in transactions:
+        timestamp = transaction["timestamp"].replace(tzinfo=None)
+        year = timestamp.year
+        month = timestamp.month
+        savings_data.setdefault((year, month), {"income": 0, "expense": 0})
+        
+        if transaction["transaction_type"] == "income":
+            savings_data[(year, month)]["income"] += transaction["transaction_amount"]
+        elif transaction["transaction_type"] == "expense":
+            savings_data[(year, month)]["expense"] += transaction["transaction_amount"]
+    
+    savings_trend = []
+    for (year, month), values in sorted(savings_data.items()):
+        savings = values["income"] - values["expense"]
+        savings_trend.append({"year": year, "month": month, "savings": savings})
+    
+    return {"time_range": f"last {n} months", "savings_trend": savings_trend}

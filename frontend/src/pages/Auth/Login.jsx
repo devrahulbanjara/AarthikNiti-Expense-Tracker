@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
@@ -14,53 +14,42 @@ function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get("access_token");
+
+    if (accessToken) {
+      localStorage.setItem("token", accessToken);
+      toast.success("Google login successful!");
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!email) {
-      toast.error("Email is required");
-      return;
-    }
-    if (!password) {
-      toast.error("Password is required");
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      toast.error("Enter a valid email (e.g., example@mail.com)");
+    if (!email || !password) {
+      toast.error("Email and Password are required");
       return;
     }
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/auth/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        "http://localhost:8000/auth/login",
+        { email, password },
+        { withCredentials: true }
+      );
 
-      const data = response.data;
-
-      localStorage.setItem("token", data.access_token);
-
+      localStorage.setItem("token", response.data.access_token);
       toast.success("Login successful!");
       navigate("/dashboard");
     } catch (error) {
-      console.error("Error logging in:", error);
-      toast.error(
-        error.response?.data?.detail ||
-          "Something went wrong. Please try again."
-      );
+      toast.error(error.response?.data?.detail || "Login failed. Try again.");
     }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      handleSubmit(e);
-    }
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:8000/auth/google/login";
   };
 
   return (
@@ -79,22 +68,15 @@ function Login() {
           />
         </div>
         <p className="text-center text-xs mb-0 sm:mb-0 md:mb-5 sm:text-xs md:text-lg">
-          Save, track, and grow your wealth with Aarthikniti. This makes
-          managing your finances simple, helping you track expenses, set
-          budgets, and achieve your financial goals effortlessly.
+          Save, track, and grow your wealth with AarthikNiti.
         </p>
       </div>
-
       <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-8 md:p-16">
         <h2 className="text-3xl sm:text-2xl md:text-3xl mb-2">Welcome back</h2>
         <p className="mb-4 text-gray-700 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl">
           Enter your credentials to sign in to your account
         </p>
-        <form
-          onSubmit={handleSubmit}
-          className="w-full max-w-md"
-          onKeyDown={handleKeyDown}
-        >
+        <form onSubmit={handleSubmit} className="w-full max-w-md">
           <div className="mb-4">
             <label
               htmlFor="email"
@@ -112,7 +94,6 @@ function Login() {
               required
             />
           </div>
-
           <div className="mb-4 relative">
             <label
               htmlFor="password"
@@ -138,7 +119,6 @@ function Login() {
               </span>
             </div>
           </div>
-
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center">
               <input
@@ -159,26 +139,23 @@ function Login() {
               Forgot password?
             </Link>
           </div>
-
           <button
             type="submit"
             className="w-full py-3 bg-green-800 text-white rounded mb-4 hover:bg-green-700 cursor-pointer"
           >
             Sign In
           </button>
-
-          <div className="flex items-center justify-center mb-4 ">
+          <div className="flex items-center justify-center mb-4">
             <hr className="w-1/4 sm:w-1/3 border-gray-300" />
             <span className="mx-4 text-xs sm:text-xs md:text-sm">
               or continue with
             </span>
             <hr className="w-1/4 sm:w-1/3 border-gray-300" />
           </div>
-
           <button
             type="button"
             className="w-full py-3 bg-gray-300 text-black rounded mb-4 flex items-center hover:bg-gray-400 justify-center cursor-pointer"
-            onClick={() => (window.location.href = "google authentication url")}
+            onClick={handleGoogleLogin}
           >
             <img
               src={googleLogoImg}
@@ -187,7 +164,6 @@ function Login() {
             />
             Google
           </button>
-
           <p className="text-sm flex items-center justify-center mt-4">
             <Link
               to="/signup"

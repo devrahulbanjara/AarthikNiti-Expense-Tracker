@@ -22,6 +22,7 @@ import {
   Settings,
   LogOut,
 } from "lucide-react"
+import IncomeVsExpensesChart from "./income-expenses-chart"
 
 const initialTransactions = [
   { id: 1, type: "income", amount: 2500, category: "Salary", description: "Monthly salary", date: "2025-03-15" },
@@ -387,6 +388,11 @@ const DashboardPage = () => {
           <div className="md:col-span-6 h-full">
             <NetSavingsTrendCard />
           </div>
+        </div>
+
+        {/* Income vs Expenses Chart - Moved to the bottom */}
+        <div className="mt-6">
+          <IncomeVsExpensesChart />
         </div>
       </div>
 
