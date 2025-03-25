@@ -10,12 +10,16 @@ import Income from "./pages/Dashboard/Income";
 import Expense from "./pages/Dashboard/Expense";
 import ForgotPassword from "./pages/Auth/Forgotpassword";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
-import Layout from "./components/Layout/Layout";
 import Reports from "./pages/Dashboard/Reports";
 import Budgeting from "./pages/Dashboard/Budgeting";
-import { ProtectedRoute, PublicRoute } from "./components/ProtectedRoute/ProtectedRoute";
+import Layout from "./components/Layout/Layout";
+import {
+  ProtectedRoute,
+  PublicRoute,
+} from "./components/ProtectedRoute/ProtectedRoute";
+import IncomeVsExpensesChart from "./pages/Dashboard/income-expenses-chart";
 
-function App() {
+const App = () => {
   return (
     <div>
       <ToastContainer
@@ -29,76 +33,81 @@ function App() {
         draggable
         pauseOnHover={false}
         theme="light"
-        transition={Bounce} 
+        transition={Bounce}
       />
       <Router>
         <Routes>
           <Route path="/" element={<Layout />}>
-            {/* Use index to load the default login page */}
-            <Route 
-              index 
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              } 
-            />
-            <Route 
-              path="/signup" 
+          <Route
+            index
+            element={
+            <PublicRoute>
+              <Login />
+             </PublicRoute>
+             }
+          />
+            <Route
+              path="/signup"
               element={
                 <PublicRoute>
                   <Signup />
                 </PublicRoute>
-              } 
+              }
             />
-            {/* Protected Routes */}
-            <Route 
-              path="/dashboard" 
+            <Route
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <DashboardPage />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/income" 
+            <Route
+              path="/income"
               element={
                 <ProtectedRoute>
                   <Income />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/expenses" 
+            <Route
+              path="/expenses"
               element={
                 <ProtectedRoute>
                   <Expense />
                 </ProtectedRoute>
-              } 
+              }
             />
+            <Route
+            path="/income-vs-expenses"
+            element={
+              <ProtectedRoute>
+                <IncomeVsExpensesChart />
+              </ProtectedRoute>
+            }
+          />
             <Route path="/forgotpw" element={<ForgotPassword />} />
           </Route>
-          {/* Other Protected Routes */}
-          <Route 
-            path="/reports" 
-            element={
-              <ProtectedRoute>
-                <Reports />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/budgeting" 
-            element={
-              <ProtectedRoute>
-                <Budgeting />
-              </ProtectedRoute>
-            } 
-          />
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <Reports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/budgeting"
+              element={
+                <ProtectedRoute>
+                  <Budgeting />
+                </ProtectedRoute>
+              }
+            />
         </Routes>
       </Router>
     </div>
   );
-}
+};
 
 export default App;
