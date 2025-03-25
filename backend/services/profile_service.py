@@ -209,31 +209,65 @@ async def get_recent_transactions(user_id: int, limit: int = 5):
 async def calculate_savings_trend(user_id: int, profile_id: int, n: int):
     """Calculates savings trend for the last n months."""
     
-    user_data = await users_collection.find_one({"user_id": user_id})
-    account_creation_date = user_data.get("created_at", datetime.utcnow())
-    
     end_date = datetime.utcnow()
     start_date = datetime(end_date.year, end_date.month, 1) - relativedelta(months=n-1)
     
     transactions = await transactions_collection.find(
         {"user_id": user_id, "profile_id": profile_id, "timestamp": {"$gte": start_date, "$lte": end_date}}
     ).to_list(length=None)
-    
+
+    # Initialize all required months with 0 savings
     savings_data = {}
+    for i in range(n):
+        target_date = end_date - relativedelta(months=i)
+        savings_data[(target_date.year, target_date.month)] = {"year": target_date.year, "month": target_date.month, "income": 0, "expense": 0}
+
+    # Populate data from transactions
     for transaction in transactions:
         timestamp = transaction["timestamp"].replace(tzinfo=None)
-        year = timestamp.year
-        month = timestamp.month
-        savings_data.setdefault((year, month), {"income": 0, "expense": 0})
+        key = (timestamp.year, timestamp.month)
+
+        if transaction["transaction_type"] == "income":
+            savings_data[key]["income"] += transaction["transaction_amount"]
+        elif transaction["transaction_type"] == "expense":
+            savings_data[key]["expense"] += transaction["transaction_amount"]
+
+    # Convert dictionary to sorted list
+    savings_trend = sorted(
+        [{"year": year, "month": month, "savings": values["income"] - values["expense"]}
+         for (year, month), values in savings_data.items()],
+        key=lambda x: (x["year"], x["month"])
+    )
+
+    return {"time_range": f"last {n} months", "savings_trend": savings_trend}
+
+async def calculate_income_expense_trend(user_id: int, profile_id: int, n: int):
+    """Fetches income and expense separately for each of the last n months."""
+
+    end_date = datetime.utcnow()
+    start_date = datetime(end_date.year, end_date.month, 1) - relativedelta(months=n-1)
+
+    transactions = await transactions_collection.find(
+        {"user_id": user_id, "profile_id": profile_id, "timestamp": {"$gte": start_date, "$lte": end_date}}
+    ).to_list(length=None)
+
+    # Initialize all required months
+    trend_data = {}
+    for i in range(n):
+        target_date = end_date - relativedelta(months=i)
+        trend_data[(target_date.year, target_date.month)] = {"year": target_date.year, "month": target_date.month, "income": 0, "expense": 0}
+
+    # Populate data from transactions
+    for transaction in transactions:
+        timestamp = transaction["timestamp"].replace(tzinfo=None)
+        key = (timestamp.year, timestamp.month)
         
         if transaction["transaction_type"] == "income":
-            savings_data[(year, month)]["income"] += transaction["transaction_amount"]
+            trend_data[key]["income"] += transaction["transaction_amount"]
         elif transaction["transaction_type"] == "expense":
-            savings_data[(year, month)]["expense"] += transaction["transaction_amount"]
-    
-    savings_trend = []
-    for (year, month), values in sorted(savings_data.items()):
-        savings = values["income"] - values["expense"]
-        savings_trend.append({"year": year, "month": month, "savings": savings})
-    
-    return {"time_range": f"last {n} months", "savings_trend": savings_trend}
+            trend_data[key]["expense"] += transaction["transaction_amount"]
+
+    # Convert dictionary to sorted list
+    income_expense_trend = sorted(trend_data.values(), key=lambda x: (x["year"], x["month"]))
+
+    return {"time_range": f"last {n} months", "income_expense_trend": income_expense_trend}
