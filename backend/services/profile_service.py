@@ -5,6 +5,9 @@ from dateutil.relativedelta import relativedelta
 from bson import ObjectId
 from core.security import JWT_ALGORITHM, JWT_SECRET
 from fastapi.security import OAuth2PasswordBearer
+from dateutil.relativedelta import relativedelta
+from bson import ObjectId
+from pymongo.collection import Collection
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -271,3 +274,34 @@ async def calculate_income_expense_trend(user_id: int, profile_id: int, n: int):
     income_expense_trend = sorted(trend_data.values(), key=lambda x: (x["year"], x["month"]))
 
     return {"time_range": f"last {n} months", "income_expense_trend": income_expense_trend}
+
+
+async def context_for_chatbot(user_id: int, profile_id: int):
+    """Fetches all transaction history of the active profile for chatbot context."""
+    
+    user = await users_collection.find_one({"user_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    active_profile_id = user.get("active_profile_id")
+    if not active_profile_id:
+        raise HTTPException(status_code=404, detail="No active profile found")
+
+    transactions = await transactions_collection.find(
+        {"user_id": user_id, "profile_id": active_profile_id}
+    ).sort("timestamp", 1).to_list(length=None)
+    
+    if not transactions:
+        return {"context": "No transaction history available."}
+
+    formatted_transactions = []
+    for transaction in transactions:
+        formatted_transactions.append(
+            f"On {transaction['timestamp'].strftime('%Y-%m-%d')}, "
+            f"{transaction['transaction_type']} of {transaction['transaction_amount']} "
+            f"was recorded for {transaction['transaction_category']}: "
+            f"{transaction['transaction_description']}."
+        )
+    
+    context = " ".join(formatted_transactions)
+    return {"context": context}
