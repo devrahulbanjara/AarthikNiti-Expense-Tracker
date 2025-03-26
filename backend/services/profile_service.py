@@ -276,57 +276,32 @@ async def calculate_income_expense_trend(user_id: int, profile_id: int, n: int):
     return {"time_range": f"last {n} months", "income_expense_trend": income_expense_trend}
 
 
-async def get_monthly_transaction_summary(user_id: int, profile_id: int, months: int = 6) -> List[dict]:
-    """
-    Returns a detailed monthly transaction report including:
-    - Year & Month
-    - All transactions (with type, amount, description, category, and timestamp)
-    - Total income and expenses for each month
-    """
-    end_date = datetime.utcnow()
-    start_date = datetime(end_date.year, end_date.month, 1) - relativedelta(months=months-1)
+async def context_for_chatbot(user_id: int, profile_id: int):
+    """Fetches all transaction history of the active profile for chatbot context."""
+    
+    user = await users_collection.find_one({"user_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    active_profile_id = user.get("active_profile_id")
+    if not active_profile_id:
+        raise HTTPException(status_code=404, detail="No active profile found")
 
     transactions = await transactions_collection.find(
-        {
-            "user_id": user_id,
-            "profile_id": profile_id,
-            "timestamp": {"$gte": start_date, "$lte": end_date}
-        }
-    ).to_list(length=None)
+        {"user_id": user_id, "profile_id": active_profile_id}
+    ).sort("timestamp", 1).to_list(length=None)
+    
+    if not transactions:
+        return {"context": "No transaction history available."}
 
-    # Initialize monthly structure
-    monthly_data = {}
-    for i in range(months):
-        target_date = end_date - relativedelta(months=i)
-        monthly_data[(target_date.year, target_date.month)] = {
-            "year": target_date.year,
-            "month": target_date.month,
-            "transactions": [],
-            "total_income_this_month": 0,
-            "total_expense_this_month": 0
-        }
-
-    # Populate data from transactions
+    formatted_transactions = []
     for transaction in transactions:
-        timestamp = transaction["timestamp"].replace(tzinfo=None)
-        key = (timestamp.year, timestamp.month)
-
-        transaction_data = {
-            "transaction_type": transaction["transaction_type"],
-            "amount": transaction["transaction_amount"],
-            "description": transaction["transaction_description"],
-            "category": transaction["transaction_category"],
-            "timestamp": timestamp.isoformat()  # Ensure timestamp is in ISO 8601 format
-        }
-
-        monthly_data[key]["transactions"].append(transaction_data)
-
-        if transaction["transaction_type"] == "income":
-            monthly_data[key]["total_income_this_month"] += transaction["transaction_amount"]
-        elif transaction["transaction_type"] == "expense":
-            monthly_data[key]["total_expense_this_month"] += transaction["transaction_amount"]
-
-    # Convert monthly_data dict to sorted list by year, then month
-    result = sorted(monthly_data.values(), key=lambda x: (x["year"], x["month"]))
-
-    return result
+        formatted_transactions.append(
+            f"On {transaction['timestamp'].strftime('%Y-%m-%d')}, "
+            f"{transaction['transaction_type']} of {transaction['transaction_amount']} "
+            f"was recorded for {transaction['transaction_category']}: "
+            f"{transaction['transaction_description']}."
+        )
+    
+    context = " ".join(formatted_transactions)
+    return {"context": context}
