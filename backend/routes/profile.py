@@ -5,6 +5,9 @@ from services.profile_service import (
 )
 from pydantic import BaseModel
 from typing import List 
+import sys
+import os
+from chatbot.chat import ConversationalChatbot
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
@@ -85,11 +88,16 @@ async def income_expense_trend(n: int, user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Active profile not found")
 
     return await calculate_income_expense_trend(user["user_id"], active_profile["profile_id"], n)
-
-@router.get("/context-for-chatbot")
-async def context_for_chatbot_endpoint(user: dict = Depends(get_current_user)):
+class Chatbot_UserInput(BaseModel):
+    user_input: str
+    
+@router.get("/chatbot")
+async def chatbot_endpoint(request: Chatbot_UserInput, user: dict = Depends(get_current_user)):
     active_profile = await get_active_profile(user["user_id"])
     if not active_profile:
         raise HTTPException(status_code=404, detail="Active profile not found")
 
-    return await context_for_chatbot(user["user_id"], active_profile["profile_id"])
+    context = await context_for_chatbot(user["user_id"], active_profile["profile_id"])
+    
+    chatbot = ConversationalChatbot()
+    return chatbot.chat(request.user_input, context)
