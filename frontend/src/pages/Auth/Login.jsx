@@ -13,17 +13,25 @@ function Login() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const accessToken = urlParams.get("access_token");
-
-    if (accessToken) {
-      localStorage.setItem("token", accessToken);
-      toast.success("Google login successful!");
+    const accessTokenFromURL = urlParams.get("access_token");
+  
+    if (accessTokenFromURL) {
+      localStorage.setItem("access_token", accessTokenFromURL);
+      toast.success("Login successful!");
       navigate("/dashboard");
+    } else {
+      const accessToken = localStorage.getItem("access_token");
+      if (accessToken) {
+        navigate("/dashboard");
+      }
     }
   }, [navigate]);
+  
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,6 +41,7 @@ function Login() {
       return;
     }
 
+    setIsLoggingIn(true);
     try {
       const response = await axios.post(
         "http://localhost:8000/auth/login",
@@ -40,11 +49,17 @@ function Login() {
         { withCredentials: true }
       );
 
-      localStorage.setItem("token", response.data.access_token);
-      toast.success("Login successful!");
-      navigate("/dashboard");
+      if (response.data && response.data.access_token) {
+        localStorage.setItem("access_token", response.data.access_token);
+        toast.success("Login successful!");
+        navigate("/dashboard");
+      } else {
+        toast.error("Invalid response from server.");
+      }
     } catch (error) {
       toast.error(error.response?.data?.detail || "Login failed. Try again.");
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -142,8 +157,9 @@ function Login() {
           <button
             type="submit"
             className="w-full py-3 bg-green-800 text-white rounded mb-4 hover:bg-green-700 cursor-pointer"
+            disabled={isLoggingIn}
           >
-            Sign In
+            {isLoggingIn ? "Logging In..." : "Sign In"}
           </button>
           <div className="flex items-center justify-center mb-4">
             <hr className="w-1/4 sm:w-1/3 border-gray-300" />

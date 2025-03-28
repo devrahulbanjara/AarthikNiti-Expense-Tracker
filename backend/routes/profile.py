@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from core.config import get_current_user
 from services.profile_service import (
-    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend
+    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot
 )
 from pydantic import BaseModel
+from typing import List 
+import sys
+import os
+from chatbot.chat import ConversationalChatbot
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
@@ -75,3 +79,25 @@ async def net_saving_trend(n: int, user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Active profile not found")
     
     return await calculate_savings_trend(user["user_id"], active_profile["profile_id"], n)
+
+@router.get("/income-expense-trend")
+async def income_expense_trend(n: int, user: dict = Depends(get_current_user)):
+    """Fetches income and expense separately for each of the last n months."""
+    active_profile = await get_active_profile(user["user_id"])
+    if not active_profile:
+        raise HTTPException(status_code=404, detail="Active profile not found")
+
+    return await calculate_income_expense_trend(user["user_id"], active_profile["profile_id"], n)
+class Chatbot_UserInput(BaseModel):
+    user_input: str
+    
+@router.get("/chatbot")
+async def chatbot_endpoint(request: Chatbot_UserInput, user: dict = Depends(get_current_user)):
+    active_profile = await get_active_profile(user["user_id"])
+    if not active_profile:
+        raise HTTPException(status_code=404, detail="Active profile not found")
+
+    context = await context_for_chatbot(user["user_id"], active_profile["profile_id"])
+    
+    chatbot = ConversationalChatbot()
+    return chatbot.chat(request.user_input, context)
