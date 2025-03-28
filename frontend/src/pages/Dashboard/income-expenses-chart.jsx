@@ -9,7 +9,6 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
   const [showTimeDropdown, setShowTimeDropdown] = useState(false)
   const [hoveredBar, setHoveredBar] = useState(null)
 
-  // Sample data - you can replace this with your actual data
   const data = [
     { month: "Jan", income: 5000, expenses: 3100 },
     { month: "Feb", income: 5500, expenses: 3000 },
@@ -19,7 +18,6 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
     { month: "Jun", income: 5600, expenses: 3300 },
   ]
 
-  // Calculate savings rate and average monthly savings
   const totalIncome = data.reduce((sum, item) => sum + item.income, 0)
   const totalExpenses = data.reduce((sum, item) => sum + item.expenses, 0)
   const savingsRate = Math.round(((totalIncome - totalExpenses) / totalIncome) * 100)
