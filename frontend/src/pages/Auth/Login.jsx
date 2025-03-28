@@ -25,23 +25,13 @@ function Login() {
       navigate("/dashboard");
     } else {
       const accessToken = localStorage.getItem("access_token");
-  
       if (accessToken) {
-        axios
-          .get("http://localhost:8000/auth/validate-token", {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          })
-          .then((response) => {
-            if (response.data.valid) {
-              navigate("/dashboard");
-            }
-          })
-          .catch(() => {
-            localStorage.removeItem("access_token");
-          });
+        navigate("/dashboard");
       }
     }
-  }, [navigate]);  
+  }, [navigate]);
+  
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -93,9 +83,7 @@ function Login() {
           />
         </div>
         <p className="text-center text-xs mb-0 sm:mb-0 md:mb-5 sm:text-xs md:text-lg">
-          Save, track, and grow your wealth with Aarthikniti. This makes
-          managing your finances simple, helping you track expenses, set
-          budgets, and achieve your financial goals effortlessly.
+          Save, track, and grow your wealth with AarthikNiti.
         </p>
       </div>
       <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-8 md:p-16">
