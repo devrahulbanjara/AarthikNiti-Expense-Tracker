@@ -1,7 +1,9 @@
+"use client"
+
 import { useState, useEffect, useRef } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts"
-import {Home,ArrowUp,ArrowDown,BarChart,Bell,Edit,Trash,Search,Filter,User,ChevronDown,Plus,X,Moon,Sun,DollarSign,Settings,LogOut,MessageSquare,History} from "lucide-react"
+import { Home,ArrowUp,ArrowDown,BarChart,Bell,Edit,Trash,Search,Filter,User,ChevronDown,Plus,X,Moon,Sun,DollarSign,Settings,LogOut,MessageSquare,History} from "lucide-react"
 import IncomeVsExpensesChart from "./income-expenses-chart"
 import axios from "axios"
 
@@ -38,6 +40,9 @@ const navItems = [
 
 const DashboardPage = () => {
   const navigate = useNavigate()
+
+  // Add this useEffect at the beginning of your DashboardPage component
+  // This ensures the token is validated when the dashboard loads
 
   useEffect(() => {
     const validateToken = async () => {
@@ -95,12 +100,10 @@ const DashboardPage = () => {
   const [darkMode, setDarkMode] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
-  // Enhanced chatbot state variables
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
-  const [activeTab, setActiveTab] = useState("chat") // 'chat' or 'history'
+  const [activeTab, setActiveTab] = useState("chat")
   const [chatMessages, setChatMessages] = useState(() => {
-    // Load chat history from localStorage on initial render
     const savedMessages = localStorage.getItem("chatHistory")
     return savedMessages
       ? JSON.parse(savedMessages)
@@ -117,7 +120,6 @@ const DashboardPage = () => {
   const [isTyping, setIsTyping] = useState(false)
   const chatEndRef = useRef(null)
 
-  // Group chat messages by date for history view
   const chatHistoryByDate = chatMessages.reduce((groups, message) => {
     const date = new Date(message.timestamp).toLocaleDateString()
     if (!groups[date]) {
@@ -253,10 +255,15 @@ const DashboardPage = () => {
   }, [isAddModalOpen])
 
   useEffect(() => {
-    // Set light mode by default
-    setDarkMode(false)
-    document.documentElement.classList.remove("dark")
-    localStorage.setItem("darkMode", "false")
+    // Load dark mode preference from localStorage
+    const savedDarkMode = localStorage.getItem("darkMode") === "true"
+    setDarkMode(savedDarkMode)
+
+    if (savedDarkMode) {
+      document.documentElement.classList.add("dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+    }
 
     // Add scroll event listener
     const handleScroll = () => {
@@ -278,19 +285,16 @@ const DashboardPage = () => {
     localStorage.setItem("chatHistory", JSON.stringify(chatMessages))
   }, [chatMessages])
 
-  // Add this useEffect inside the DashboardPage component, after the other useEffects
   useEffect(() => {
-    // Scroll to bottom of chat when messages change
     if (chatEndRef.current && activeTab === "chat") {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
   }, [chatMessages, activeTab])
 
-  // Update the dark mode toggle function
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode
     setDarkMode(newDarkMode)
-    localStorage.setItem("darkMode", newDarkMode)
+    localStorage.setItem("darkMode", newDarkMode.toString())
 
     if (newDarkMode) {
       document.documentElement.classList.add("dark")
@@ -299,7 +303,6 @@ const DashboardPage = () => {
     }
   }
 
-  // Replace the existing handleSendMessage function with this enhanced version
   const handleSendMessage = () => {
     if (chatInput.trim() === "") return
 
@@ -1810,4 +1813,3 @@ const ExpensesBreakdownCard = ({ data, activeIndex, setActiveIndex, totalExpense
 }
 
 export default DashboardPage;
-
