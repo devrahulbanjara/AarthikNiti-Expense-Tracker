@@ -10,11 +10,14 @@ import Income from "./pages/Dashboard/Income";
 import Expense from "./pages/Dashboard/Expense";
 import ForgotPassword from "./pages/Auth/Forgotpassword";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
+import Reports from "./pages/Dashboard/Reports";
+import Budgeting from "./pages/Dashboard/Budgeting";
 import Layout from "./components/Layout/Layout";
 import {
   ProtectedRoute,
   PublicRoute,
 } from "./components/ProtectedRoute/ProtectedRoute";
+import IncomeVsExpensesChart from "./pages/Dashboard/income-expenses-chart";
 
 const App = () => {
   return (
@@ -35,14 +38,14 @@ const App = () => {
       <Router>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route
-              index
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              }
-            />
+          <Route
+            index
+            element={
+            <PublicRoute>
+              <Login />
+             </PublicRoute>
+             }
+          />
             <Route
               path="/signup"
               element={
@@ -68,15 +71,39 @@ const App = () => {
               }
             />
             <Route
-              path="/expense"
+              path="/expenses"
               element={
                 <ProtectedRoute>
                   <Expense />
                 </ProtectedRoute>
               }
             />
+            <Route
+            path="/income-vs-expenses"
+            element={
+              <ProtectedRoute>
+                <IncomeVsExpensesChart />
+              </ProtectedRoute>
+            }
+          />
             <Route path="/forgotpw" element={<ForgotPassword />} />
           </Route>
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <Reports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/budgeting"
+              element={
+                <ProtectedRoute>
+                  <Budgeting />
+                </ProtectedRoute>
+              }
+            />
         </Routes>
       </Router>
     </div>
