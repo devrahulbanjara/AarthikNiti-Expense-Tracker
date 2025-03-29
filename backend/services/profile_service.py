@@ -305,3 +305,43 @@ async def context_for_chatbot(user_id: int, profile_id: int):
     
     context = " ".join(formatted_transactions)
     return {"context": context}
+
+
+async def calculate_income_overview(user_id: int, period: str):
+    """
+    Calculate total income over a given period (last 7, 15, or 30 days)
+    and return it grouped by day of the week.
+    """
+    if period == "7":
+        start_date = datetime.utcnow() - timedelta(days=6)
+        time_range = "last 7 days"
+    elif period == "15":
+        start_date = datetime.utcnow() - timedelta(days=14)
+        time_range = "last 15 days"
+    elif period == "30":
+        start_date = datetime.utcnow() - timedelta(days=29)
+        time_range = "last 30 days"
+    else:
+        raise HTTPException(status_code=400, detail="Invalid period")
+
+    # Fetch income transactions in the selected date range
+    transactions = await transactions_collection.find(
+        {
+            "user_id": user_id,
+            "transaction_type": "income",
+            "timestamp": {"$gte": start_date}
+        }
+    ).to_list(length=None)
+
+    # Initialize income data for each day
+    income_data = {day: 0.0 for day in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]}
+
+    # Populate the income data
+    for transaction in transactions:
+        day_of_week = transaction["timestamp"].strftime("%a")  # Example: 'Mon'
+        income_data[day_of_week] += transaction["transaction_amount"]
+
+    # Convert to list format as shown in UI
+    income_overview = [{"day": day, "amount": amount} for day, amount in income_data.items()]
+
+    return {"income_overview": income_overview, "time_range": time_range}

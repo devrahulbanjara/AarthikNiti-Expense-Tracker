@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from core.config import get_current_user
 from services.profile_service import (
-    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot
+    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,calculate_income_overview
 )
 from pydantic import BaseModel
 from typing import List 
@@ -101,3 +101,11 @@ async def chatbot_endpoint(request: Chatbot_UserInput, user: dict = Depends(get_
     
     chatbot = ConversationalChatbot()
     return chatbot.chat(request.user_input, context)
+
+
+@router.get("/income-overview", response_model=dict)
+async def get_income_overview(period: str = "7", user: dict = Depends(get_current_user)):
+    """
+    Endpoint to retrieve income overview for the selected period (7, 15, or 30 days).
+    """
+    return await calculate_income_overview(user_id=user["user_id"], period=period)
