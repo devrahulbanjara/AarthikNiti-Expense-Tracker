@@ -91,7 +91,7 @@ async def income_expense_trend(n: int, user: dict = Depends(get_current_user)):
 class Chatbot_UserInput(BaseModel):
     user_input: str
     
-@router.get("/chatbot")
+@router.post("/chatbot")
 async def chatbot_endpoint(request: Chatbot_UserInput, user: dict = Depends(get_current_user)):
     active_profile = await get_active_profile(user["user_id"])
     if not active_profile:

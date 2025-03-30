@@ -22,6 +22,51 @@ import ExpensesBreakdown from "./expensesbreakdown";
 import UpcomingBills from "./upcomingbills";
 import NetSavings from "./netsavings";
 import IncomeVsExpensesChart from "./income-expenses-chart";
+const response = await fetch("http://localhost:8000/profile/dashboard", {
+  method: "GET",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+  },
+});
+const topUIData = await response.json();
+console.log(topUIData);
+
+const fetchChatbotResponse = async (userInput) => {
+  try {
+    const ch_response = await fetch("http://localhost:8000/profile/chatbot", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+      body: JSON.stringify({ user_input: userInput }),
+    });
+
+    if (!ch_response.ok) {
+      throw new Error(`HTTP error! Status: ${ch_response.status}`);
+    }
+
+    let chatbot_response = await ch_response.text();
+
+    chatbot_response = chatbot_response.replace(/^"(.*)"$/, "$1");
+
+    let formattedResponse = chatbot_response.replace(/<\/?[^>]+(>|$)/g, "");
+
+    formattedResponse = formattedResponse.replace(/\\n/g, " ");
+
+    formattedResponse = formattedResponse
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .join(" ");
+
+    return formattedResponse;
+  } catch (error) {
+    console.error("Error fetching chatbot response:", error);
+    return "Oops! Something went wrong.";
+  }
+};
 
 const initialTransactions = [
   {
@@ -65,16 +110,6 @@ const initialTransactions = [
     date: "2025-03-09",
   },
 ];
-
-const response = await fetch("http://localhost:8000/profile/dashboard", {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-  },
-});
-const topUIData = await response.json();
-console.log(topUIData);
 
 const expenseCategories = [
   { name: "Food", color: "#f97316" },
@@ -179,7 +214,6 @@ const DashboardPage = () => {
     return groups;
   }, {});
 
-  //modified to fetch from api , top ui card
   const totalIncome = topUIData.profile_total_income;
   const totalExpenses = topUIData.profile_total_expense;
   const totalBalance = topUIData.profile_total_balance;
@@ -342,11 +376,9 @@ const DashboardPage = () => {
     }
   };
 
-  // Replace the existing handleSendMessage function with this enhanced version
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (chatInput.trim() === "") return;
 
-    // Add user message
     const userMessage = {
       id: Date.now(),
       text: chatInput,
@@ -356,59 +388,36 @@ const DashboardPage = () => {
 
     setChatMessages((prev) => [...prev, userMessage]);
     setChatInput("");
-
-    // Simulate bot typing
     setIsTyping(true);
 
-    // Simulate bot response
-    setTimeout(() => {
+    try {
+      const chatbotResponse = await fetchChatbotResponse(chatInput);
+      console.log("Formatted Chatbot Response:", chatbotResponse);
+
       setIsTyping(false);
-
-      let botResponse =
-        "I'm not sure how to help with that. Could you try asking about your budget, expenses, or savings?";
-
-      const userInput = chatInput.toLowerCase();
-      if (userInput.includes("budget") || userInput.includes("spending")) {
-        botResponse =
-          "Your current monthly budget is $2,500. You've spent 65% of it so far.";
-      } else if (userInput.includes("expense") || userInput.includes("spent")) {
-        botResponse =
-          "Your largest expense category this month is Food at $450.";
-      } else if (userInput.includes("income") || userInput.includes("earn")) {
-        botResponse = "Your total income this month is $3,500.";
-      } else if (userInput.includes("save") || userInput.includes("saving")) {
-        botResponse =
-          "You've saved $5,200 this year, which is 15% of your income.";
-      } else if (userInput.includes("hello") || userInput.includes("hi")) {
-        botResponse =
-          "Hello! How can I assist with your financial questions today?";
-      } else if (userInput.includes("clear") || userInput.includes("reset")) {
-        setChatMessages([
-          {
-            id: Date.now(),
-            text: "Chat history cleared. How can I help you today?",
-            sender: "bot",
-            timestamp: new Date().toISOString(),
-          },
-        ]);
-        return;
-      } else if (userInput.includes("help") || userInput.includes("commands")) {
-        botResponse =
-          "You can ask me about: budget, expenses, income, savings, or use commands like 'clear history'.";
-      }
 
       const botMessage = {
         id: Date.now(),
-        text: botResponse,
+        text: chatbotResponse || "Oops! Couldn't fetch a valid response.",
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
 
       setChatMessages((prev) => [...prev, botMessage]);
-    }, 1500);
-  };
+    } catch (error) {
+      setIsTyping(false);
+      console.error("Error fetching chatbot response:", error);
 
-  // Add this function to clear chat history
+      const errorMessage = {
+        id: Date.now(),
+        text: "Oops! Something went wrong. Please try again.",
+        sender: "bot",
+        timestamp: new Date().toISOString(),
+      };
+
+      setChatMessages((prev) => [...prev, errorMessage]);
+    }
+  };
   const clearChatHistory = () => {
     setChatMessages([
       {
