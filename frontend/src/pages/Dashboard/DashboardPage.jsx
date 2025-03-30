@@ -12,8 +12,6 @@ import {
   X,
 } from "lucide-react";
 import axios from "axios";
-
-// Import extracted components
 import Sidebar from "./sidebar";
 import Profile from "./profile";
 import DarkMode from "./darkmode";
@@ -30,7 +28,6 @@ const response = await fetch("http://localhost:8000/profile/dashboard", {
   },
 });
 const topUIData = await response.json();
-console.log(topUIData);
 
 const fetchChatbotResponse = async (userInput) => {
   try {
@@ -68,48 +65,45 @@ const fetchChatbotResponse = async (userInput) => {
   }
 };
 
-const initialTransactions = [
-  {
-    id: 1,
-    type: "income",
-    amount: 2500,
-    category: "Salary",
-    description: "Monthly salary",
-    date: "2025-03-15",
-  },
-  {
-    id: 2,
-    type: "expense",
-    amount: 120,
-    category: "Food",
-    description: "Grocery shopping",
-    date: "2025-03-14",
-  },
-  {
-    id: 3,
-    type: "expense",
-    amount: 45,
-    category: "Transportation",
-    description: "Uber ride",
-    date: "2025-03-13",
-  },
-  {
-    id: 4,
-    type: "expense",
-    amount: 200,
-    category: "Bills",
-    description: "Electricity bill",
-    date: "2025-03-10",
-  },
-  {
-    id: 5,
-    type: "expense",
-    amount: 60,
-    category: "Entertainment",
-    description: "Movie tickets",
-    date: "2025-03-09",
-  },
-];
+let initialTransactions = [];
+
+const fetchTransactions = async () => {
+  try {
+    const response = await fetch(
+      "http://127.0.0.1:8000/profile/recent_transactions",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch transactions");
+    }
+
+    const data = await response.json();
+
+    initialTransactions = data.map((transaction) => ({
+      id: transaction._id,
+      type: transaction.transaction_type,
+      amount: transaction.transaction_amount,
+      category: transaction.transaction_category,
+      description: transaction.transaction_description,
+      date: new Date(transaction.timestamp).toISOString().split("T")[0],
+      yy,
+    }));
+
+    console.log(initialTransactions);
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    initialTransactions = [];
+  }
+};
+
+fetchTransactions();
 
 const expenseCategories = [
   { name: "Food", color: "#f97316" },
@@ -130,29 +124,6 @@ const DashboardPage = () => {
       if (!accessToken) {
         navigate("/");
         return;
-      }
-
-      try {
-        const response = await axios.get(
-          "http://localhost:8000/auth/validate-token",
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }
-        );
-
-        if (!response.data.valid) {
-          localStorage.removeItem("access_token");
-          navigate("/");
-        }
-      } catch (error) {
-        console.error("Token validation error:", error);
-        if (
-          error.response &&
-          (error.response.status === 401 || error.response.status === 403)
-        ) {
-          localStorage.removeItem("access_token");
-          navigate("/");
-        }
       }
     };
 
