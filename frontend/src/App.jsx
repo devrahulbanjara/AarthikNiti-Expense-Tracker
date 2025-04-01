@@ -17,7 +17,6 @@ import {
   ProtectedRoute,
   PublicRoute,
 } from "./components/ProtectedRoute/ProtectedRoute";
-import IncomeVsExpensesChart from "./pages/Dashboard/income-expenses-chart";
 
 const App = () => {
   return (
@@ -78,15 +77,7 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-            <Route
-            path="/income-vs-expenses"
-            element={
-              <ProtectedRoute>
-                <IncomeVsExpensesChart />
-              </ProtectedRoute>
-            }
-          />
-            <Route path="/forgotpw" element={<ForgotPassword />} />
+          <Route path="/forgotpw" element={<ForgotPassword />} />
           </Route>
             <Route
               path="/reports"
