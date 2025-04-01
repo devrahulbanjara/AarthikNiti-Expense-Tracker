@@ -93,10 +93,10 @@ const fetchTransactions = async () => {
       category: transaction.transaction_category,
       description: transaction.transaction_description,
       date: new Date(transaction.timestamp).toISOString().split("T")[0],
-      yy,
     }));
 
     console.log(initialTransactions);
+    return initialTransactions;
   } catch (error) {
     console.error("Error fetching transactions:", error);
     initialTransactions = [];
@@ -477,6 +477,7 @@ const DashboardPage = () => {
           {/* recent transactions and expenses breakdown menu */}
           <div className="grid grid-cols-1 md:grid-cols-10 gap-6 mt-6">
             <div className="md:col-span-7 h-full">
+              {JSON.stringify(filteredTransactions)}
               <RecentTransactions
                 transactions={filteredTransactions}
                 searchTerm={searchTerm}
