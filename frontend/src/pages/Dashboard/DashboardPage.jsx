@@ -1,33 +1,16 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  ArrowUp,
-  ArrowDown,
-  DollarSign,
-  MessageSquare,
-  History,
-  User,
-  X,
-} from "lucide-react";
-import axios from "axios";
-import Sidebar from "./sidebar";
-import Profile from "./profile";
-import DarkMode from "./darkmode";
-import RecentTransactions from "./recenttransactions";
-import ExpensesBreakdown from "./expensesbreakdown";
-import UpcomingBills from "./upcomingbills";
-import NetSavings from "./netsavings";
-import IncomeVsExpensesChart from "./income-expenses-chart";
-const response = await fetch("http://localhost:8000/profile/dashboard", {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-  },
-});
-const topUIData = await response.json();
+import { useState, useEffect, useRef } from "react"
+import { useNavigate } from "react-router-dom"
+import { ArrowUp, ArrowDown, DollarSign, MessageSquare, History, User, X } from "lucide-react"
+import Sidebar from "./sidebar"
+import Profile from "./profile-dropdown"
+import DarkMode from "./darkmode"
+import RecentTransactions from "./recenttransactions"
+import ExpensesBreakdown from "./expensesbreakdown"
+import UpcomingBills from "./upcomingbills"
+import NetSavings from "./netsavings"
+import IncomeVsExpensesChart from "./income-expenses-chart"
 
 const fetchChatbotResponse = async (userInput) => {
   try {
@@ -38,128 +21,85 @@ const fetchChatbotResponse = async (userInput) => {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
       },
       body: JSON.stringify({ user_input: userInput }),
-    });
+    })
 
     if (!ch_response.ok) {
-      throw new Error(`HTTP error! Status: ${ch_response.status}`);
+      throw new Error(`HTTP error! Status: ${ch_response.status}`)
     }
 
-    let chatbot_response = await ch_response.text();
+    let chatbot_response = await ch_response.text()
 
-    chatbot_response = chatbot_response.replace(/^"(.*)"$/, "$1");
+    chatbot_response = chatbot_response.replace(/^"(.*)"$/, "$1")
 
-    let formattedResponse = chatbot_response.replace(/<\/?[^>]+(>|$)/g, "");
+    let formattedResponse = chatbot_response.replace(/<\/?[^>]+(>|$)/g, "")
 
-    formattedResponse = formattedResponse.replace(/\\n/g, " ");
+    formattedResponse = formattedResponse.replace(/\\n/g, " ")
 
     formattedResponse = formattedResponse
       .split("\n")
       .map((line) => line.trim())
       .filter((line) => line.length > 0)
-      .join(" ");
+      .join(" ")
 
-    return formattedResponse;
+    return formattedResponse
   } catch (error) {
-    console.error("Error fetching chatbot response:", error);
-    return "Oops! Something went wrong.";
+    console.error("Error fetching chatbot response:", error)
+    return "Oops! Something went wrong."
   }
-};
-
-let initialTransactions = [];
-
-const fetchTransactions = async () => {
-  try {
-    const response = await fetch(
-      "http://127.0.0.1:8000/profile/recent_transactions",
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch transactions");
-    }
-
-    const data = await response.json();
-
-    initialTransactions = data.map((transaction) => ({
-      id: transaction._id,
-      type: transaction.transaction_type,
-      amount: transaction.transaction_amount,
-      category: transaction.transaction_category,
-      description: transaction.transaction_description,
-      date: new Date(transaction.timestamp).toISOString().split("T")[0],
-      yy,
-    }));
-
-    console.log(initialTransactions);
-  } catch (error) {
-    console.error("Error fetching transactions:", error);
-    initialTransactions = [];
-  }
-};
-
-fetchTransactions();
+}
 
 const expenseCategories = [
   { name: "Food", color: "#f97316" },
-  { name: "Transportation", color: "#8b5cf6" },
+  { name: "Transporation", color: "#8b5cf6" },
   { name: "Entertainment", color: "#22c55e" },
   { name: "Shopping", color: "#ec4899" },
   { name: "Bills", color: "#3b82f6" },
+  { name: "Health", color: "#ef4444" },
+  { name: "Family", color: "#14b8a6" },
   { name: "Other", color: "#6b7280" },
-];
+]
 
 const DashboardPage = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
-  useEffect(() => {
-    const validateToken = async () => {
-      const accessToken = localStorage.getItem("access_token");
+  // State for top UI data
+  const [topUIData, setTopUIData] = useState({
+    profile_total_income: 0,
+    profile_total_expense: 0,
+    profile_total_balance: 0,
+  })
+  const [isTopUILoading, setIsTopUILoading] = useState(true)
 
-      if (!accessToken) {
-        navigate("/");
-        return;
-      }
-    };
-
-    validateToken();
-  }, [navigate]);
-
-  const [transactions, setTransactions] = useState(initialTransactions);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showAllTransactions, setShowAllTransactions] = useState(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState(null);
+  // State for transactions and loading status
+  const [transactions, setTransactions] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [showAllTransactions, setShowAllTransactions] = useState(false)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [editingTransaction, setEditingTransaction] = useState(null)
   const [newTransaction, setNewTransaction] = useState({
     type: "expense",
     category: "",
     amount: "",
     description: "",
     date: new Date().toISOString().split("T")[0],
-  });
-  const [activeIndex, setActiveIndex] = useState(null);
+  })
+  const [activeIndex, setActiveIndex] = useState(null)
   const [filters, setFilters] = useState({
     category: "",
     dateFrom: "",
     dateTo: "",
     description: "",
-  });
-  const [showFilters, setShowFilters] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  })
+  const [showFilters, setShowFilters] = useState(false)
+  const [darkMode, setDarkMode] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
-  // Enhanced chatbot state variables
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [activeTab, setActiveTab] = useState("chat"); // 'chat' or 'history'
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(false)
+  const [activeTab, setActiveTab] = useState("chat")
   const [chatMessages, setChatMessages] = useState(() => {
-    // Load chat history from localStorage on initial render
-    const savedMessages = localStorage.getItem("chatHistory");
+    const savedMessages = localStorage.getItem("chatHistory")
     return savedMessages
       ? JSON.parse(savedMessages)
       : [
@@ -169,28 +109,28 @@ const DashboardPage = () => {
             sender: "bot",
             timestamp: new Date().toISOString(),
           },
-        ];
-  });
-  const [chatInput, setChatInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const chatEndRef = useRef(null);
+        ]
+  })
+  const [chatInput, setChatInput] = useState("")
+  const [isTyping, setIsTyping] = useState(false)
+  const chatEndRef = useRef(null)
 
   // Group chat messages by date for history view
   const chatHistoryByDate = chatMessages.reduce((groups, message) => {
-    const date = new Date(message.timestamp).toLocaleDateString();
+    const date = new Date(message.timestamp).toLocaleDateString()
     if (!groups[date]) {
-      groups[date] = [];
+      groups[date] = []
     }
-    groups[date].push(message);
-    return groups;
-  }, {});
+    groups[date].push(message)
+    return groups
+  }, {})
 
-  const totalIncome = topUIData.profile_total_income;
-  const totalExpenses = topUIData.profile_total_expense;
-  const totalBalance = topUIData.profile_total_balance;
-  const spentPercentage =
-    totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
-  const isOverBudget = spentPercentage > 80;
+  // Derived values from topUIData
+  const totalIncome = topUIData.profile_total_income
+  const totalExpenses = topUIData.profile_total_expense
+  const totalBalance = topUIData.profile_total_balance
+  const spentPercentage = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0
+  const isOverBudget = spentPercentage > 80
 
   // filter transactions
   const filteredTransactions = transactions.filter((t) => {
@@ -201,41 +141,111 @@ const DashboardPage = () => {
       (!filters.category || t.category === filters.category) &&
       (!filters.dateFrom || new Date(filters.dateFrom) <= new Date(t.date)) &&
       (!filters.dateTo || new Date(filters.dateTo) >= new Date(t.date)) &&
-      (!filters.description ||
-        t.description.toLowerCase().includes(filters.description.toLowerCase()))
-    );
-  });
+      (!filters.description || t.description.toLowerCase().includes(filters.description.toLowerCase()))
+    )
+  })
 
   // calculate expenses breakdown data
   const expenseBreakdownData = expenseCategories
     .map((category) => {
       const totalForCategory = transactions
-        .filter((t) => t.type === "expense" && t.category === category.name)
-        .reduce((sum, t) => sum + t.amount, 0);
+        .filter((t) => t.type === "expense" && t.category.toLowerCase() === category.name.toLowerCase())
+        .reduce((sum, t) => sum + t.amount, 0)
 
       return {
         name: category.name,
         value: totalForCategory,
         color: category.color,
-      };
+      }
     })
-    .filter((item) => item.value > 0);
+    .filter((item) => item.value > 0)
+
+  console.log("Expense breakdown data:", expenseBreakdownData)
+  console.log("All transactions:", transactions)
+  console.log(
+    "Transportation transactions:",
+    transactions.filter((t) => t.category.toLowerCase().includes("transport")),
+  )
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewTransaction((prev) => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
+    setNewTransaction((prev) => ({ ...prev, [name]: value }))
+  }
 
   const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
+    setFilters((prev) => ({ ...prev, [name]: value }))
+  }
 
-  const resetFilters = () =>
-    setFilters({ category: "", dateFrom: "", dateTo: "", description: "" });
+  const resetFilters = () => setFilters({ category: "", dateFrom: "", dateTo: "", description: "" })
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  // Function to fetch top UI data
+  const fetchTopUIData = async () => {
+    try {
+      setIsTopUILoading(true)
+      const response = await fetch("http://localhost:8000/profile/dashboard", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch dashboard data")
+      }
+
+      const data = await response.json()
+      setTopUIData(data)
+      setIsTopUILoading(false)
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error)
+      setIsTopUILoading(false)
+    }
+  }
+
+  const addTransaction = async (transaction) => {
+    try {
+      setIsLoading(true)
+
+      const response = await fetch("http://127.0.0.1:8000/profile/recent_transactions", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch transactions")
+      }
+
+      const data = await response.json()
+
+      const formattedTransactions = data.map((transaction) => ({
+        id: transaction._id,
+        type: transaction.transaction_type,
+        amount: transaction.transaction_amount,
+        category: transaction.transaction_category,
+        description: transaction.transaction_description,
+        date: new Date(transaction.timestamp).toISOString().split("T")[0],
+      }))
+
+      console.log("Fetched transactions:", formattedTransactions)
+      setTransactions(formattedTransactions)
+
+      await fetchTopUIData()
+      setIsLoading(false)
+      return true
+    } catch (error) {
+      console.error("Error fetching transactions:", error)
+      setIsLoading(false)
+    }
+  }
+
+  // Handle form submission for adding/editing transactions
+  const handleSubmit = async (e) => {
+    e.preventDefault()
 
     const transactionToAdd = {
       id: editingTransaction ? editingTransaction.id : Date.now(),
@@ -244,151 +254,164 @@ const DashboardPage = () => {
       category: newTransaction.category,
       description: newTransaction.description,
       date: newTransaction.date,
-    };
-
-    if (editingTransaction) {
-      setTransactions(
-        transactions.map((t) =>
-          t.id === editingTransaction.id ? transactionToAdd : t
-        )
-      );
-    } else {
-      setTransactions([...transactions, transactionToAdd]);
     }
 
-    setIsAddModalOpen(false);
-    setEditingTransaction(null);
+    if (editingTransaction) {
+      // Handle editing logic here (would need a backend endpoint)
+      setTransactions(transactions.map((t) => (t.id === editingTransaction.id ? transactionToAdd : t)))
+    } else {
+      // Add new transaction to backend
+      const success = await addTransaction(transactionToAdd)
+      if (!success) {
+        // If adding to backend failed, at least update the UI temporarily
+        setTransactions([...transactions, transactionToAdd])
+      }
+    }
+
+    setIsAddModalOpen(false)
+    setEditingTransaction(null)
     setNewTransaction({
       type: "expense",
       category: "",
       amount: "",
       description: "",
       date: new Date().toISOString().split("T")[0],
-    });
-  };
+    })
+  }
 
   const handleEdit = (transaction) => {
-    setEditingTransaction(transaction);
+    setEditingTransaction(transaction)
     setNewTransaction({
       type: transaction.type,
       category: transaction.category,
       amount: transaction.amount,
       description: transaction.description,
       date: transaction.date,
-    });
-    setIsAddModalOpen(true);
-  };
+    })
+    setIsAddModalOpen(true)
+  }
 
-  const handleDelete = (id) =>
-    setTransactions(transactions.filter((t) => t.id !== id));
+  const handleDelete = (id) => setTransactions(transactions.filter((t) => t.id !== id))
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    navigate("/");
-  };
+    localStorage.removeItem("access_token")
+    navigate("/")
+  }
 
   useEffect(() => {
     if (!isAddModalOpen) {
-      setEditingTransaction(null);
+      setEditingTransaction(null)
       setNewTransaction({
         type: "expense",
         category: "",
         amount: "",
         description: "",
         date: new Date().toISOString().split("T")[0],
-      });
+      })
     }
-  }, [isAddModalOpen]);
+  }, [isAddModalOpen])
 
   useEffect(() => {
     // Set light mode by default
-    setDarkMode(false);
-    document.documentElement.classList.remove("dark");
-    localStorage.setItem("darkMode", "false");
+    setDarkMode(false)
+    document.documentElement.classList.remove("dark")
+    localStorage.setItem("darkMode", "false")
 
     // Add scroll event listener
     const handleScroll = () => {
       if (window.scrollY > 10) {
-        setScrolled(true);
+        setScrolled(true)
       } else {
-        setScrolled(false);
+        setScrolled(false)
       }
-    };
+    }
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll)
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
+      window.removeEventListener("scroll", handleScroll)
+    }
+  }, [])
 
   // Add this useEffect to save chat messages to localStorage
   useEffect(() => {
-    localStorage.setItem("chatHistory", JSON.stringify(chatMessages));
-  }, [chatMessages]);
+    localStorage.setItem("chatHistory", JSON.stringify(chatMessages))
+  }, [chatMessages])
 
   // Add this useEffect inside the DashboardPage component, after the other useEffects
   useEffect(() => {
     // Scroll to bottom of chat when messages change
     if (chatEndRef.current && activeTab === "chat") {
-      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
-  }, [chatMessages, activeTab]);
+  }, [chatMessages, activeTab])
+
+  // Fetch top UI data when component mounts
+  useEffect(() => {
+    fetchTopUIData()
+
+    // Set up an interval to refresh the data every 5 minutes
+    const intervalId = setInterval(() => {
+      fetchTopUIData()
+    }, 300000)
+
+    return () => clearInterval(intervalId)
+  }, [])
 
   // Update the dark mode toggle function
   const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem("darkMode", newDarkMode);
+    const newDarkMode = !darkMode
+    setDarkMode(newDarkMode)
+    localStorage.setItem("darkMode", newDarkMode)
 
     if (newDarkMode) {
-      document.documentElement.classList.add("dark");
+      document.documentElement.classList.add("dark")
     } else {
-      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.remove("dark")
     }
-  };
+  }
 
   const handleSendMessage = async () => {
-    if (chatInput.trim() === "") return;
+    if (chatInput.trim() === "") return
 
     const userMessage = {
       id: Date.now(),
       text: chatInput,
       sender: "user",
       timestamp: new Date().toISOString(),
-    };
+    }
 
-    setChatMessages((prev) => [...prev, userMessage]);
-    setChatInput("");
-    setIsTyping(true);
+    setChatMessages((prev) => [...prev, userMessage])
+    setChatInput("")
+    setIsTyping(true)
 
     try {
-      const chatbotResponse = await fetchChatbotResponse(chatInput);
-      console.log("Formatted Chatbot Response:", chatbotResponse);
+      const chatbotResponse = await fetchChatbotResponse(chatInput)
+      console.log("Formatted Chatbot Response:", chatbotResponse)
 
-      setIsTyping(false);
+      setIsTyping(false)
 
       const botMessage = {
         id: Date.now(),
         text: chatbotResponse || "Oops! Couldn't fetch a valid response.",
         sender: "bot",
         timestamp: new Date().toISOString(),
-      };
+      }
 
-      setChatMessages((prev) => [...prev, botMessage]);
+      setChatMessages((prev) => [...prev, botMessage])
     } catch (error) {
-      setIsTyping(false);
-      console.error("Error fetching chatbot response:", error);
+      setIsTyping(false)
+      console.error("Error fetching chatbot response:", error)
 
       const errorMessage = {
         id: Date.now(),
         text: "Oops! Something went wrong. Please try again.",
         sender: "bot",
         timestamp: new Date().toISOString(),
-      };
+      }
 
-      setChatMessages((prev) => [...prev, errorMessage]);
+      setChatMessages((prev) => [...prev, errorMessage])
     }
-  };
+  }
   const clearChatHistory = () => {
     setChatMessages([
       {
@@ -397,20 +420,82 @@ const DashboardPage = () => {
         sender: "bot",
         timestamp: new Date().toISOString(),
       },
-    ]);
-  };
+    ])
+  }
 
   // Add this function to format timestamps
   const formatTime = (isoString) => {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
+    const date = new Date(isoString)
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  }
+
+  // Function to fetch transactions data - extracted for reuse
+  const fetchTransactionsData = async () => {
+    try {
+      setIsLoading(true) // Set loading state to true before fetching
+
+      const response = await fetch("http://127.0.0.1:8000/profile/recent_transactions", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch transactions")
+      }
+
+      const data = await response.json()
+
+      const formattedTransactions = data.map((transaction) => ({
+        id: transaction._id,
+        type: transaction.transaction_type,
+        amount: transaction.transaction_amount,
+        category: transaction.transaction_category,
+        description: transaction.transaction_description,
+        date: new Date(transaction.timestamp).toISOString().split("T")[0],
+      }))
+
+      console.log("Fetched transactions:", formattedTransactions)
+      setTransactions(formattedTransactions)
+      setIsLoading(false) // Set loading state to false after fetching
+    } catch (error) {
+      console.error("Error fetching transactions:", error)
+      setIsLoading(false) // Make sure to reset loading state on error
+    }
+  }
+
+  // Fetch transactions when component mounts
+  useEffect(() => {
+    // Call the fetchTransactionsData function when component mounts
+    fetchTransactionsData()
+
+    // Set up an interval to refresh the data every 5 minutes (300000ms)
+    // This ensures data stays fresh even during long sessions
+    const intervalId = setInterval(() => {
+      fetchTransactionsData()
+    }, 300000)
+
+    // Clean up the interval when component unmounts
+    return () => clearInterval(intervalId)
+  }, []) // Empty dependency array means this runs once on mount
+
+  // Loading state for the entire dashboard
+  if (isTopUILoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard data...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
-      className={`flex ${
-        darkMode ? "bg-gray-900 text-white" : "bg-white text-black"
-      } transition-colors duration-300`}
+      className={`flex ${darkMode ? "bg-gray-900 text-white" : "bg-white text-black"} transition-colors duration-300`}
     >
       <Sidebar darkMode={darkMode} scrolled={scrolled} />
 
@@ -421,9 +506,7 @@ const DashboardPage = () => {
             darkMode ? "bg-gray-900" : "bg-white"
           } z-30 p-6 transition-all duration-300 ${
             scrolled
-              ? `${
-                  darkMode ? "bg-opacity-80" : "bg-opacity-90"
-                } backdrop-blur-sm border-b ${
+              ? `${darkMode ? "bg-opacity-80" : "bg-opacity-90"} backdrop-blur-sm border-b ${
                   darkMode ? "border-gray-700" : "border-gray-200"
                 }`
               : "bg-opacity-100"
@@ -467,11 +550,7 @@ const DashboardPage = () => {
               icon={ArrowDown}
               darkMode={darkMode}
             />
-            <BudgetCard
-              percentage={spentPercentage}
-              isOverBudget={isOverBudget}
-              darkMode={darkMode}
-            />
+            <BudgetCard percentage={spentPercentage} isOverBudget={isOverBudget} darkMode={darkMode} />
           </div>
 
           {/* recent transactions and expenses breakdown menu */}
@@ -493,6 +572,7 @@ const DashboardPage = () => {
                 setShowFilters={setShowFilters}
                 darkMode={darkMode}
                 expenseCategories={expenseCategories}
+                isLoading={isLoading} // Pass loading state to RecentTransactions
               />
             </div>
             <div className="md:col-span-3 h-full">
@@ -517,11 +597,7 @@ const DashboardPage = () => {
           </div>
 
           {/* Income vs Expenses Chart - Moved to the bottom with left border */}
-          <div
-            className={`mt-6 border-l-2 ${
-              darkMode ? "border-gray-700" : "border-gray-200"
-            } pl-4`}
-          >
+          <div className={`mt-6 border-l-2 ${darkMode ? "border-gray-700" : "border-gray-200"} pl-4`}>
             <IncomeVsExpensesChart darkMode={darkMode} />
           </div>
         </div>
@@ -531,13 +607,9 @@ const DashboardPage = () => {
       {isAddModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="absolute inset-0 bg-black bg-opacity-30 backdrop-blur-sm"></div>
-          <div
-            className={`relative bg-white p-6 rounded-lg w-full max-w-md shadow-xl`}
-          >
+          <div className={`relative bg-white p-6 rounded-lg w-full max-w-md shadow-xl`}>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">
-                {editingTransaction ? "Edit Transaction" : "Add Transaction"}
-              </h2>
+              <h2 className="text-xl font-bold">{editingTransaction ? "Edit Transaction" : "Add Transaction"}</h2>
               <button
                 className="text-gray-500 hover:text-gray-700 cursor-pointer"
                 onClick={() => setIsAddModalOpen(false)}
@@ -553,26 +625,18 @@ const DashboardPage = () => {
                   <button
                     type="button"
                     className={`flex-1 py-3 ${
-                      newTransaction.type === "income"
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-100 text-gray-700"
+                      newTransaction.type === "income" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700"
                     } cursor-pointer transition-colors`}
-                    onClick={() =>
-                      setNewTransaction({ ...newTransaction, type: "income" })
-                    }
+                    onClick={() => setNewTransaction({ ...newTransaction, type: "income" })}
                   >
                     Income
                   </button>
                   <button
                     type="button"
                     className={`flex-1 py-3 ${
-                      newTransaction.type === "expense"
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-100 text-gray-700"
+                      newTransaction.type === "expense" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700"
                     } cursor-pointer transition-colors`}
-                    onClick={() =>
-                      setNewTransaction({ ...newTransaction, type: "expense" })
-                    }
+                    onClick={() => setNewTransaction({ ...newTransaction, type: "expense" })}
                   >
                     Expense
                   </button>
@@ -661,14 +725,7 @@ const DashboardPage = () => {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     >
-                      <rect
-                        x="3"
-                        y="4"
-                        width="18"
-                        height="18"
-                        rx="2"
-                        ry="2"
-                      ></rect>
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                       <line x1="16" y1="2" x2="16" y2="6"></line>
                       <line x1="8" y1="2" x2="8" y2="6"></line>
                       <line x1="3" y1="10" x2="21" y2="10"></line>
@@ -713,9 +770,7 @@ const DashboardPage = () => {
         {isChatOpen && (
           <div
             className={`${
-              darkMode
-                ? "bg-gray-800 border-gray-700"
-                : "bg-white border-gray-200"
+              darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
             } rounded-lg shadow-xl flex flex-col w-80 sm:w-96 border overflow-hidden`}
           >
             {/* Chat header */}
@@ -725,9 +780,7 @@ const DashboardPage = () => {
                   <MessageSquare className="h-5 w-5" />
                 </div>
                 <h3 className="font-medium">Financial Assistant</h3>
-                <span className="text-xs ml-2 bg-blue-600 px-2 py-0.5 rounded-full">
-                  Powered by AI
-                </span>
+                <span className="text-xs ml-2 bg-blue-600 px-2 py-0.5 rounded-full">Powered by AI</span>
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -758,12 +811,7 @@ const DashboardPage = () => {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M18 12H6"
-                      />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
                     </svg>
                   )}
                 </button>
@@ -786,8 +834,8 @@ const DashboardPage = () => {
                       activeTab === "chat"
                         ? "border-b-2 border-blue-500 text-blue-500"
                         : darkMode
-                        ? "text-gray-400 hover:text-gray-300"
-                        : "text-gray-500 hover:text-gray-700"
+                          ? "text-gray-400 hover:text-gray-300"
+                          : "text-gray-500 hover:text-gray-700"
                     }`}
                     onClick={() => setActiveTab("chat")}
                   >
@@ -801,8 +849,8 @@ const DashboardPage = () => {
                       activeTab === "history"
                         ? "border-b-2 border-blue-500 text-blue-500"
                         : darkMode
-                        ? "text-gray-400 hover:text-gray-300"
-                        : "text-gray-500 hover:text-gray-700"
+                          ? "text-gray-400 hover:text-gray-300"
+                          : "text-gray-500 hover:text-gray-700"
                     }`}
                     onClick={() => setActiveTab("history")}
                   >
@@ -827,40 +875,26 @@ const DashboardPage = () => {
                         const showDate =
                           index === 0 ||
                           new Date(message.timestamp).toDateString() !==
-                            new Date(
-                              chatMessages[index - 1].timestamp
-                            ).toDateString();
+                            new Date(chatMessages[index - 1].timestamp).toDateString()
 
                         // Check if this is a consecutive message from the same sender
                         const isConsecutive =
                           index > 0 &&
                           message.sender === chatMessages[index - 1].sender &&
                           new Date(message.timestamp).getTime() -
-                            new Date(
-                              chatMessages[index - 1].timestamp
-                            ).getTime() <
-                            60000;
+                            new Date(chatMessages[index - 1].timestamp).getTime() <
+                            60000
 
                         return (
                           <div key={message.id}>
                             {showDate && (
                               <div
-                                className={`text-xs text-center my-2 ${
-                                  darkMode ? "text-gray-400" : "text-gray-500"
-                                }`}
+                                className={`text-xs text-center my-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
                               >
-                                {new Date(
-                                  message.timestamp
-                                ).toLocaleDateString()}
+                                {new Date(message.timestamp).toLocaleDateString()}
                               </div>
                             )}
-                            <div
-                              className={`mb-2 flex ${
-                                message.sender === "user"
-                                  ? "justify-end"
-                                  : "justify-start"
-                              }`}
-                            >
+                            <div className={`mb-2 flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                               {message.sender === "bot" && !isConsecutive && (
                                 <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white mr-2 flex-shrink-0">
                                   <MessageSquare className="h-5 w-5" />
@@ -871,13 +905,9 @@ const DashboardPage = () => {
                                   message.sender === "user"
                                     ? "bg-blue-500 text-white"
                                     : darkMode
-                                    ? "bg-gray-700 text-white"
-                                    : "bg-gray-100 text-gray-800"
-                                } ${
-                                  isConsecutive && message.sender === "bot"
-                                    ? "ml-10"
-                                    : ""
-                                }`}
+                                      ? "bg-gray-700 text-white"
+                                      : "bg-gray-100 text-gray-800"
+                                } ${isConsecutive && message.sender === "bot" ? "ml-10" : ""}`}
                               >
                                 <p>{message.text}</p>
                                 <p
@@ -885,8 +915,8 @@ const DashboardPage = () => {
                                     message.sender === "user"
                                       ? "text-blue-100"
                                       : darkMode
-                                      ? "text-gray-400"
-                                      : "text-gray-500"
+                                        ? "text-gray-400"
+                                        : "text-gray-500"
                                   }`}
                                 >
                                   {formatTime(message.timestamp)}
@@ -899,15 +929,11 @@ const DashboardPage = () => {
                               )}
                             </div>
                           </div>
-                        );
+                        )
                       })
                     ) : (
                       <div className="flex items-center justify-center h-full">
-                        <p
-                          className={`text-center ${
-                            darkMode ? "text-gray-400" : "text-gray-500"
-                          }`}
-                        >
+                        <p className={`text-center ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                           No messages yet. Start a conversation!
                         </p>
                       </div>
@@ -916,9 +942,7 @@ const DashboardPage = () => {
                       <div className="flex justify-start mb-4 ml-10">
                         <div
                           className={`${
-                            darkMode
-                              ? "bg-gray-700 text-white"
-                              : "bg-gray-100 text-gray-800"
+                            darkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-gray-800"
                           } rounded-lg px-4 py-2`}
                         >
                           <div className="flex space-x-1">
@@ -960,17 +984,10 @@ const DashboardPage = () => {
 
                     {Object.keys(chatHistoryByDate).length > 0 ? (
                       Object.entries(chatHistoryByDate)
-                        .sort(
-                          ([dateA], [dateB]) =>
-                            new Date(dateB) - new Date(dateA)
-                        )
+                        .sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA))
                         .map(([date, messages]) => (
                           <div key={date} className="mb-6">
-                            <div
-                              className={`text-xs font-medium mb-2 ${
-                                darkMode ? "text-gray-400" : "text-gray-500"
-                              }`}
-                            >
+                            <div className={`text-xs font-medium mb-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                               {new Date(date).toLocaleDateString(undefined, {
                                 weekday: "long",
                                 year: "numeric",
@@ -978,22 +995,13 @@ const DashboardPage = () => {
                                 day: "numeric",
                               })}
                             </div>
-                            <div
-                              className={`p-3 rounded-lg ${
-                                darkMode ? "bg-gray-700" : "bg-gray-100"
-                              }`}
-                            >
+                            <div className={`p-3 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}>
                               {messages.slice(0, 2).map((message) => (
-                                <div
-                                  key={message.id}
-                                  className="mb-2 last:mb-0"
-                                >
+                                <div key={message.id} className="mb-2 last:mb-0">
                                   <div className="flex items-start">
                                     <div
                                       className={`h-6 w-6 rounded-full flex-shrink-0 flex items-center justify-center mr-2 ${
-                                        message.sender === "bot"
-                                          ? "bg-blue-500 text-white"
-                                          : "bg-gray-500 text-white"
+                                        message.sender === "bot" ? "bg-blue-500 text-white" : "bg-gray-500 text-white"
                                       }`}
                                     >
                                       {message.sender === "bot" ? (
@@ -1003,16 +1011,8 @@ const DashboardPage = () => {
                                       )}
                                     </div>
                                     <div className="flex-1 overflow-hidden">
-                                      <p className="text-sm truncate">
-                                        {message.text}
-                                      </p>
-                                      <p
-                                        className={`text-xs ${
-                                          darkMode
-                                            ? "text-gray-400"
-                                            : "text-gray-500"
-                                        }`}
-                                      >
+                                      <p className="text-sm truncate">{message.text}</p>
+                                      <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                                         {formatTime(message.timestamp)}
                                       </p>
                                     </div>
@@ -1021,16 +1021,14 @@ const DashboardPage = () => {
                               ))}
                               {messages.length > 2 && (
                                 <div
-                                  className={`text-xs text-center mt-2 ${
-                                    darkMode ? "text-gray-400" : "text-gray-500"
-                                  }`}
+                                  className={`text-xs text-center mt-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
                                 >
                                   {messages.length - 2} more messages
                                 </div>
                               )}
                               <button
                                 onClick={() => {
-                                  setActiveTab("chat");
+                                  setActiveTab("chat")
                                   // Optionally scroll to the date's messages
                                 }}
                                 className={`w-full text-center text-xs mt-2 py-1 rounded ${
@@ -1046,11 +1044,7 @@ const DashboardPage = () => {
                         ))
                     ) : (
                       <div className="flex items-center justify-center h-full">
-                        <p
-                          className={`text-center ${
-                            darkMode ? "text-gray-400" : "text-gray-500"
-                          }`}
-                        >
+                        <p className={`text-center ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                           No chat history available.
                         </p>
                       </div>
@@ -1063,15 +1057,13 @@ const DashboardPage = () => {
                     {/* Quick reply buttons */}
                     <div
                       className={`px-3 py-2 flex flex-wrap gap-2 ${
-                        darkMode
-                          ? "bg-gray-700 border-gray-600"
-                          : "bg-gray-50 border-gray-200"
+                        darkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"
                       } border-t`}
                     >
                       <button
                         onClick={() => {
-                          setChatInput("What's my budget?");
-                          handleSendMessage();
+                          setChatInput("What's my budget?")
+                          handleSendMessage()
                         }}
                         className={`text-xs px-3 py-1 rounded-full ${
                           darkMode
@@ -1083,8 +1075,8 @@ const DashboardPage = () => {
                       </button>
                       <button
                         onClick={() => {
-                          setChatInput("Show my expenses");
-                          handleSendMessage();
+                          setChatInput("Show my expenses")
+                          handleSendMessage()
                         }}
                         className={`text-xs px-3 py-1 rounded-full ${
                           darkMode
@@ -1096,8 +1088,8 @@ const DashboardPage = () => {
                       </button>
                       <button
                         onClick={() => {
-                          setChatInput("What's my income?");
-                          handleSendMessage();
+                          setChatInput("What's my income?")
+                          handleSendMessage()
                         }}
                         className={`text-xs px-3 py-1 rounded-full ${
                           darkMode
@@ -1109,8 +1101,8 @@ const DashboardPage = () => {
                       </button>
                       <button
                         onClick={() => {
-                          setChatInput("How much have I saved?");
-                          handleSendMessage();
+                          setChatInput("How much have I saved?")
+                          handleSendMessage()
                         }}
                         className={`text-xs px-3 py-1 rounded-full ${
                           darkMode
@@ -1123,19 +1115,13 @@ const DashboardPage = () => {
                     </div>
 
                     {/* Chat input */}
-                    <div
-                      className={`border-t ${
-                        darkMode ? "border-gray-700" : "border-gray-200"
-                      } p-3`}
-                    >
+                    <div className={`border-t ${darkMode ? "border-gray-700" : "border-gray-200"} p-3`}>
                       <div className="flex items-center">
                         <input
                           type="text"
                           value={chatInput}
                           onChange={(e) => setChatInput(e.target.value)}
-                          onKeyPress={(e) =>
-                            e.key === "Enter" && handleSendMessage()
-                          }
+                          onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                           placeholder="Type a message..."
                           className={`flex-1 border rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                             darkMode
@@ -1147,9 +1133,7 @@ const DashboardPage = () => {
                           onClick={handleSendMessage}
                           disabled={chatInput.trim() === ""}
                           className={`bg-blue-500 text-white rounded-r-lg px-4 py-2 ${
-                            chatInput.trim() === ""
-                              ? "opacity-50 cursor-not-allowed"
-                              : "hover:bg-blue-600"
+                            chatInput.trim() === "" ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
                           }`}
                         >
                           <svg
@@ -1168,14 +1152,8 @@ const DashboardPage = () => {
                           </svg>
                         </button>
                       </div>
-                      <div
-                        className={`text-xs mt-1 text-right ${
-                          darkMode ? "text-gray-400" : "text-gray-500"
-                        }`}
-                      >
-                        {chatInput.length > 0
-                          ? `${chatInput.length} characters`
-                          : ""}
+                      <div className={`text-xs mt-1 text-right ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                        {chatInput.length > 0 ? `${chatInput.length} characters` : ""}
                       </div>
                     </div>
                   </>
@@ -1186,36 +1164,28 @@ const DashboardPage = () => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Card components
 const Card = ({ title, amount, change, icon: Icon, darkMode }) => (
   <div
-    className={`${
-      darkMode ? "bg-gray-800" : "bg-white"
-    } p-3 rounded-lg border ${
+    className={`${darkMode ? "bg-gray-800" : "bg-white"} p-3 rounded-lg border ${
       darkMode ? "border-gray-700" : "border-gray-300"
     } text-center`}
   >
     <div className="flex items-center justify-between">
       <h2 className="text-md font-semibold">{title}</h2>
-      <Icon
-        className={`h-5 w-5 ${darkMode ? "text-gray-400" : "text-gray-600"}`}
-      />
+      <Icon className={`h-5 w-5 ${darkMode ? "text-gray-400" : "text-gray-600"}`} />
     </div>
     <p className="text-2xl font-bold mt-2">{amount}</p>
-    <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-      {change}
-    </p>
+    <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>{change}</p>
   </div>
-);
+)
 
 const BudgetCard = ({ percentage, isOverBudget, darkMode }) => (
   <div
-    className={`${
-      darkMode ? "bg-gray-800" : "bg-white"
-    } p-3 rounded-lg border ${
+    className={`${darkMode ? "bg-gray-800" : "bg-white"} p-3 rounded-lg border ${
       darkMode ? "border-gray-700" : "border-gray-300"
     } text-center ${isOverBudget ? "scale-95" : ""}`}
   >
@@ -1224,23 +1194,15 @@ const BudgetCard = ({ percentage, isOverBudget, darkMode }) => (
       <span className="text-lg">🧾</span>
     </div>
     <p className="text-2xl font-bold mt-2">{percentage}%</p>
-    <div
-      className={`w-full ${
-        darkMode ? "bg-gray-700" : "bg-gray-200"
-      } rounded-full h-1.5 mt-2`}
-    >
+    <div className={`w-full ${darkMode ? "bg-gray-700" : "bg-gray-200"} rounded-full h-1.5 mt-2`}>
       <div
         className={`h-1.5 rounded-full ${
-          percentage > 80
-            ? "bg-red-500"
-            : percentage > 60
-            ? "bg-yellow-500"
-            : "bg-green-500"
+          percentage > 80 ? "bg-red-500" : percentage > 60 ? "bg-yellow-500" : "bg-green-500"
         }`}
         style={{ width: `${percentage}%` }}
       ></div>
     </div>
   </div>
-);
+)
 
 export default DashboardPage;
