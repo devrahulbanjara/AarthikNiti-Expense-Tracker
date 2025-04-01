@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 
 const UpcomingBills = ({ darkMode }) => {
@@ -120,5 +118,4 @@ const UpcomingBills = ({ darkMode }) => {
   )
 }
 
-export default UpcomingBills
-
+export default UpcomingBills;

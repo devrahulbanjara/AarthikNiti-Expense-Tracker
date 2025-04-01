@@ -1,5 +1,5 @@
+import DarkMode from "./darkmode"
 import ProfileDropdown from "./profile-dropdown"
-import DarkModeToggle from "./dark-mode-toggle"
 
 const AppHeader = ({ darkMode, toggleDarkMode, handleLogout, scrolled }) => {
   return (
@@ -18,7 +18,7 @@ const AppHeader = ({ darkMode, toggleDarkMode, handleLogout, scrolled }) => {
           </p>
         </div>
         <div className="flex space-x-4">
-          <DarkModeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+          <DarkMode darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
           <ProfileDropdown darkMode={darkMode} handleLogout={handleLogout} />
         </div>
       </div>
@@ -26,5 +26,4 @@ const AppHeader = ({ darkMode, toggleDarkMode, handleLogout, scrolled }) => {
   )
 }
 
-export default AppHeader
-
+export default AppHeader;
