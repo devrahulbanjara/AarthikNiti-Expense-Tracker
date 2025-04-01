@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from core.config import get_current_user
 from services.profile_service import (
-    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot
+    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,get_expenses_for_days
 )
 from pydantic import BaseModel
 from typing import List 
 import sys
 import os
 from chatbot.chat import ConversationalChatbot
+from typing import Optional
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
@@ -34,12 +35,16 @@ class AddExpenseRequest(BaseModel):
     description: str
     amount: float
     category: str
+    recurring: bool = False
+    recurrence_duration: Optional[str] = None
 
 
 @router.post("/add_expense")
 async def add_expense_endpoint(request: AddExpenseRequest, user: dict = Depends(get_current_user)):
     """Adds an expense for the active profile."""
-    return await add_expense(user["user_id"], request.description, request.amount, request.category)
+    return await add_expense(
+        user["user_id"], request.description, request.amount, request.category, request.recurring, request.recurrence_duration
+    )
 
 
 class ProfileCreateRequest(BaseModel):
@@ -101,3 +106,13 @@ async def chatbot_endpoint(request: Chatbot_UserInput, user: dict = Depends(get_
     
     chatbot = ConversationalChatbot()
     return chatbot.chat(request.user_input, context)
+
+
+#dashboard
+@router.get("/expenses-trend")
+async def expenses_trend(days: int, user: dict = Depends(get_current_user)):
+    """Fetches expenses for the last 7, 15, or 30 days grouped by day or date."""
+    if days not in [7, 15, 30]:
+        raise HTTPException(status_code=400, detail="Days parameter must be 7, 15, or 30.")
+
+    return await get_expenses_for_days(user["user_id"], days)

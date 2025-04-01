@@ -8,6 +8,7 @@ from fastapi.security import OAuth2PasswordBearer
 from dateutil.relativedelta import relativedelta
 from bson import ObjectId
 from pymongo.collection import Collection
+from typing import Optional
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -142,7 +143,7 @@ async def update_income(user_id: int, amount: float, description: str, category:
 
 
 
-async def add_expense(user_id: int, description: str, amount: float, category: str):
+async def add_expense(user_id: int, description: str, amount: float, category: str, recurring: bool, recurrence_duration: Optional[str]):
     """Adds an expense to the active profile."""
     user = await users_collection.find_one({"user_id": user_id})
     profile = await get_active_profile(user_id)
@@ -153,15 +154,19 @@ async def add_expense(user_id: int, description: str, amount: float, category: s
     if new_balance < 0:
         raise HTTPException(status_code=400, detail="Insufficient balance")
 
-    await transactions_collection.insert_one({
+    transaction_data = {
         "user_id": user_id,
         "profile_id": user["active_profile_id"],
         "transaction_type": "expense",
         "transaction_description": description,
         "transaction_category": category,
         "transaction_amount": amount,
+        "recurring": recurring,
+        "recurrence_duration": recurrence_duration,
         "timestamp": datetime.utcnow()
-    })
+    }
+
+    await transactions_collection.insert_one(transaction_data)
 
     await profiles_collection.update_one(
         {"user_id": user_id, "profile_id": user["active_profile_id"]},
@@ -305,3 +310,37 @@ async def context_for_chatbot(user_id: int, profile_id: int):
     
     context = " ".join(formatted_transactions)
     return {"context": context}
+
+#expenses page suru
+async def get_expenses_for_days(user_id: int, days: int):
+    """Fetches expenses for the last `days` days grouped by day or date."""
+    
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days)
+
+    transactions = await transactions_collection.find(
+        {
+            "user_id": user_id,
+            "profile_id": (await get_active_profile(user_id))["profile_id"],
+            "transaction_type": "expense",
+            "timestamp": {"$gte": start_date, "$lte": end_date}
+        }
+    ).to_list(length=None)
+
+    expenses_data = {}
+
+    for transaction in transactions:
+        timestamp = transaction["timestamp"].replace(tzinfo=None)
+
+        # If last 7 days, use weekday names; else, use "Month Day"
+        if days == 7:
+            key = timestamp.strftime("%A")  # Monday, Tuesday, etc.
+        else:
+            key = timestamp.strftime("%b %d")  # May 15, May 16, etc.
+
+        expenses_data[key] = expenses_data.get(key, 0) + transaction["transaction_amount"]
+
+    # Convert data to required format
+    formatted_expenses = [{"day" if days == 7 else "date": k, "expense": v} for k, v in expenses_data.items()]
+
+    return formatted_expenses
