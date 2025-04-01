@@ -311,10 +311,12 @@ async def context_for_chatbot(user_id: int, profile_id: int):
     context = " ".join(formatted_transactions)
     return {"context": context}
 
-#expenses page suru
-async def get_expenses_for_days(user_id: int, days: int):
-    """Fetches expenses for the last `days` days grouped by day or date."""
+async def get_transaction_trend(user_id: int, transaction_type: str, days: int):
+    """Fetches income or expense for the last `days` days grouped by short weekday names or date."""
     
+    if transaction_type not in ["income", "expense"]:
+        raise HTTPException(status_code=400, detail="Invalid transaction type. Must be 'income' or 'expense'.")
+
     end_date = datetime.utcnow()
     start_date = end_date - timedelta(days=days)
 
@@ -322,25 +324,57 @@ async def get_expenses_for_days(user_id: int, days: int):
         {
             "user_id": user_id,
             "profile_id": (await get_active_profile(user_id))["profile_id"],
-            "transaction_type": "expense",
+            "transaction_type": transaction_type,
             "timestamp": {"$gte": start_date, "$lte": end_date}
         }
     ).to_list(length=None)
 
-    expenses_data = {}
+    transaction_data = {}
 
     for transaction in transactions:
         timestamp = transaction["timestamp"].replace(tzinfo=None)
 
-        # If last 7 days, use weekday names; else, use "Month Day"
-        if days == 7:
-            key = timestamp.strftime("%A")  # Monday, Tuesday, etc.
-        else:
-            key = timestamp.strftime("%b %d")  # May 15, May 16, etc.
+        # If last 7 days, use short weekday names (Mon, Tue, etc.); else, use "Month Day"
+        key = timestamp.strftime("%a") if days == 7 else timestamp.strftime("%b %d")
 
-        expenses_data[key] = expenses_data.get(key, 0) + transaction["transaction_amount"]
+        transaction_data[key] = transaction_data.get(key, 0) + transaction["transaction_amount"]
 
     # Convert data to required format
-    formatted_expenses = [{"day" if days == 7 else "date": k, "expense": v} for k, v in expenses_data.items()]
+    formatted_data = [{("day" if days == 7 else "date"): k, transaction_type: v} for k, v in transaction_data.items()]
 
-    return formatted_expenses
+    return formatted_data
+
+
+async def income_expense_table(user_id: int, transaction_type: str, days: int):
+    """Fetches income or expense transactions dynamically based on parameters."""
+    
+    if transaction_type not in ["income", "expense"]:
+        raise HTTPException(status_code=400, detail="Invalid transaction type. Must be 'income' or 'expense'.")
+
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days)
+
+    transactions = await transactions_collection.find(
+        {
+            "user_id": user_id,
+            "profile_id": (await get_active_profile(user_id))["profile_id"],
+            "transaction_type": transaction_type,
+            "timestamp": {"$gte": start_date, "$lte": end_date}
+        }
+    ).to_list(length=None)
+
+    formatted_transactions = []
+    for transaction in transactions:
+        transaction_data = {
+            "category": transaction["transaction_category"],
+            "amount": transaction["transaction_amount"],
+            "date": transaction["timestamp"].strftime("%b %d"),  # "Apr 01", "Apr 02", etc.
+            "description": transaction["transaction_description"],
+        }
+
+        if transaction_type == "expense":
+            transaction_data["recurring"] = transaction.get("recurring", False)
+
+        formatted_transactions.append(transaction_data)
+
+    return formatted_transactions

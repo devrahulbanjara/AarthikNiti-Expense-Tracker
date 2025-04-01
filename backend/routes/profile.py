@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from core.config import get_current_user
 from services.profile_service import (
-    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,get_expenses_for_days
+    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,get_transaction_trend,income_expense_table
 )
 from pydantic import BaseModel
 from typing import List 
@@ -108,11 +108,25 @@ async def chatbot_endpoint(request: Chatbot_UserInput, user: dict = Depends(get_
     return chatbot.chat(request.user_input, context)
 
 
-#dashboard
-@router.get("/expenses-trend")
-async def expenses_trend(days: int, user: dict = Depends(get_current_user)):
-    """Fetches expenses for the last 7, 15, or 30 days grouped by day or date."""
+@router.get("/transaction-trend")
+async def transaction_trend(transaction_type: str, days: int, user: dict = Depends(get_current_user)):
+    """
+    Fetches income or expense trend for the last 7, 15, or 30 days.
+    
+    Query Parameters:
+    - `transaction_type`: "income" or "expense"
+    - `days`: 7, 15, or 30
+    """
     if days not in [7, 15, 30]:
         raise HTTPException(status_code=400, detail="Days parameter must be 7, 15, or 30.")
 
-    return await get_expenses_for_days(user["user_id"], days)
+    return await get_transaction_trend(user["user_id"], transaction_type, days)
+
+@router.get("/income_expense_table")
+async def transactions_endpoint(
+    transaction_type: str,
+    days: int,
+    user: dict = Depends(get_current_user)
+):
+    """Fetches income or expense transactions dynamically."""
+    return await income_expense_table(user["user_id"], transaction_type, days)
