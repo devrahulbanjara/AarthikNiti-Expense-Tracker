@@ -86,7 +86,7 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
     <div
       className={`${darkMode ? "bg-gray-800" : "bg-white"} p-4 rounded-lg border ${
         darkMode ? "border-gray-700" : "border-gray-300"
-      } w-full`}
+      } w-full -ml-10`}
     >
       <div className="flex justify-between items-start mb-2">
         <div>

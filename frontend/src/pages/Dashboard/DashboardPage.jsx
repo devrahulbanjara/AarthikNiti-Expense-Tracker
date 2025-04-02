@@ -145,7 +145,7 @@ const Header = ({ darkMode, scrolled, toggleDarkMode, handleLogout }) => (
 
 // Dashboard Cards Component
 const DashboardCards = ({ totalBalance, totalIncome, totalExpenses, spentPercentage, isOverBudget, darkMode }) => (
-  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2 -ml-6">
     <Card title="Total Balance" amount={`$${totalBalance.toFixed(2)}`} change="+2.5% from last month" icon={DollarSign} darkMode={darkMode} />
     <Card title="Total Income" amount={`$${totalIncome.toFixed(2)}`} change="+5.2% from last month" icon={ArrowUp} darkMode={darkMode} />
     <Card title="Total Expenses" amount={`$${totalExpenses.toFixed(2)}`} change="-1.8% from last month" icon={ArrowDown} darkMode={darkMode} />
