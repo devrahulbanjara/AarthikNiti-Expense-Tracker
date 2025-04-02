@@ -77,7 +77,6 @@ const DashboardPage = () => {
     localStorage.setItem("darkMode", newDarkMode);
   };
 
-  // Loading state for the entire dashboard
   if (isTopUILoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
@@ -174,7 +173,7 @@ const BudgetCard = ({ percentage, isOverBudget, darkMode }) => (
       <span className="text-lg">🧾</span>
     </div>
     <p className="text-2xl font-bold mt-2">{percentage}%</p>
-    <div className={`w-full ${darkMode ? "bg-gray-700" : "bg-gray-200"} rounded-full h-1.5 mt-2`}>
+    <div className={`w-full ${darkMode ? "bg-gray-700" : "bg-gray-200"} rounded-full h-1.5 mt-2 mr-2`}>
       <div className={`h-1.5 rounded-full ${percentage > 80 ? "bg-red-500" : percentage > 60 ? "bg-yellow-500" : "bg-green-500"}`} style={{ width: `${percentage}%` }}></div>
     </div>
   </div>

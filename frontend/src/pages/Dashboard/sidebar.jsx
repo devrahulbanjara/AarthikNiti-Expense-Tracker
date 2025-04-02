@@ -34,15 +34,15 @@ const Sidebar = ({ darkMode }) => {
   }, [showAccountDropdown]);
 
   const dropdownClasses = `absolute left-0 right-0 mt-1 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"} border rounded-md shadow-md z-10`;
-  const navLinkClasses = `flex items-center py-2 px-4 rounded-md mb-1 ${darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} cursor-pointer`;
+  const navLinkClasses = `flex items-center py-2 px-3 rounded-md mb-1 ${darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} cursor-pointer`;
 
   return (
-    <div className={`fixed top-0 left-0 w-1/5 h-full ${darkMode ? "bg-gray-900" : "bg-white"} p-4 border-r ${darkMode ? "border-gray-700" : "border-gray-200"} min-h-screen z-30 transition-colors duration-300 flex flex-col`}>
-      <h2 className="text-xl font-bold mb-4">AarthikNiti</h2>
-      <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-gray-200"}`} />
+    <div className={`fixed top-0 left-0 w-1/6 h-full ${darkMode ? "bg-gray-900" : "bg-white"} p-3 border-r ${darkMode ? "border-gray-700" : "border-gray-200"} min-h-screen z-30 transition-colors duration-300 flex flex-col`}>
+      <h2 className="text-xl font-bold mb-2">AarthikNiti</h2>
+      <hr className={`my-2 ${darkMode ? "border-gray-700" : "border-gray-200"}`} />
 
       {/* Account Dropdown */}
-      <div className="mb-4 relative account-dropdown-container">
+      <div className="mb-2 relative account-dropdown-container">
         <div
           className={`flex justify-between items-center p-2 border rounded-md cursor-pointer ${darkMode ? "hover:bg-gray-800 border-gray-700" : "hover:bg-gray-50 border-gray-300"}`}
           onClick={() => setShowAccountDropdown((prev) => !prev)}
@@ -72,7 +72,7 @@ const Sidebar = ({ darkMode }) => {
         )}
       </div>
 
-      <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-gray-200"}`} />
+      <hr className={`my-2 ${darkMode ? "border-gray-700" : "border-gray-200"}`} />
 
       {/* Navigation Links */}
       <ul>
@@ -86,8 +86,8 @@ const Sidebar = ({ darkMode }) => {
         ))}
       </ul>
 
-      <div className="mt-auto mb-6">
-        <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-gray-200"}`} />
+      <div className="mt-auto mb-4">
+        <hr className={`my-2 ${darkMode ? "border-gray-700" : "border-gray-200"}`} />
         <ul>
           <li>
             <Link to="/profile" className={navLinkClasses}>

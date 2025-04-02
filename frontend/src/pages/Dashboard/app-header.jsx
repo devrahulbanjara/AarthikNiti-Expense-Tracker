@@ -1,5 +1,5 @@
-import DarkMode from "./darkmode"
-import ProfileDropdown from "./profile-dropdown"
+import DarkMode from "./darkmode";
+import ProfileDropdown from "./profile-dropdown";
 
 const AppHeader = ({ darkMode, toggleDarkMode, handleLogout, scrolled }) => {
   return (
@@ -22,8 +22,10 @@ const AppHeader = ({ darkMode, toggleDarkMode, handleLogout, scrolled }) => {
           <ProfileDropdown darkMode={darkMode} handleLogout={handleLogout} />
         </div>
       </div>
+      {/* Fixed line under the text */}
+      <div className={`mt-2 h-1 ${darkMode ? "bg-gray-700" : "bg-gray-300"}`}></div>
     </div>
-  )
-}
+  );
+};
 
 export default AppHeader;
