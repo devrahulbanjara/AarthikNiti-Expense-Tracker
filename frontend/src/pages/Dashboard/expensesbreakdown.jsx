@@ -116,7 +116,7 @@ const ExpensesBreakdown = ({ darkMode, totalExpenses }) => {
     <div
       className={`${darkMode ? "bg-gray-800" : "bg-white"} p-4 rounded-lg border ${
         darkMode ? "border-gray-700" : "border-gray-300"
-      } h-full`}
+      } h-full w-full max-w-md`}
       ref={chartRef}
       onMouseMove={handleMouseMove}
     >

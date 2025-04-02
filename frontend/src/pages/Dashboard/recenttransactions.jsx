@@ -29,7 +29,6 @@ const RecentTransactions = ({ darkMode, onTransactionsChange }) => {
       if (!response.ok) throw new Error("Failed to fetch transactions");
 
       const data = await response.json();
-      // Log only the main transaction data from the backend
       console.log("Recent Transactions Data from Backend:", data);
 
       const formattedTransactions = data.map((transaction) => ({
