@@ -79,7 +79,7 @@ const RecentTransactions = ({ darkMode, onTransactionsChange }) => {
 
   return (
     <>
-      <div className={`${darkMode ? "bg-gray-800" : "bg-white"} p-4 rounded-lg border ${darkMode ? "border-gray-700" : "border-gray-300"} h-full`}>
+      <div className={`${darkMode ? "bg-gray-800" : "bg-white"} p-4 rounded-lg border ${darkMode ? "border-gray-700" : "border-gray-300"} h-full -ml-6`}>
         <div className="flex flex-col">
           <div className="flex justify-between items-center mb-1">
             <div>

@@ -20,7 +20,7 @@ const UpcomingBills = ({ darkMode }) => {
 
   return (
     <div
-      className={`${darkMode ? "bg-gray-800" : "bg-white"} p-4 rounded-lg border ${darkMode ? "border-gray-700" : "border-gray-300"} h-full`}
+      className={`${darkMode ? "bg-gray-800" : "bg-white"} p-4 rounded-lg border ${darkMode ? "border-gray-700" : "border-gray-300"} h-full -ml-6`}
     >
       <h2 className="text-lg font-semibold mb-1">Upcoming Bills</h2>
       <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} text-sm mb-4`}>Bills due in the next 30 days</p>
