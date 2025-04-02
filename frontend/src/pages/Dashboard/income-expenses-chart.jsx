@@ -1,35 +1,34 @@
-import { useState, useEffect } from "react"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
-import { ChevronDown } from "lucide-react"
+import { useState, useEffect } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { ChevronDown } from "lucide-react";
 
 const IncomeVsExpensesChart = ({ darkMode }) => {
-  const [timeRange, setTimeRange] = useState("Last 6 months")
-  const [showTimeDropdown, setShowTimeDropdown] = useState(false)
-  const [hoveredBar, setHoveredBar] = useState(null)
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [timeRange, setTimeRange] = useState("Last 6 months");
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
+  const [hoveredBar, setHoveredBar] = useState(null);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true)
-        console.log("Fetching income/expense trend data...")
+        setLoading(true);
 
-        const token = localStorage.getItem("access_token")
-        const n = timeRange === "Last 3 months" ? 3 : timeRange === "Last 6 months" ? 6 : 12
+        const token = localStorage.getItem("access_token");
+        const n = timeRange === "Last 3 months" ? 3 : timeRange === "Last 6 months" ? 6 : 12;
         const response = await fetch(`http://127.0.0.1:8000/profile/income-expense-trend?n=${n}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        })
+        });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch income/expense data")
+          throw new Error("Failed to fetch income/expense data");
         }
 
-        const result = await response.json()
-        console.log("Income/Expense Trend Data from Backend:", result)
+        const result = await response.json();
+        console.log("Income/Expense Trend Data from Backend:", result.income_expense_trend);
 
         const formattedData = result.income_expense_trend.map((item) => ({
           month: new Date(item.year, item.month - 1).toLocaleString("default", {
@@ -37,27 +36,26 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
           }),
           income: item.income,
           expenses: item.expense,
-        }))
+        }));
 
-        console.log("Formatted Income/Expense Data:", formattedData)
-        setData(formattedData)
-        setLoading(false)
+        setData(formattedData);
+        setLoading(false);
       } catch (error) {
-        console.error("Error fetching income/expense trend data:", error)
-        setData([])
-        setLoading(false)
+        console.error("Error fetching income/expense trend data:", error);
+        setData([]);
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [timeRange])
+    fetchData();
+  }, [timeRange]);
 
-  const totalIncome = data.reduce((sum, item) => sum + item.income, 0)
-  const totalExpenses = data.reduce((sum, item) => sum + item.expenses, 0)
-  const savingsRate = totalIncome > 0 ? Math.round(((totalIncome - totalExpenses) / totalIncome) * 100) : 0
-  const averageMonthlySavings = data.length > 0 ? Math.round((totalIncome - totalExpenses) / data.length) : 0
+  const totalIncome = data.reduce((sum, item) => sum + item.income, 0);
+  const totalExpenses = data.reduce((sum, item) => sum + item.expenses, 0);
+  const savingsRate = totalIncome > 0 ? Math.round(((totalIncome - totalExpenses) / totalIncome) * 100) : 0;
+  const averageMonthlySavings = data.length > 0 ? Math.round((totalIncome - totalExpenses) / data.length) : 0;
 
-  const timeRangeOptions = ["Last 3 months", "Last 6 months", "Last year"]
+  const timeRangeOptions = ["Last 3 months", "Last 6 months", "Last year"];
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -79,10 +77,10 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
             {(payload[0].value - payload[1].value).toLocaleString()}
           </p>
         </div>
-      )
+      );
     }
-    return null
-  }
+    return null;
+  };
 
   return (
     <div
@@ -115,8 +113,8 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
                   key={option}
                   className={`px-3 py-2 ${darkMode ? "hover:bg-gray-600" : "hover:bg-gray-100"} cursor-pointer text-sm`}
                   onClick={() => {
-                    setTimeRange(option)
-                    setShowTimeDropdown(false)
+                    setTimeRange(option);
+                    setShowTimeDropdown(false);
                   }}
                 >
                   {option}
@@ -149,7 +147,7 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
                 barCategoryGap="20%"
                 onMouseMove={(e) => {
                   if (e && e.activePayload) {
-                    setHoveredBar(e.activePayload[0].payload)
+                    setHoveredBar(e.activePayload[0].payload);
                   }
                 }}
                 onMouseLeave={() => setHoveredBar(null)}
@@ -216,7 +214,7 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
         </>
       )}
     </div>
-  )
-}
+  );
+};
 
 export default IncomeVsExpensesChart;

@@ -4,14 +4,13 @@ const NetSavings = ({ darkMode }) => {
   const [hoveredMonth, setHoveredMonth] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [savingsData, setSavingsData] = useState([]);
-  const [timeRange, setTimeRange] = useState("Last 3 months");
+  const [timeRange, setTimeRange] = useState("Last 6 months");
   const [loading, setLoading] = useState(true);
   const chartRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      console.log("Fetching net savings trend data...");
       const token = localStorage.getItem("access_token");
 
       try {
@@ -25,14 +24,12 @@ const NetSavings = ({ darkMode }) => {
         if (!response.ok) throw new Error("Failed to fetch savings data");
 
         const data = await response.json();
-        console.log("Net Savings Trend Data from Backend:", data);
 
         const formattedData = data.savings_trend.map(({ year, month, savings }) => ({
           month: new Date(year, month - 1).toLocaleString("default", { month: "short" }),
           value: savings,
         }));
 
-        console.log("Formatted Net Savings Data:", formattedData);
         setSavingsData(formattedData);
       } catch (error) {
         console.error("Error fetching savings data:", error);
@@ -111,7 +108,7 @@ const NetSavings = ({ darkMode }) => {
                 <div key={`h-${i}`} className={`col-span-6 border-t border-dashed ${darkMode ? "border-gray-700" : "border-gray-200"}`}></div>
               ))}
               {[...Array(6)].map((_, i) => (
-                <div key={`v-${i}`} className={`row-span-5 border-l border-dashed ${darkMode ? "border-gray-700" : "border-gray-200"}`}></div>
+                                <div key={`v-${i}`} className={`row-span-5 border-l border-dashed ${darkMode ? "border-gray-700" : "border-gray-200"}`}></div>
               ))}
             </div>
 
