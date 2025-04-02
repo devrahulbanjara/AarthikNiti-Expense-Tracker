@@ -17,7 +17,6 @@ const fetchChatbotResponse = async (userInput) => {
     const rawResponse = await response.text();
     return rawResponse.replace(/^"(.*)"$/, "$1").replace(/<\/?[^>]+(>|$)/g, "").replace(/\\n/g, " ").trim();
   } catch (error) {
-    console.error("Error fetching chatbot response:", error);
     return "Oops! Something went wrong.";
   }
 };
@@ -194,7 +193,7 @@ const ChatAssistant = ({ darkMode }) => {
                   </svg>
                 ) : (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
                   </svg>
                 )}
               </button>

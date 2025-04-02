@@ -13,8 +13,7 @@ const ExpensesBreakdown = ({ darkMode, totalExpenses }) => {
 
   const fetchExpenseBreakdownData = async () => {
     try {
-      setIsLoading(true)
-      console.log("Fetching expense breakdown data...")
+      setIsLoading(true);
 
       const response = await fetch("http://127.0.0.1:8000/profile/recent_transactions", {
         method: "GET",
@@ -40,9 +39,7 @@ const ExpensesBreakdown = ({ darkMode, totalExpenses }) => {
         date: new Date(transaction.timestamp).toISOString().split("T")[0],
       }))
 
-      console.log("Formatted Expense Transactions:", transactions)
 
-      // Calculate expense breakdown data
       const breakdownData = expenseCategories
         .map((category) => {
           const totalForCategory = transactions
@@ -57,7 +54,6 @@ const ExpensesBreakdown = ({ darkMode, totalExpenses }) => {
         })
         .filter((item) => item.value > 0)
 
-      console.log("Calculated Expense Breakdown:", breakdownData)
       setExpenseBreakdownData(breakdownData)
       setIsLoading(false)
     } catch (error) {
@@ -69,7 +65,6 @@ const ExpensesBreakdown = ({ darkMode, totalExpenses }) => {
   useEffect(() => {
     fetchExpenseBreakdownData()
 
-    // Set up an interval to refresh the data every 5 minutes
     const intervalId = setInterval(() => {
       fetchExpenseBreakdownData()
     }, 300000)
