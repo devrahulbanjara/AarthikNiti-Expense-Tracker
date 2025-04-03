@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import { Home, ArrowUp, ArrowDown, BarChart, Bell, User, ChevronDown, Settings } from "lucide-react"
 
 const navItems = [
@@ -21,6 +21,7 @@ const accounts = [
 const Sidebar = ({ darkMode }) => {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false)
   const [activeAccount, setActiveAccount] = useState("Personal")
+  const location = useLocation() // Get the current route
 
   // Close dropdown menu when clicking outside
   useEffect(() => {
@@ -45,7 +46,7 @@ const Sidebar = ({ darkMode }) => {
 
         <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-gray-200"}`} />
 
-        {/* accounts personal and other with +add account */}
+        {/* Accounts Section */}
         <div className="mb-4 relative account-dropdown-container">
           <div
             className={`flex justify-between items-center p-2 border rounded-md cursor-pointer ${darkMode ? "hover:bg-gray-800 border-gray-700" : "hover:bg-gray-50 border-gray-300"}`}
@@ -82,51 +83,62 @@ const Sidebar = ({ darkMode }) => {
 
         <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-gray-200"}`} />
 
-        {/* navigation nav bars  */}
+        {/* Navigation Items */}
         <ul>
-          {navItems.map((item) => (
-            <li key={item.name}>
-              <Link
-                to={item.href}
-                className={`flex items-center py-2 px-4 rounded-md mb-1 ${
-                  item.name === "Dashboard"
-                    ? darkMode
-                      ? "bg-gray-800"
-                      : "bg-gray-200"
-                    : darkMode
-                      ? "hover:bg-gray-800"
-                      : "hover:bg-gray-100"
-                } cursor-pointer`}
-              >
-                <item.icon className={`mr-2 h-4 w-4 ${darkMode ? "text-gray-400" : "text-gray-600"}`} />
-                {item.name}
-              </Link>
-            </li>
-          ))}
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.href
+            return (
+              <li key={item.name}>
+                <Link
+                  to={item.href}
+                  className={`flex items-center py-2 px-4 rounded-md mb-1 ${
+                    isActive
+                      ? darkMode
+                        ? "bg-gray-700 text-white"
+                        : "bg-blue-100 text-blue-700"
+                      : darkMode
+                      ? "hover:bg-gray-800 text-gray-400"
+                      : "hover:bg-gray-100 text-gray-600"
+                  } cursor-pointer transition-all`}
+                >
+                  <item.icon className={`mr-2 h-4 w-4 ${isActive ? "text-current" : darkMode ? "text-gray-400" : "text-gray-600"}`} />
+                  {item.name}
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       </div>
 
+      {/* Profile & Settings Section */}
       <div className="mt-auto mb-6">
         <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-gray-200"}`} />
         <ul>
-          <li>
-            <Link
-              to="/profile"
-              className={`flex items-center py-2 px-4 rounded-md mb-1 ${darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} cursor-pointer`}
-            >
-              <User className={`mr-2 h-4 w-4 ${darkMode ? "text-gray-400" : "text-gray-600"}`} />
-              Profile
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/settings"
-              className={`flex items-center py-2 px-4 rounded-md mb-1 ${darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} cursor-pointer`}
-            >
-              <Settings className={`mr-2 h-4 w-4 ${darkMode ? "text-gray-400" : "text-gray-600"}`} />
-              Settings
-            </Link>
-          </li>
+          {[
+            { name: "Profile", icon: User, href: "/profile" },
+            { name: "Settings", icon: Settings, href: "/settings" },
+          ].map((item) => {
+            const isActive = location.pathname === item.href
+            return (
+              <li key={item.name}>
+                <Link
+                  to={item.href}
+                  className={`flex items-center py-2 px-4 rounded-md mb-1 ${
+                    isActive
+                      ? darkMode
+                        ? "bg-gray-700 text-white"
+                        : "bg-blue-100 text-blue-700"
+                      : darkMode
+                      ? "hover:bg-gray-800 text-gray-400"
+                      : "hover:bg-gray-100 text-gray-600"
+                  } cursor-pointer transition-all`}
+                >
+                  <item.icon className={`mr-2 h-4 w-4 ${isActive ? "text-current" : darkMode ? "text-gray-400" : "text-gray-600"}`} />
+                  {item.name}
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       </div>
     </div>
@@ -134,4 +146,3 @@ const Sidebar = ({ darkMode }) => {
 }
 
 export default Sidebar
-

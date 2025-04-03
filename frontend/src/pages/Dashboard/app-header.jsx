@@ -1,4 +1,3 @@
-import ProfileDropdown from "./profile-dropdown"
 import DarkModeToggle from "./dark-mode-toggle"
 
 const AppHeader = ({ darkMode, toggleDarkMode, handleLogout, scrolled }) => {
