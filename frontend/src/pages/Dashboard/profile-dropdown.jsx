@@ -29,7 +29,7 @@ const ProfileDropdown = ({ darkMode, handleLogout }) => {
   return (
     <div className="relative profile-dropdown-container">
       <button
-        className={`p-2 rounded-full ${darkMode ? "bg-gray-800 hover:bg-gray-700" : "bg-gray-200 hover:bg-gray-300"}`}
+        className={`p-2 rounded-full ${darkMode ? "bg-gray-800 hover:bg-gray-700" : "bg-gray-200 hover:bg-gray-300 cursor-pointer"}`}
         onClick={() => setShowProfileDropdown((prev) => !prev)}
       >
         <User  className={`h-5 w-5 ${darkMode ? "text-gray-300" : "text-gray-600"}`} />
