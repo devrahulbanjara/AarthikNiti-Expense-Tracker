@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, Filter, Edit, Trash, Plus, ArrowUp, ArrowDown } from "lucide-react"
+import { Search, Filter, Edit, Trash, ArrowUp, ArrowDown } from 'lucide-react'
 
 const RecentTransactions = ({
   transactions,
@@ -31,12 +31,7 @@ const RecentTransactions = ({
             <h2 className="text-lg font-semibold">Recent Transactions</h2>
             <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>Your recent financial activity</p>
           </div>
-          <button
-            onClick={onAdd}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm flex items-center cursor-pointer hover:bg-blue-600"
-          >
-            <Plus className="h-4 w-4 mr-1" /> Add
-          </button>
+          {/* Add button removed as requested */}
         </div>
 
         <div className="flex gap-2 mt-4 mb-4">
@@ -70,7 +65,7 @@ const RecentTransactions = ({
           >
             <div className="flex justify-between items-center mb-2">
               <h3 className="font-medium">Filters</h3>
-              <button onClick={resetFilters} className="text-blue-500 text-sm cursor-pointer hover:underline">
+              <button onClick={resetFilters} className="text-[#065336] text-sm cursor-pointer hover:underline">
                 Reset
               </button>
             </div>
@@ -190,7 +185,7 @@ const RecentTransactions = ({
                   <div className="flex gap-1">
                     <button
                       onClick={() => onEdit(transaction)}
-                      className={`${darkMode ? "text-gray-400 hover:text-blue-400" : "text-gray-500 hover:text-blue-500"} cursor-pointer`}
+                      className={`${darkMode ? "text-gray-400 hover:text-[#2a9d6e]" : "text-gray-500 hover:text-[#065336]"} cursor-pointer`}
                     >
                       <Edit className="h-4 w-4" />
                     </button>
@@ -211,8 +206,8 @@ const RecentTransactions = ({
           <button
             className={`w-full text-center py-3 mt-4 border ${
               darkMode
-                ? "border-gray-700 text-blue-400 hover:bg-gray-700"
-                : "border-gray-200 text-blue-500 hover:bg-gray-50"
+                ? "border-gray-700 text-[#2a9d6e] hover:bg-gray-700"
+                : "border-gray-200 text-[#065336] hover:bg-gray-50"
             } rounded-md cursor-pointer`}
             onClick={() => setShowAll(!showAll)}
           >
@@ -225,4 +220,3 @@ const RecentTransactions = ({
 }
 
 export default RecentTransactions
-

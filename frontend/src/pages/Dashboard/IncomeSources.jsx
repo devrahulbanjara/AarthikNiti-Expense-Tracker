@@ -63,7 +63,7 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
                 darkMode
                   ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   : "bg-white border-gray-300 text-gray-700"
-              } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              } focus:outline-none focus:ring-2 focus:ring-[#065336]`}
             />
           </div>
           <button
@@ -90,7 +90,7 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
                 onChange={handleFilterChange}
                 className={`w-full p-2 rounded-lg border ${
                   darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                } focus:outline-none focus:ring-2 focus:ring-[#065336]`}
               >
                 <option value="">All Sources</option>
                 {incomeSources.map((source) => (
@@ -111,7 +111,7 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
                 onChange={handleFilterChange}
                 className={`w-full p-2 rounded-lg border ${
                   darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                } focus:outline-none focus:ring-2 focus:ring-[#065336]`}
               />
             </div>
             <div>
@@ -125,7 +125,7 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
                 onChange={handleFilterChange}
                 className={`w-full p-2 rounded-lg border ${
                   darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                } focus:outline-none focus:ring-2 focus:ring-[#065336]`}
               />
             </div>
             <div>
@@ -142,13 +142,13 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
                   darkMode
                     ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                     : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                } focus:outline-none focus:ring-2 focus:ring-[#065336]`}
               />
             </div>
             <div className="md:col-span-4 flex justify-end">
               <button
                 onClick={resetFilters}
-                className="px-4 py-2 text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                className="px-4 py-2 text-sm text-[#065336] hover:text-[#054328] dark:text-[#2a9d6e] dark:hover:text-[#3cb485]"
               >
                 Reset Filters
               </button>
@@ -194,7 +194,7 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
                   <td className="px-6 py-4 whitespace-nowrap">{formatDate(income.date)}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {income.recurring ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#e6f0eb] text-[#065336] dark:bg-[#0a3b27] dark:text-[#a3e0c5]">
                         Recurring
                       </span>
                     ) : (
@@ -206,7 +206,7 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => onEdit(income)}
-                      className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mr-3"
+                      className="text-[#065336] hover:text-[#054328] dark:text-[#2a9d6e] dark:hover:text-[#3cb485] mr-3"
                     >
                       <Edit size={18} />
                     </button>

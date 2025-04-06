@@ -14,6 +14,7 @@ import ExpensesBreakdown from "./expensesbreakdown"
 import UpcomingBills from "./upcomingbills"
 import NetSavings from "./netsavings"
 import IncomeVsExpensesChart from "./income-expenses-chart"
+import EditTransactionModal from "./EditTransactionModal"
 
 const initialTransactions = [
   { id: 1, type: "income", amount: 2500, category: "Salary", description: "Monthly salary", date: "2025-03-15" },
@@ -70,13 +71,6 @@ const DashboardPage = () => {
   const [showAllTransactions, setShowAllTransactions] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState(null)
-  const [newTransaction, setNewTransaction] = useState({
-    type: "expense",
-    category: "",
-    amount: "",
-    description: "",
-    date: new Date().toISOString().split("T")[0],
-  })
   const [activeIndex, setActiveIndex] = useState(null)
   const [filters, setFilters] = useState({
     category: "",
@@ -155,11 +149,6 @@ const DashboardPage = () => {
     })
     .filter((item) => item.value > 0)
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setNewTransaction((prev) => ({ ...prev, [name]: value }))
-  }
-
   const handleFilterChange = (e) => {
     const { name, value } = e.target
     setFilters((prev) => ({ ...prev, [name]: value }))
@@ -167,44 +156,19 @@ const DashboardPage = () => {
 
   const resetFilters = () => setFilters({ category: "", dateFrom: "", dateTo: "", description: "" })
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-
-    const transactionToAdd = {
-      id: editingTransaction ? editingTransaction.id : Date.now(),
-      type: newTransaction.type,
-      amount: Number.parseFloat(newTransaction.amount),
-      category: newTransaction.category,
-      description: newTransaction.description,
-      date: newTransaction.date,
-    }
-
+  const handleSubmit = (transactionData) => {
     if (editingTransaction) {
-      setTransactions(transactions.map((t) => (t.id === editingTransaction.id ? transactionToAdd : t)))
+      setTransactions(transactions.map((t) => (t.id === transactionData.id ? transactionData : t)))
     } else {
-      setTransactions([...transactions, transactionToAdd])
+      setTransactions([...transactions, transactionData])
     }
 
     setIsAddModalOpen(false)
     setEditingTransaction(null)
-    setNewTransaction({
-      type: "expense",
-      category: "",
-      amount: "",
-      description: "",
-      date: new Date().toISOString().split("T")[0],
-    })
   }
 
   const handleEdit = (transaction) => {
     setEditingTransaction(transaction)
-    setNewTransaction({
-      type: transaction.type,
-      category: transaction.category,
-      amount: transaction.amount,
-      description: transaction.description,
-      date: transaction.date,
-    })
     setIsAddModalOpen(true)
   }
 
@@ -218,13 +182,6 @@ const DashboardPage = () => {
   useEffect(() => {
     if (!isAddModalOpen) {
       setEditingTransaction(null)
-      setNewTransaction({
-        type: "expense",
-        category: "",
-        amount: "",
-        description: "",
-        date: new Date().toISOString().split("T")[0],
-      })
     }
   }, [isAddModalOpen])
 
@@ -459,156 +416,15 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      {/* add and edit transactions */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="absolute inset-0 bg-black bg-opacity-30 backdrop-blur-sm"></div>
-          <div className={`relative bg-white p-6 rounded-lg w-full max-w-md shadow-xl`}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">{editingTransaction ? "Edit Transaction" : "Add Transaction"}</h2>
-              <button
-                className="text-gray-500 hover:text-gray-700 cursor-pointer"
-                onClick={() => setIsAddModalOpen(false)}
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit}>
-              <div className="mb-5">
-                <label className="block text-gray-700 mb-2">Type</label>
-                <div className="flex rounded-md overflow-hidden">
-                  <button
-                    type="button"
-                    className={`flex-1 py-3 ${
-                      newTransaction.type === "income" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700"
-                    } cursor-pointer transition-colors`}
-                    onClick={() => setNewTransaction({ ...newTransaction, type: "income" })}
-                  >
-                    Income
-                  </button>
-                  <button
-                    type="button"
-                    className={`flex-1 py-3 ${
-                      newTransaction.type === "expense" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700"
-                    } cursor-pointer transition-colors`}
-                    onClick={() => setNewTransaction({ ...newTransaction, type: "expense" })}
-                  >
-                    Expense
-                  </button>
-                </div>
-              </div>
-
-              <div className="mb-5">
-                <label className="block text-gray-700 mb-2">Category</label>
-                <select
-                  name="category"
-                  value={newTransaction.category}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-md cursor-pointer appearance-none bg-white"
-                  required
-                >
-                  <option value="">Select category</option>
-                  {newTransaction.type === "income" ? (
-                    <>
-                      <option value="Salary">Salary</option>
-                      <option value="Freelance">Freelance</option>
-                      <option value="Investments">Investments</option>
-                      <option value="Gifts">Gifts</option>
-                      <option value="Other">Other</option>
-                    </>
-                  ) : (
-                    expenseCategories.map((cat) => (
-                      <option key={cat.name} value={cat.name}>
-                        {cat.name}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </div>
-
-              <div className="mb-5">
-                <label className="block text-gray-700 mb-2">Amount</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-3 text-gray-500">$</span>
-                  <input
-                    type="number"
-                    name="amount"
-                    value={newTransaction.amount}
-                    onChange={handleInputChange}
-                    className="w-full p-3 pl-7 border border-gray-300 rounded-md"
-                    placeholder="0.00"
-                    step="0.01"
-                    min="0"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="mb-5">
-                <label className="block text-gray-700 mb-2">Description</label>
-                <input
-                  type="text"
-                  name="description"
-                  value={newTransaction.description}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-md"
-                  placeholder="Transaction description"
-                  required
-                />
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-gray-700 mb-2">Date</label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    name="date"
-                    value={newTransaction.date}
-                    onChange={handleInputChange}
-                    className="w-full p-3 border border-gray-300 rounded-md cursor-pointer pr-10"
-                    required
-                  />
-                  <span className="absolute right-3 top-3 text-gray-500">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                      <line x1="16" y1="2" x2="16" y2="6"></line>
-                      <line x1="8" y1="2" x2="8" y2="6"></line>
-                      <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  className="px-5 py-3 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200 font-medium"
-                  onClick={() => setIsAddModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-3 bg-blue-500 text-white rounded-md cursor-pointer hover:bg-blue-600 font-medium"
-                >
-                  {editingTransaction ? "Update" : "Add"} Transaction
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Edit Transaction Modal Component */}
+      <EditTransactionModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSubmit={handleSubmit}
+        editingTransaction={editingTransaction}
+        expenseCategories={expenseCategories}
+        darkMode={darkMode}
+      />
 
       {/* Enhanced Chatbot with History Tab */}
       <div className="fixed bottom-6 right-6 z-50">
@@ -616,7 +432,7 @@ const DashboardPage = () => {
         {!isChatOpen && (
           <button
             onClick={() => setIsChatOpen(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center"
+            className="bg-[#065336] hover:bg-[#054328] text-white rounded-full p-4 shadow-lg flex items-center justify-center"
           >
             <MessageSquare className="h-6 w-6" />
           </button>
@@ -628,18 +444,18 @@ const DashboardPage = () => {
             className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-lg shadow-xl flex flex-col w-80 sm:w-96 border overflow-hidden`}
           >
             {/* Chat header */}
-            <div className="bg-blue-500 text-white px-4 py-3 flex justify-between items-center">
+            <div className="bg-[#065336] text-white px-4 py-3 flex justify-between items-center">
               <div className="flex items-center">
-                <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center text-blue-500 mr-2">
+                <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center text-[#065336] mr-2">
                   <MessageSquare className="h-5 w-5" />
                 </div>
                 <h3 className="font-medium">Financial Assistant</h3>
-                <span className="text-xs ml-2 bg-blue-600 px-2 py-0.5 rounded-full">Powered by AI</span>
+                <span className="text-xs ml-2 bg-[#054328] px-2 py-0.5 rounded-full">Powered by AI</span>
               </div>
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setIsMinimized(!isMinimized)}
-                  className="text-white hover:bg-blue-600 rounded p-1"
+                  className="text-white hover:bg-[#054328] rounded p-1"
                   title={isMinimized ? "Expand" : "Minimize"}
                 >
                   {isMinimized ? (
@@ -671,7 +487,7 @@ const DashboardPage = () => {
                 </button>
                 <button
                   onClick={() => setIsChatOpen(false)}
-                  className="text-white hover:bg-blue-600 rounded p-1"
+                  className="text-white hover:bg-[#054328] rounded p-1"
                   title="Close"
                 >
                   <X className="h-5 w-5" />
@@ -686,7 +502,7 @@ const DashboardPage = () => {
                   <button
                     className={`flex-1 py-3 px-4 text-center font-medium ${
                       activeTab === "chat"
-                        ? "border-b-2 border-blue-500 text-blue-500"
+                        ? "border-b-2 border-[#065336] text-[#065336]"
                         : darkMode
                           ? "text-gray-400 hover:text-gray-300"
                           : "text-gray-500 hover:text-gray-700"
@@ -701,7 +517,7 @@ const DashboardPage = () => {
                   <button
                     className={`flex-1 py-3 px-4 text-center font-medium ${
                       activeTab === "history"
-                        ? "border-b-2 border-blue-500 text-blue-500"
+                        ? "border-b-2 border-[#065336] text-[#065336]"
                         : darkMode
                           ? "text-gray-400 hover:text-gray-300"
                           : "text-gray-500 hover:text-gray-700"
@@ -748,14 +564,14 @@ const DashboardPage = () => {
                             )}
                             <div className={`mb-2 flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                               {message.sender === "bot" && !isConsecutive && (
-                                <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white mr-2 flex-shrink-0">
+                                <div className="h-8 w-8 rounded-full bg-[#065336] flex items-center justify-center text-white mr-2 flex-shrink-0">
                                   <MessageSquare className="h-5 w-5" />
                                 </div>
                               )}
                               <div
                                 className={`max-w-[80%] rounded-lg px-4 py-2 ${
                                   message.sender === "user"
-                                    ? "bg-blue-500 text-white"
+                                    ? "bg-[#065336] text-white"
                                     : darkMode
                                       ? "bg-gray-700 text-white"
                                       : "bg-gray-100 text-gray-800"
@@ -763,7 +579,7 @@ const DashboardPage = () => {
                               >
                                 <p>{message.text}</p>
                                 <p
-                                  className={`text-xs mt-1 ${message.sender === "user" ? "text-blue-100" : darkMode ? "text-gray-400" : "text-gray-500"}`}
+                                  className={`text-xs mt-1 ${message.sender === "user" ? "text-green-100" : darkMode ? "text-gray-400" : "text-gray-500"}`}
                                 >
                                   {formatTime(message.timestamp)}
                                 </p>
@@ -839,7 +655,7 @@ const DashboardPage = () => {
                                   <div className="flex items-start">
                                     <div
                                       className={`h-6 w-6 rounded-full flex-shrink-0 flex items-center justify-center mr-2 ${
-                                        message.sender === "bot" ? "bg-blue-500 text-white" : "bg-gray-500 text-white"
+                                        message.sender === "bot" ? "bg-[#065336] text-white" : "bg-gray-500 text-white"
                                       }`}
                                     >
                                       {message.sender === "bot" ? (
@@ -943,7 +759,7 @@ const DashboardPage = () => {
                           onChange={(e) => setChatInput(e.target.value)}
                           onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                           placeholder="Type a message..."
-                          className={`flex-1 border rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          className={`flex-1 border rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#065336] ${
                             darkMode
                               ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                               : "bg-white border-gray-300 text-black"
@@ -952,8 +768,8 @@ const DashboardPage = () => {
                         <button
                           onClick={handleSendMessage}
                           disabled={chatInput.trim() === ""}
-                          className={`bg-blue-500 text-white rounded-r-lg px-4 py-2 ${
-                            chatInput.trim() === "" ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
+                          className={`bg-[#065336] text-white rounded-r-lg px-4 py-2 ${
+                            chatInput.trim() === "" ? "opacity-50 cursor-not-allowed" : "hover:bg-[#054328]"
                           }`}
                         >
                           <svg

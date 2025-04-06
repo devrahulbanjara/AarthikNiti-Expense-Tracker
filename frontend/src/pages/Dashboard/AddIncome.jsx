@@ -1,15 +1,11 @@
-import { useState, useEffect } from "react"
-import { Calendar, X } from 'lucide-react'
+"use client"
 
-const AddIncome = ({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  editingIncome = null, 
-  incomeSources,
-  darkMode 
-}) => {
-  const [newIncome, setNewIncome] = useState({
+import { useState, useEffect } from "react"
+import { X } from "lucide-react"
+
+const AddIncome = ({ isOpen, onClose, onSubmit, editingIncome, incomeSources, darkMode }) => {
+  const [formData, setFormData] = useState({
+    id: null,
     source: "",
     amount: "",
     description: "",
@@ -19,15 +15,13 @@ const AddIncome = ({
 
   useEffect(() => {
     if (editingIncome) {
-      setNewIncome({
-        source: editingIncome.source,
-        amount: editingIncome.amount,
-        description: editingIncome.description,
-        date: editingIncome.date,
-        recurring: editingIncome.recurring,
+      setFormData({
+        ...editingIncome,
+        amount: editingIncome.amount.toString(),
       })
-    } else if (isOpen) {
-      setNewIncome({
+    } else {
+      setFormData({
+        id: Date.now(),
         source: "",
         amount: "",
         description: "",
@@ -37,124 +31,141 @@ const AddIncome = ({
     }
   }, [editingIncome, isOpen])
 
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    setNewIncome((prev) => ({
-      ...prev,
+    setFormData({
+      ...formData,
       [name]: type === "checkbox" ? checked : value,
-    }))
+    })
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    
-    const incomeToAdd = {
-      id: editingIncome ? editingIncome.id : Date.now(),
-      source: newIncome.source,
-      amount: Number.parseFloat(newIncome.amount),
-      description: newIncome.description,
-      date: newIncome.date,
-      recurring: newIncome.recurring,
-    }
-    
-    onSubmit(incomeToAdd, editingIncome !== null)
+    onSubmit(
+      {
+        ...formData,
+        amount: Number.parseFloat(formData.amount),
+      },
+      !!editingIncome,
+    )
   }
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
+    <div className="fixed inset-0 backdrop-blur-sm bg-transparent flex items-center justify-center z-50">
       <div
-        className={`relative ${darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"} p-6 rounded-lg w-full max-w-md shadow-xl`}
+        className={`${
+          darkMode ? "bg-gray-800 text-white bg-opacity-95" : "bg-white text-gray-800 bg-opacity-95"
+        } rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden`}
       >
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">{editingIncome ? "Edit Income" : "Add Income"}</h2>
+        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold">{editingIncome ? "Edit Income" : "Add New Income"}</h2>
           <button
-            className={`${darkMode ? "text-gray-300 hover:text-gray-100" : "text-gray-500 hover:text-gray-700"} cursor-pointer`}
             onClick={onClose}
+            className={`${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"} p-2 rounded-full transition-colors`}
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-        <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} mb-6`}>Enter the details of your income</p>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-5">
-            <label className={`block ${darkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>Source</label>
-            <select
-              name="source"
-              value={newIncome.source}
-              onChange={handleInputChange}
-              className={`w-full p-3 border rounded-md cursor-pointer appearance-none ${
-                darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-700"
-              } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              required
-            >
-              <option value="">Select source</option>
-              {incomeSources.map((source) => (
-                <option key={source.name} value={source.name}>
-                  {source.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        <form onSubmit={handleSubmit} className="p-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Income Source</label>
+              <select
+                name="source"
+                value={formData.source}
+                onChange={handleChange}
+                required
+                className={`w-full p-3 rounded-lg border ${
+                  darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-300"
+                } focus:ring-2 focus:ring-[#065336] focus:border-[#065336] transition-colors`}
+              >
+                <option value="">Select a source</option>
+                {incomeSources.map((source) => (
+                  <option key={source.name} value={source.name}>
+                    {source.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div className="mb-5">
-            <label className={`block ${darkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>Amount</label>
-            <div className="relative">
-              <span className={`absolute left-3 top-3 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>$</span>
+            <div>
+              <label className="block text-sm font-medium mb-1">Amount</label>
               <input
                 type="number"
                 name="amount"
-                value={newIncome.amount}
-                onChange={handleInputChange}
-                className={`w-full p-3 pl-7 border rounded-md ${
-                  darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                placeholder="0.00"
-                step="0.01"
-                min="0"
+                value={formData.amount}
+                onChange={handleChange}
                 required
+                min="0"
+                step="0.01"
+                className={`w-full p-3 rounded-lg border ${
+                  darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-300"
+                } focus:ring-2 focus:ring-[#065336] focus:border-[#065336] transition-colors`}
+                placeholder="0.00"
               />
             </div>
-          </div>
 
-          <div className="mb-5">
-            <label className={`block ${darkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>Date</label>
-            <div className="relative">
+            <div>
+              <label className="block text-sm font-medium mb-1">Description</label>
+              <input
+                type="text"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                className={`w-full p-3 rounded-lg border ${
+                  darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-300"
+                } focus:ring-2 focus:ring-[#065336] focus:border-[#065336] transition-colors`}
+                placeholder="Brief description"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Date</label>
               <input
                 type="date"
                 name="date"
-                value={newIncome.date}
-                onChange={handleInputChange}
-                className={`w-full p-3 border rounded-md cursor-pointer pr-10 ${
-                  darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                value={formData.date}
+                onChange={handleChange}
                 required
+                className={`w-full p-3 rounded-lg border ${
+                  darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-300"
+                } focus:ring-2 focus:ring-[#065336] focus:border-[#065336] transition-colors`}
               />
-              <span className="absolute right-3 top-3 text-gray-500">
-                <Calendar className="h-5 w-5" />
-              </span>
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="recurring"
+                name="recurring"
+                checked={formData.recurring}
+                onChange={handleChange}
+                className="h-4 w-4 text-[#065336] focus:ring-[#065336] border-gray-300 rounded"
+              />
+              <label htmlFor="recurring" className="ml-2 block text-sm">
+                Recurring Income
+              </label>
             </div>
           </div>
 
-          <div className="flex justify-end gap-3">
+          <div className="mt-6 flex justify-end space-x-3">
             <button
               type="button"
-              className={`px-5 py-3 rounded-md cursor-pointer font-medium ${
-                darkMode
-                  ? "bg-gray-700 hover:bg-gray-600 text-white"
-                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-              }`}
               onClick={onClose}
+              className={`px-4 py-2 rounded-lg ${
+                darkMode ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+              } transition-colors`}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-3 bg-blue-500 text-white rounded-md cursor-pointer hover:bg-blue-600 font-medium"
+              className="px-4 py-2 bg-[#065336] hover:bg-[#054328] text-white rounded-lg transition-colors"
             >
-              {editingIncome ? "Update" : "Add"} Income
+              {editingIncome ? "Update" : "Add"}
             </button>
           </div>
         </form>
@@ -164,3 +175,4 @@ const AddIncome = ({
 }
 
 export default AddIncome
+

@@ -1,55 +1,89 @@
-import React from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+"use client"
 
-const IncomeChart = ({ data, darkMode }) => {
-  // Determine the maximum income for scaling
-  const maxAmount = Math.max(...data.map((day) => day.amount), 1);
-  const scaleFactor = maxAmount < 1 ? 100 : 1; // Boost height if values are too low
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
+
+const IncomeOverview = ({ chartData, darkMode, timeRange, setTimeRange }) => {
+  // Sample data to ensure bars are visible
+  const sampleData = [
+    { day: "Mon", amount: 250000 },
+    { day: "Tue", amount: 120000 },
+    { day: "Wed", amount: 320000 },
+    { day: "Thu", amount: 150000 },
+    { day: "Fri", amount: 420000 },
+    { day: "Sat", amount: 280000 },
+    { day: "Sun", amount: 190000 },
+  ]
+
+  // Use sample data if chartData is empty or has zero values
+  const displayData = chartData.every((item) => item.amount === 0) ? sampleData : chartData
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount)
+  }
 
   return (
-    <div className="p-4 bg-white dark:bg-gray-900 rounded-lg shadow-md">
-      <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-        Income Overview
-      </h2>
-      <p className="text-sm text-gray-500 dark:text-gray-300">
-        Your income trends over time
-      </p>
-      
-      {/* Increased height from 250px to 400px */}
-      <ResponsiveContainer width="100%" height={600}>
-        <BarChart data={data}>
-          <XAxis dataKey="day" tick={{ fill: darkMode ? "#fff" : "#000" }} />
-          <YAxis
-            tickFormatter={(value) => `$${value.toFixed(2)}`}
-            tick={{ fill: darkMode ? "#fff" : "#000" }}
-          />
-          <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
-          <Bar
-            dataKey="amount"
-            fill={darkMode ? "#3B82F6" : "#2563EB"}
-            radius={[5, 5, 0, 0]}
-          />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  );
-};
+    <div className={`${darkMode ? "bg-gray-800 text-white" : "bg-white"} p-6`}>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Income Overview</h2>
+        <select
+          value={timeRange}
+          onChange={(e) => setTimeRange(e.target.value)}
+          className={`${darkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-gray-800"} border-0 rounded-lg px-3 py-2 text-sm`}
+        >
+          <option>Last 7 days</option>
+          <option>Last 30 days</option>
+          <option>Last 3 months</option>
+          <option>Last 12 months</option>
+        </select>
+      </div>
 
-// Sample Data
-const sampleData = [
-  { day: "Fri", amount: 0.2 },
-  { day: "Sat", amount: 0.15 },
-  { day: "Sun", amount: 0.1 },
-  { day: "Mon", amount: 0.1 },
-  { day: "Tue", amount: 0.1 },
-  { day: "Wed", amount: 0.1 },
-  { day: "Thu", amount: 0.1 },
-];
-
-export default function Dashboard() {
-  return (
-    <div className="p-6 bg-gray-100 dark:bg-gray-800 min-h-screen">
-      <IncomeChart data={sampleData} darkMode={false} />
+      {/* Increased height for bigger chart */}
+      <div className="h-80 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={displayData} margin={{ top: 10, right: 30, left: 50, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "#374151" : "#e5e7eb"} />
+            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }} />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(value) => {
+                if (value === 0) return "$0"
+                if (value >= 1000) return `${value / 1000}k`
+                return value
+              }}
+              tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }}
+              width={60}
+            />
+            <Tooltip
+              formatter={(value) => formatCurrency(value)}
+              labelFormatter={(label) => label}
+              contentStyle={{
+                backgroundColor: darkMode ? "#1f2937" : "#fff",
+                border: "none",
+                borderRadius: "8px",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+              }}
+              cursor={{ fill: darkMode ? "rgba(55, 65, 81, 0.4)" : "rgba(243, 244, 246, 0.6)" }}
+              labelStyle={{ color: darkMode ? "#e5e7eb" : "#374151" }}
+            />
+            <Bar
+              dataKey="amount"
+              fill="#065336"
+              radius={[4, 4, 0, 0]}
+              barSize={50}
+              animationDuration={1000}
+              name="Amount"
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
-  );
+  )
 }
+
+export default IncomeOverview

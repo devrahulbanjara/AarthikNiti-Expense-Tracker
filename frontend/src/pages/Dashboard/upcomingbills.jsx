@@ -50,7 +50,7 @@ const UpcomingBills = ({ darkMode }) => {
               <div className="flex items-center">
                 <button
                   onClick={() => togglePaid(bill.id)}
-                  className={`w-10 h-5 rounded-full ${bill.paid ? "bg-blue-500" : darkMode ? "bg-gray-600" : "bg-gray-200"} relative cursor-pointer hover:opacity-90`}
+                  className={`w-10 h-5 rounded-full ${bill.paid ? "bg-[#065336]" : darkMode ? "bg-gray-600" : "bg-gray-200"} relative cursor-pointer hover:opacity-90`}
                 >
                   <div
                     className={`absolute w-4 h-4 rounded-full bg-white top-0.5 transition-all ${bill.paid ? "left-5" : "left-1"}`}
@@ -121,4 +121,3 @@ const UpcomingBills = ({ darkMode }) => {
 }
 
 export default UpcomingBills
-
