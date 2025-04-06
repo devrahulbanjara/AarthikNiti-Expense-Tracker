@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Home, ArrowUp, ArrowDown, BarChart, Bell, User, ChevronDown, Settings, Plus } from "lucide-react"
+import {
+  Home, ArrowUp, ArrowDown, BarChart, Bell,
+  User, ChevronDown, Settings, Plus, Moon, Sun
+} from "lucide-react"
 import AddAccountModal from "./AddAccountModal"
 
 const navItems = [
@@ -13,53 +16,76 @@ const navItems = [
   { name: "Budgeting & Alerts", icon: Bell, href: "/budgeting" },
 ]
 
-const accounts = [
-  { name: "Personal", id: "personal", email: "john@example.com" },
-  { name: "Business", id: "business", email: "john@company.com" },
-  { name: "Travel", id: "travel", email: "john@travel.com" },
-]
-
-const Sidebar = ({ darkMode }) => {
+const Sidebar = ({ darkMode, toggleDarkMode }) => {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false)
   const [activeAccount, setActiveAccount] = useState("Personal")
   const [showAddAccountModal, setShowAddAccountModal] = useState(false)
-  const location = useLocation() // Get the current route
+  const [error, setError] = useState("")
+  const [accounts, setAccounts] = useState([
+    { name: "Personal", id: "personal", email: "john@example.com" },
+    { name: "Business", id: "business", email: "john@company.com" },
+    { name: "Travel", id: "travel", email: "john@travel.com" },
+  ])
 
-  // Close dropdown menu when clicking outside
+  const location = useLocation()
+
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (showAccountDropdown && !event.target.closest(".account-dropdown-container")) {
         setShowAccountDropdown(false)
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
+    return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [showAccountDropdown])
 
-  const handleAddAccount = (accountData) => {
-    // Here you would typically send this data to your backend
-    console.log("Adding new account:", accountData)
-    // Close the modal
+  const handleAddAccount = ({ name, email }) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+    if (!name || !email) {
+      setError("Both name and email are required.")
+      return
+    }
+
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.")
+      return
+    }
+
+    const isDuplicateName = accounts.some(
+      (acc) => acc.name.toLowerCase() === name.toLowerCase()
+    )
+    if (isDuplicateName) {
+      setError("An account with this name already exists.")
+      return
+    }
+
+    const newAccount = {
+      name,
+      id: name.toLowerCase().replace(/\s+/g, "-"),
+      email,
+    }
+
+    setAccounts([...accounts, newAccount])
+    setActiveAccount(name)
     setShowAddAccountModal(false)
+    setError("")
   }
 
   return (
     <>
       <div
-        className={`fixed top-0 left-0 w-1/5 h-full bg-[#065336] text-white p-4 border-r border-[#054328] min-h-screen z-30 transition-colors duration-300 flex flex-col`}
+        className={`fixed top-0 left-0 w-1/5 h-full ${darkMode ? "bg-gray-900 text-gray-100" : "bg-[#065336] text-white"} p-4 border-r ${darkMode ? "border-gray-700" : "border-[#054328]"} min-h-screen z-30 transition-colors duration-300 flex flex-col`}
       >
-        <div className="opacity-100 transition-opacity duration-300">
+        <div>
           <h2 className="text-xl font-bold mb-4">AarthikNiti</h2>
+          <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-[#0a6e47]"}`} />
 
-          <hr className="my-3 border-[#0a6e47]" />
-
-          {/* Accounts Section */}
+          {/* Account Dropdown */}
           <div className="mb-4 relative account-dropdown-container">
             <div
-              className="flex justify-between items-center p-2 border rounded-md cursor-pointer hover:bg-[#0a6e47] border-[#0a6e47]"
+              className={`flex justify-between items-center p-2 border rounded-md cursor-pointer ${darkMode ? "hover:bg-gray-800 border-gray-700" : "hover:bg-[#0a6e47] border-[#0a6e47]"}`}
               onClick={() => setShowAccountDropdown(!showAccountDropdown)}
             >
               <span>{activeAccount}</span>
@@ -67,22 +93,24 @@ const Sidebar = ({ darkMode }) => {
             </div>
 
             {showAccountDropdown && (
-              <div className="absolute left-0 right-0 mt-1 bg-[#065336] border-[#0a6e47] border rounded-md shadow-md z-10">
+              <div
+                className={`absolute left-0 right-0 mt-1 ${darkMode ? "bg-gray-900 border-gray-700" : "bg-[#065336] border-[#0a6e47]"} border rounded-md shadow-md z-10`}
+              >
                 {accounts.map((account) => (
                   <div
                     key={account.id}
-                    className="p-2 hover:bg-[#0a6e47] cursor-pointer"
+                    className={`p-2 ${darkMode ? "hover:bg-gray-800" : "hover:bg-[#0a6e47]"} cursor-pointer`}
                     onClick={() => {
                       setActiveAccount(account.name)
                       setShowAccountDropdown(false)
                     }}
                   >
                     <div className="font-medium">{account.name}</div>
-                    <div className="text-xs text-gray-300">{account.email}</div>
+                    <div className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-300"}`}>{account.email}</div>
                   </div>
                 ))}
                 <div
-                  className="p-2 border-t border-[#0a6e47] hover:bg-[#0a6e47] cursor-pointer text-white flex items-center"
+                  className={`p-2 border-t ${darkMode ? "border-gray-700 hover:bg-gray-800" : "border-[#0a6e47] hover:bg-[#0a6e47]"} cursor-pointer flex items-center`}
                   onClick={() => {
                     setShowAccountDropdown(false)
                     setShowAddAccountModal(true)
@@ -94,9 +122,9 @@ const Sidebar = ({ darkMode }) => {
             )}
           </div>
 
-          <hr className="my-3 border-[#0a6e47]" />
+          <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-[#0a6e47]"}`} />
 
-          {/* Navigation Items */}
+          {/* Nav Items */}
           <ul>
             {navItems.map((item) => {
               const isActive = location.pathname === item.href
@@ -105,10 +133,16 @@ const Sidebar = ({ darkMode }) => {
                   <Link
                     to={item.href}
                     className={`flex items-center py-2 px-4 rounded-md mb-1 ${
-                      isActive ? "bg-[#0a6e47] text-white" : "hover:bg-[#0a6e47] text-gray-200"
-                    } cursor-pointer transition-all`}
+                      isActive
+                        ? darkMode
+                          ? "bg-gray-800 text-white"
+                          : "bg-[#0a6e47] text-white"
+                        : darkMode
+                          ? "hover:bg-gray-800 text-gray-300"
+                          : "hover:bg-[#0a6e47] text-gray-200"
+                    } transition-all`}
                   >
-                    <item.icon className={`mr-2 h-4 w-4 ${isActive ? "text-white" : "text-gray-200"}`} />
+                    <item.icon className={`mr-2 h-4 w-4 ${isActive ? "text-white" : darkMode ? "text-gray-300" : "text-gray-200"}`} />
                     {item.name}
                   </Link>
                 </li>
@@ -117,42 +151,69 @@ const Sidebar = ({ darkMode }) => {
           </ul>
         </div>
 
-        {/* Profile & Settings Section */}
+        {/* Profile & Settings */}
         <div className="mt-auto mb-6">
-          <hr className="my-3 border-[#0a6e47]" />
+          <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-[#0a6e47]"}`} />
           <ul>
-            {[
-              { name: "Profile", icon: User, href: "/profile" },
-              { name: "Settings", icon: Settings, href: "/settings" },
-            ].map((item) => {
+            {[{ name: "Profile", icon: User, href: "/profile" }, { name: "Settings", icon: Settings, href: "/settings" }].map((item) => {
               const isActive = location.pathname === item.href
               return (
                 <li key={item.name}>
                   <Link
                     to={item.href}
                     className={`flex items-center py-2 px-4 rounded-md mb-1 ${
-                      isActive ? "bg-[#0a6e47] text-white" : "hover:bg-[#0a6e47] text-gray-200"
-                    } cursor-pointer transition-all`}
+                      isActive
+                        ? darkMode
+                          ? "bg-gray-800 text-white"
+                          : "bg-[#0a6e47] text-white"
+                        : darkMode
+                          ? "hover:bg-gray-800 text-gray-300"
+                          : "hover:bg-[#0a6e47] text-gray-200"
+                    } transition-all`}
                   >
-                    <item.icon className={`mr-2 h-4 w-4 ${isActive ? "text-white" : "text-gray-200"}`} />
+                    <item.icon className={`mr-2 h-4 w-4 ${isActive ? "text-white" : darkMode ? "text-gray-300" : "text-gray-200"}`} />
                     {item.name}
                   </Link>
                 </li>
               )
             })}
           </ul>
+
+          {/* Dark Mode Toggle */}
+          {toggleDarkMode && (
+            <button
+              onClick={toggleDarkMode}
+              className={`flex items-center py-2 px-4 rounded-md mt-3 w-full ${
+                darkMode ? "hover:bg-gray-800 text-gray-300" : "hover:bg-[#0a6e47] text-gray-200"
+              } transition-all`}
+            >
+              {darkMode ? (
+                <>
+                  <Sun className="mr-2 h-4 w-4" /> Light Mode
+                </>
+              ) : (
+                <>
+                  <Moon className="mr-2 h-4 w-4" /> Dark Mode
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Add Account Modal */}
       <AddAccountModal
         isOpen={showAddAccountModal}
-        onClose={() => setShowAddAccountModal(false)}
+        onClose={() => {
+          setShowAddAccountModal(false)
+          setError("")
+        }}
         onAddAccount={handleAddAccount}
+        darkMode={darkMode}
+        error={error}
       />
     </>
   )
 }
 
 export default Sidebar
-
