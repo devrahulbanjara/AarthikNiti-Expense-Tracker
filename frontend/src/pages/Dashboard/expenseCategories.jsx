@@ -1,9 +1,11 @@
 export const expenseCategories = [
-  { name: "Food", color: "#FF5733" },
-  { name: "Transporation", color: "#581845" },
-  { name: "Entertainment", color: "#FFC300" },
-  { name: "Shopping", color: "#DAF7A6" },
-  { name: "Bills", color: "#C70039" },
-  { name: "Health", color: "#FF33A1" },
-  { name: "Other", color: "#900C3F" }, 
-];
+  { name: "Food", color: "#8884d8" },
+  { name: "Transporation", color: "#82ca9d" },
+  { name: "Bills", color: "#82ca9d" },
+  { name: "Shopping", color: "#ffc658" },
+  { name: "Entertainment", color: "#ff8042" },
+  { name: "Travel", color: "#ff8042" },
+  { name: "Health", color: "#0088fe" },
+  { name: "Education", color: "#0088fe" },
+  { name: "Other", color: "#0088fe" },
+]

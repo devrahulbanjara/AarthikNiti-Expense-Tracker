@@ -1,3 +1,4 @@
+"use client"
 import { useState, useEffect, useRef } from "react"
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts"
 import { expenseCategories } from "./expenseCategories"
@@ -13,7 +14,7 @@ const ExpensesBreakdown = ({ darkMode, totalExpenses }) => {
 
   const fetchExpenseBreakdownData = async () => {
     try {
-      setIsLoading(true);
+      setIsLoading(true)
 
       const response = await fetch("http://127.0.0.1:8000/profile/recent_transactions", {
         method: "GET",
@@ -38,7 +39,6 @@ const ExpensesBreakdown = ({ darkMode, totalExpenses }) => {
         description: transaction.transaction_description,
         date: new Date(transaction.timestamp).toISOString().split("T")[0],
       }))
-
 
       const breakdownData = expenseCategories
         .map((category) => {
@@ -146,6 +146,10 @@ const ExpensesBreakdown = ({ darkMode, totalExpenses }) => {
                   activeShape={renderActiveShape}
                   onMouseEnter={handlePieEnter}
                   onMouseLeave={handlePieLeave}
+                  animationBegin={0}
+                  animationDuration={1000}
+                  animationEasing="ease-out"
+                  isAnimationActive={true}
                 >
                   {expenseBreakdownData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} stroke={entry.color} />
@@ -158,11 +162,12 @@ const ExpensesBreakdown = ({ darkMode, totalExpenses }) => {
               <div
                 className={`absolute ${
                   darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200"
-                } border rounded-md p-3 z-20`}
+                } border rounded-md p-3 z-20 transition-opacity duration-300 ease-in-out`}
                 style={{
                   left: `${tooltipPosition.x}px`,
                   top: `${tooltipPosition.y}px`,
                   transform: "translate(10px, -50%)",
+                  opacity: showTooltip ? 1 : 0,
                 }}
               >
                 <p className="font-medium text-lg" style={{ color: tooltipData.color }}>
@@ -185,7 +190,7 @@ const ExpensesBreakdown = ({ darkMode, totalExpenses }) => {
                   key={`legend-${index}`}
                   className={`flex items-center gap-2 cursor-pointer ${
                     darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"
-                  } p-1 rounded`}
+                  } p-1 rounded transition-all duration-200 ${activeIndex === index ? "scale-105 font-medium" : ""}`}
                   onMouseEnter={() => setActiveIndex(index)}
                   onMouseLeave={() => setActiveIndex(null)}
                 >

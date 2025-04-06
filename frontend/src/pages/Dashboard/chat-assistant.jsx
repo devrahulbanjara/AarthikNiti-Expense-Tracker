@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
 import { MessageSquare, History, User, X } from "lucide-react";
 
@@ -25,14 +27,14 @@ const Message = ({ message, isConsecutive, darkMode }) => {
   return (
     <div className={`mb-2 flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
       {message.sender === "bot" && !isConsecutive && (
-        <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white mr-2 flex-shrink-0">
+        <div className="h-8 w-8 rounded-full bg-green-800 flex items-center justify-center text-white mr-2 flex-shrink-0">
           <MessageSquare className="h-5 w-5" />
         </div>
       )}
       <div
         className={`max-w-[80%] rounded-lg px-4 py-2 ${
           message.sender === "user"
-            ? "bg-blue-500 text-white"
+            ? "bg-green-800 text-white"
             : darkMode
             ? "bg-gray-700 text-white"
             : "bg-gray-100 text-gray-800"
@@ -116,12 +118,12 @@ const ChatInput = ({ chatInput, setChatInput, handleSendMessage, darkMode }) => 
           onChange={(e) => setChatInput(e.target.value)}
           onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
           placeholder="Type a message..."
-          className={`flex-1 border rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "bg-white border-gray-300 text-black"}`}
+          className={`flex-1 border rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-800 ${darkMode ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "bg-white border-gray-300 text-black"}`}
         />
         <button
           onClick={handleSendMessage}
           disabled={!chatInput.trim()}
-          className={`bg-blue-500 text-white rounded-r-lg px-4 py-2 ${!chatInput.trim() ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"}`}
+          className={`bg-green-800 text-white rounded-r-lg px-4 py-2 ${!chatInput.trim() ? "opacity-50 cursor-not-allowed" : "hover:bg-green-700"}`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -174,19 +176,19 @@ const ChatAssistant = ({ darkMode }) => {
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {!isChatOpen ? (
-        <button onClick={() => setIsChatOpen(true)} className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center">
+        <button onClick={() => setIsChatOpen(true)} className="bg-green-800 hover:bg-green-700 text-white rounded-full p-4 shadow-lg flex items-center justify-center">
           <MessageSquare className="h-6 w-6" />
         </button>
       ) : (
         <div className={`rounded-lg shadow-xl flex flex-col w-80 sm:w-96 border overflow-hidden ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
-          <div className="bg-blue-500 text-white px-4 py-3 flex justify-between items-center">
+          <div className="bg-green-800 text-white px-4 py-3 flex justify-between items-center">
             <div className="flex items-center">
-              <MessageSquare className="h-8 w-8 rounded-full bg-white text-blue-500 mr-2" />
+              <MessageSquare className="h-8 w-8 rounded-full bg-white text-green-800 mr-2" />
               <h3 className="font-medium">Financial Assistant</h3>
-              <span className="text-xs ml-2 bg-blue-600 px-2 py-0.5 rounded-full">Powered by AI</span>
+              <span className="text-xs ml-2 bg-green-700 px-2 py-0.5 rounded-full">Powered by AI</span>
             </div>
             <div className="flex items-center space-x-2">
-              <button onClick={() => setIsMinimized(!isMinimized)} className="text-white hover:bg-blue-600 rounded p-1" title={isMinimized ? "Expand" : "Minimize"}>
+              <button onClick={() => setIsMinimized(!isMinimized)} className="text-white hover:bg-green-800 rounded p-1" title={isMinimized ? "Expand" : "Minimize"}>
                 {isMinimized ? (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
@@ -197,7 +199,7 @@ const ChatAssistant = ({ darkMode }) => {
                   </svg>
                 )}
               </button>
-              <button onClick={() => setIsChatOpen(false)} className="text-white hover:bg-blue-600 rounded p-1" title="Close">
+              <button onClick={() => setIsChatOpen(false)} className="text-white hover:bg-green-700 rounded p-1" title="Close">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -209,7 +211,7 @@ const ChatAssistant = ({ darkMode }) => {
                 {["chat", "history"].map((tab) => (
                   <button
                     key={tab}
-                    className={`flex-1 py-3 px-4 text-center font-medium ${activeTab === tab ? "border-b-2 border-blue-500 text-blue-500" : darkMode ? "text-gray-400 hover:text-gray-300" : "text-gray-500 hover:text-gray-700"}`}
+                    className={`flex-1 py-3 px-4 text-center font-medium ${activeTab === tab ? "border-b-2 border-green-800 text-green-800" : darkMode ? "text-gray-400 hover:text-gray-300" : "text-gray-500 hover:text-gray-700"}`}
                     onClick={() => setActiveTab(tab)}
                   >
                     <div className="flex items-center justify-center">
