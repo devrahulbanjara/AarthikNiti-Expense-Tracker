@@ -1,4 +1,4 @@
-import { expenseCategories } from "./expenseCategories"
+import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
 
 const EditExpenseModal = ({
   darkMode,

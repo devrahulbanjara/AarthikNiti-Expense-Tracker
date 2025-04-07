@@ -12,8 +12,7 @@ const ExpenseOverview = ({
 }) => {
   return (
     <div
-      className={`p-4 rounded-lg border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"} mb-6`}
-      style={{ minHeight: "500px" }}
+      className={`p-4 rounded-lg ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"} mb-6`}
     >
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Expense Overview</h2>
@@ -71,7 +70,7 @@ const ExpenseOverview = ({
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default ExpenseOverview;

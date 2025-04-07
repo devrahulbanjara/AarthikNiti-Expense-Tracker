@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, Filter, Edit, Trash, ArrowUp, ArrowDown } from "lucide-react";
-import { expenseCategories } from "./expenseCategories";
+import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
 
 const RecentTransactions = ({ darkMode, onTransactionsChange }) => {
   const [transactions, setTransactions] = useState([]);

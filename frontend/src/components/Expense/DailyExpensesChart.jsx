@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 
 const DailyExpensesChart = ({ darkMode, data }) => {
   const [activeBar, setActiveBar] = useState(null)
@@ -16,7 +16,9 @@ const DailyExpensesChart = ({ darkMode, data }) => {
     if (active && payload && payload.length) {
       return (
         <div
-          className={`p-2 ${darkMode ? "bg-gray-700" : "bg-white"} border ${darkMode ? "border-gray-600" : "border-gray-200"} rounded-md shadow-md`}
+          className={`p-2 ${darkMode ? "bg-gray-700" : "bg-white"} border ${
+            darkMode ? "border-gray-600" : "border-gray-200"
+          } rounded-md shadow-md`}
         >
           <p className="font-medium">{label}</p>
           <p className="text-sm font-semibold">${payload[0].value.toFixed(2)}</p>
@@ -41,8 +43,13 @@ const DailyExpensesChart = ({ darkMode, data }) => {
             }}
             onMouseLeave={() => setActiveBar(null)}
           >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "#374151" : "#e5e7eb"} />
-            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }} />
+            {/* CartesianGrid removed to avoid double horizontal line */}
+            <XAxis
+              dataKey="day"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }}
+            />
             <YAxis
               axisLine={false}
               tickLine={false}

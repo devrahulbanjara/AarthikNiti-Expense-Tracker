@@ -1,19 +1,20 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowUp, ArrowDown, DollarSign } from "lucide-react";
-import Sidebar from "./sidebar";
-import RecentTransactions from "./recenttransactions";
-import ExpensesBreakdown from "./expensesbreakdown";
-import UpcomingBills from "./upcomingbills";
-import NetSavings from "./netsavings";
-import IncomeVsExpensesChart from "./income-expenses-chart";
-import ChatAssistant from "./chat-assistant";
-import ProfileDropdown from "./profile-dropdown";
-import DarkMode from "./darkmode";
+import Sidebar from "../../components/Layout/sidebar";
+import Profile from "../../components/Layout/profile";
+import DarkMode from "../../components/Layout/darkmode";
+import RecentTransactions from "../../components/Dashboard/recenttransactions";
+import ExpensesBreakdown from "../../components/Dashboard/expensesbreakdown";
+import UpcomingBills from "../../components/Dashboard/upcomingbills";
+import NetSavings from "../../components/Dashboard/netsavings";
+import IncomeVsExpensesChart from "../../components/Dashboard/income-expenses-chart";
+import ChatAssistant from "../../components/Chatbot/chat-assistant";
+import { ThemeProvider } from "../../context/ThemeContext"
 
-const DashboardPage = () => {
+const DashboardPageContent = () => {
   const navigate = useNavigate();
   const [topUIData, setTopUIData] = useState({
     profile_total_income: 0,
@@ -139,7 +140,7 @@ const Header = ({ darkMode, scrolled, toggleDarkMode, handleLogout }) => (
       </div>
       <div className="flex space-x-4">
         <DarkMode darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-        <ProfileDropdown darkMode={darkMode} handleLogout={handleLogout} />
+        <Profile handleLogout={handleLogout} />
       </div>
     </div>
   </div>
@@ -179,6 +180,12 @@ const BudgetCard = ({ percentage, isOverBudget, darkMode }) => (
       <div className={`h-1.5 rounded-full ${percentage > 80 ? "bg-red-500" : percentage > 60 ? "bg-yellow-500" : "bg-green-500"}`} style={{ width: `${percentage}%` }}></div>
     </div>
   </div>
+);
+
+const DashboardPage = () => (
+  <ThemeProvider>
+    <DashboardPageContent />
+  </ThemeProvider>
 );
 
 export default DashboardPage;

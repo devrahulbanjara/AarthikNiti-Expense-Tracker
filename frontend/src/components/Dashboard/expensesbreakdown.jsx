@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts"
-import { expenseCategories } from "./expenseCategories"
+import { expenseCategories } from "../../pages/Dashboard/expenseCategories"
 
 const ExpensesBreakdown = ({ darkMode, totalExpenses }) => {
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
