@@ -1,14 +1,14 @@
-"use client"
+"\"use client"
 
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 
 const AddAccountModal = ({ isOpen, onClose, onAddAccount, darkMode, error }) => {
-  const [newAccountData, setNewAccountData] = useState({ name: "", email: "" })
+  const [newAccountData, setNewAccountData] = useState({ name: "" })
 
   useEffect(() => {
     if (!isOpen) {
-      setNewAccountData({ name: "", email: "" })
+      setNewAccountData({ name: "" })
     }
   }, [isOpen])
 
@@ -62,29 +62,8 @@ const AddAccountModal = ({ isOpen, onClose, onAddAccount, darkMode, error }) => 
               />
             </div>
 
-            <div>
-              <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>
-                Email
-              </label>
-              <input
-                type="email"
-                value={newAccountData.email}
-                onChange={(e) => setNewAccountData({ ...newAccountData, email: e.target.value })}
-                placeholder="email@example.com"
-                className={`w-full p-3 rounded-lg border ${
-                  darkMode
-                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    : "bg-white border-gray-300 focus:ring-2 focus:ring-[#065336] focus:border-[#065336]"
-                }`}
-              />
-            </div>
-
             {/* Error message block */}
-            {error && (
-              <div className={`text-sm mt-2 ${darkMode ? "text-red-400" : "text-red-600"}`}>
-                {error}
-              </div>
-            )}
+            {error && <div className={`text-sm mt-2 ${darkMode ? "text-red-400" : "text-red-600"}`}>{error}</div>}
           </div>
 
           <div className="mt-6 flex justify-end">
@@ -102,3 +81,4 @@ const AddAccountModal = ({ isOpen, onClose, onAddAccount, darkMode, error }) => 
 }
 
 export default AddAccountModal
+

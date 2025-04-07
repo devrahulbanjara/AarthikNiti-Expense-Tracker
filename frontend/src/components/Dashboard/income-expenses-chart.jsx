@@ -3,8 +3,10 @@
 import { useState } from "react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { ChevronDown } from "lucide-react"
+import { useTheme } from "../../context/ThemeContext"
 
-const IncomeVsExpensesChart = ({ darkMode }) => {
+const IncomeVsExpensesChart = () => {
+  const { darkMode } = useTheme()
   const [timeRange, setTimeRange] = useState("Last 6 months")
   const [showTimeDropdown, setShowTimeDropdown] = useState(false)
   const [hoveredBar, setHoveredBar] = useState(null)
@@ -29,7 +31,7 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
     if (active && payload && payload.length) {
       return (
         <div
-          className={`${darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200"} p-3 border rounded-md shadow-md`}
+          className={`${darkMode ? "bg-[#1f2937] border-gray-700" : "bg-white border-gray-200"} p-3 border rounded-md shadow-md`}
         >
           <p className="font-medium">{label}</p>
           <p className="text-sm">
@@ -50,7 +52,7 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
 
   return (
     <div
-      className={`${darkMode ? "bg-gray-800" : "bg-white"} p-4 rounded-lg border ${darkMode ? "border-gray-700" : "border-gray-300"} w-full`}
+      className={`${darkMode ? "bg-[#111827]" : "bg-white"} p-4 rounded-lg border ${darkMode ? "border-gray-800" : "border-gray-300"} w-full`}
     >
       <div className="flex justify-between items-start mb-2">
         <div>
@@ -60,7 +62,7 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
         <div className="relative">
           <button
             className={`flex items-center gap-1 px-3 py-2 border rounded-md text-sm cursor-pointer ${
-              darkMode ? "bg-gray-700 border-gray-600 hover:bg-gray-600" : "bg-white border-gray-300 hover:bg-gray-50"
+              darkMode ? "bg-[#1f2937] border-gray-700 hover:bg-gray-700" : "bg-white border-gray-300 hover:bg-gray-50"
             }`}
             onClick={() => setShowTimeDropdown(!showTimeDropdown)}
           >
@@ -69,13 +71,13 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
           {showTimeDropdown && (
             <div
               className={`absolute right-0 mt-1 w-40 ${
-                darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-300"
+                darkMode ? "bg-[#1f2937] border-gray-700" : "bg-white border-gray-300"
               } border rounded-md shadow-lg z-10`}
             >
               {timeRangeOptions.map((option) => (
                 <div
                   key={option}
-                  className={`px-3 py-2 ${darkMode ? "hover:bg-gray-600" : "hover:bg-gray-100"} cursor-pointer text-sm`}
+                  className={`px-3 py-2 ${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"} cursor-pointer text-sm`}
                   onClick={() => {
                     setTimeRange(option)
                     setShowTimeDropdown(false)
@@ -119,9 +121,12 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
             />
             <Tooltip
               content={<CustomTooltip />}
-              cursor={{ fill: darkMode ? "rgba(55, 65, 81, 0.3)" : "rgba(0, 0, 0, 0.05)" }}
+              cursor={{ fill: darkMode ? "rgba(31, 41, 55, 0.4)" : "rgba(0, 0, 0, 0.05)" }}
             />
-            <Legend wrapperStyle={{ bottom: 0 }} />
+            <Legend
+              wrapperStyle={{ bottom: 0 }}
+              formatter={(value) => <span className={darkMode ? "text-gray-300" : "text-gray-700"}>{value}</span>}
+            />
             <Bar dataKey="income" name="Income" fill="#22c55e" radius={[4, 4, 0, 0]} cursor="pointer" />
             <Bar dataKey="expenses" name="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} cursor="pointer" />
           </BarChart>
@@ -140,7 +145,7 @@ const IncomeVsExpensesChart = ({ darkMode }) => {
       </div>
 
       {hoveredBar && (
-        <div className={`mt-2 p-2 ${darkMode ? "bg-gray-700" : "bg-gray-50"} rounded-md`}>
+        <div className={`mt-2 p-2 ${darkMode ? "bg-[#1f2937]" : "bg-gray-50"} rounded-md`}>
           <h3 className="font-medium text-center">{hoveredBar.month} Details</h3>
           <div className="grid grid-cols-3 gap-2 mt-1">
             <div className="text-center">

@@ -1,8 +1,11 @@
 "use client"
 
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
+import { useTheme } from "../../context/ThemeContext"
 
-const IncomeOverview = ({ chartData, darkMode, timeRange, setTimeRange }) => {
+const IncomeOverview = ({ chartData, timeRange, setTimeRange }) => {
+  const { darkMode } = useTheme()
+
   // Sample data to ensure bars are visible
   const sampleData = [
     { day: "Mon", amount: 250000 },
@@ -27,13 +30,13 @@ const IncomeOverview = ({ chartData, darkMode, timeRange, setTimeRange }) => {
   }
 
   return (
-    <div className={`${darkMode ? "bg-gray-800 text-white" : "bg-white"} p-6`}>
+    <div className={`${darkMode ? "bg-[#111827]" : "bg-white"} p-6 transition-colors duration-300`}>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Income Overview</h2>
         <select
           value={timeRange}
           onChange={(e) => setTimeRange(e.target.value)}
-          className={`${darkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-gray-800"} border-0 rounded-lg px-3 py-2 text-sm`}
+          className={`${darkMode ? "bg-[#1f2937] text-white" : "bg-gray-100 text-gray-800"} border-0 rounded-lg px-3 py-2 text-sm transition-colors duration-300`}
         >
           <option>Last 7 days</option>
           <option>Last 30 days</option>

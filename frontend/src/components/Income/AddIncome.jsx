@@ -175,4 +175,3 @@ const AddIncome = ({ isOpen, onClose, onSubmit, editingIncome, incomeSources, da
 }
 
 export default AddIncome
-

@@ -26,4 +26,3 @@ const AppHeader = ({ darkMode, toggleDarkMode, handleLogout, scrolled }) => {
 }
 
 export default AppHeader
-

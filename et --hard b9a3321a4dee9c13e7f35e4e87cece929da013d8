@@ -1,0 +1,256 @@
+[33mcommit 70ae7bf2caa1620cfdf047ab235e54a2f6318987[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mIncome[m[33m, [m[1;31morigin/Income[m[33m)[m
+Author: Prajwal <prajwoldahal3@gmail.com>
+Date:   Mon Apr 7 18:41:33 2025 +0545
+
+    tailwind config file added, darkmode done globally,structured folders
+
+[33mcommit b9a3321a4dee9c13e7f35e4e87cece929da013d8[m
+Author: Prajwal <prajwoldahal3@gmail.com>
+Date:   Sun Apr 6 21:48:21 2025 +0545
+
+    updated income page
+
+[33mcommit 8f5aa4316c5347810f24f850bc69cdac3472ffb8[m
+Author: Prajwal <prajwoldahal3@gmail.com>
+Date:   Sun Apr 6 21:02:41 2025 +0545
+
+    Color scheme to green done
+
+[33mcommit 1ca3e75dbe53ced60199c16cd946d50296f49ec9[m
+Author: Prajwal <prajwoldahal3@gmail.com>
+Date:   Thu Apr 3 20:52:14 2025 +0545
+
+    income page updates
+
+[33mcommit 545878dd0761828f7f3291803d8f14d267f9b788[m[33m ([m[1;31morigin/dashboard-top-ui[m[33m, [m[1;32mdashboard-top-ui[m[33m)[m
+Author: Prajwal <prajwoldahal3@gmail.com>
+Date:   Sun Mar 30 08:11:14 2025 +0545
+
+    components extracted to another file for code usability
+
+[33mcommit b75f32bb87df026dc45199a25ebdc51d360cc752[m
+Author: Prajwal <prajwoldahal3@gmail.com>
+Date:   Fri Mar 28 21:41:41 2025 +0545
+
+    latest frontend push
+
+[33mcommit d11776b8527f034fe32a8817cba6a481aaa229c7[m
+Author: Prajwal <prajwoldahal3@gmail.com>
+Date:   Tue Mar 25 15:45:25 2025 +0545
+
+    income vs expenses chart
+
+[33mcommit 455c78b5088c76679074ba74f0a777ba9cf67d2a[m
+Author: Prajwal <prajwoldahal3@gmail.com>
+Date:   Mon Mar 24 19:45:36 2025 +0545
+
+    made upcoming bills
+
+[33mcommit cd8a65eb950e82bf30953da53c4c69454c47e6a0[m
+Author: Prajwal <prajwoldahal3@gmail.com>
+Date:   Sun Mar 23 17:52:34 2025 +0545
+
+    financial transactions ui
+
+[33mcommit f58be62778da07e81043b5ab56b7e3da08810fcb[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Sat Mar 22 23:00:14 2025 +0545
+
+    Fix the protected route to login
+
+[33mcommit 7aa2af132a2e2bdc76a07662ee46fcfbbb179b68[m
+Author: Rahul Dev Banjara <92905572+devrahulbanjara@users.noreply.github.com>
+Date:   Sat Mar 22 22:03:13 2025 +0545
+
+    Update README.md
+
+[33mcommit 95a1e677e794eabd62cc751fe1bf9707d60d6c61[m
+Merge: a5879aa f6ff513
+Author: Rahul Dev Banjara <92905572+devrahulbanjara@users.noreply.github.com>
+Date:   Sat Mar 22 22:02:02 2025 +0545
+
+    Merge pull request #2 from devrahulbanjara/top-5-transactions
+    
+    Create Dashboard API
+
+[33mcommit f6ff51316914fe19d346209b97414868bddba7b2[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Sat Mar 22 21:59:18 2025 +0545
+
+    Create Dashboard API
+    
+    - To fetch the top 5 transactions
+    - Add description in the income post request
+
+[33mcommit a5879aa4f8e0828ff0819f37e1c3fca8bdace1db[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Sat Mar 22 20:17:13 2025 +0545
+
+    Update the requirements file
+
+[33mcommit 3f6e1b605b938eeda6f2e910031d1e1ab8dd478f[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Sat Mar 22 08:54:01 2025 +0545
+
+    [UPDATE] README.md
+
+[33mcommit 87d5f184f427b15cf6a6f6e57e34a52e55f1db1e[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Sat Mar 22 07:58:44 2025 +0545
+
+    Update readme
+
+[33mcommit 334bfc84b104fef2d61c19a625b6e5d1cf610fe5[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Sat Mar 22 07:54:39 2025 +0545
+
+    Login and signup add toast messages
+    
+    - On successful or failure signup or login error message or success message proper optimized
+    - Added protected route for dashboard
+
+[33mcommit 337eb0c55ddcc5e95dcac0b8a5132c7c1f304879[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Sat Mar 22 07:52:30 2025 +0545
+
+    Dashboard User summary API
+    
+    - fetches total income, total expenses and remaining balance
+    - api to add income and expense
+    - api to create new profile and switch between them
+
+[33mcommit f9aea1eee8cc9f49a372dbd69c44e20623044173[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Sat Mar 22 07:49:35 2025 +0545
+
+    Properly integrate Epic1 frontend and backend
+
+[33mcommit 3b847c098274920a8cdf4f11766ccefaba4a1c8e[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Sat Mar 22 07:48:56 2025 +0545
+
+    Update the requirements.txt
+
+[33mcommit 53d4c72264f60439611ab0a063ef2a599363c719[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Fri Mar 21 22:54:54 2025 +0545
+
+    Make frontend changes
+
+[33mcommit 71de4729c26dc88223f6f3b17111fe358cd97930[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Thu Mar 20 20:16:09 2025 +0545
+
+    Create API for dashboard features
+    
+    - API for dashboard (shows total income, total balance, and total expenses, user_id, profile_id, profile_name
+    - API to add new income for each profile separately
+    - API to add expense (will deduct the total balance)
+    - API to create new profile
+    - API to switch between profiles (will switch all the user balance, income, expenses everything)
+
+[33mcommit 3b60226e2690e3dadd82f95f8bb7bafe93b12cc9[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Thu Mar 20 18:55:54 2025 +0545
+
+    User can add expense
+
+[33mcommit 45e7bc51fdbeb5b023a10bd04f03b2db55269789[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Thu Mar 20 17:32:30 2025 +0545
+
+    User can update his income for default profile
+
+[33mcommit 781040e9de5e952b2034a9ed77ce2c17c46847f0[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Thu Mar 20 16:59:26 2025 +0545
+
+    Make Dashboard endpoint to show user x  profile summary
+
+[33mcommit 48c6bd72bc66f0ec68b9ad9dac15795684ac74cc[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Thu Mar 20 15:27:56 2025 +0545
+
+    Update to assign ID to every new user and empty profile array
+
+[33mcommit 0cbbff2dc0214e483393f416745b0f74372604ce[m
+Author: Rahul Dev Banjara <92905572+devrahulbanjara@users.noreply.github.com>
+Date:   Sat Mar 22 07:46:24 2025 +0545
+
+    Update README.md
+
+[33mcommit 21f499094e3ca81d9a2f3216cfde34518d6d223d[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Thu Mar 20 14:24:54 2025 +0545
+
+    Integrate test frontend dummy
+
+[33mcommit 0388cb70a74c1f623a3701276856f0c1a42e91bf[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Thu Mar 20 13:33:29 2025 +0545
+
+    test frontend
+
+[33mcommit 7ac1578a30ee9fd032f79c92095587d76c98bf00[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Wed Mar 19 20:03:13 2025 +0545
+
+    Complete the authentication with db integration
+
+[33mcommit 12a4c09eb95d09b89f7161a85b69b3144027a543[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Wed Mar 19 15:01:45 2025 +0545
+
+    Integrate mongodb for storage
+
+[33mcommit f253f0933c67b1c8b2e730915999026cf418ad24[m
+Author: shreeyaa009 <shionyui6@gmail.com>
+Date:   Mon Mar 17 22:36:56 2025 +0545
+
+    Login file
+
+[33mcommit 9c2eddbdbc8d01dd1a01bb636544338c01dc4bc1[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Mon Mar 17 20:32:55 2025 +0545
+
+    🚀[Upload] the logo
+
+[33mcommit 5ace098b005ad53ae0cb25fb307f29c648506b30[m
+Author: Rahul Dev Banjara <92905572+devrahulbanjara@users.noreply.github.com>
+Date:   Mon Mar 17 16:18:57 2025 +0545
+
+    Update README.md
+
+[33mcommit 2e0a1a42535e3e21fcd64484b691819a60d9d5a1[m
+Author: Rahul Dev Banjara <92905572+devrahulbanjara@users.noreply.github.com>
+Date:   Mon Mar 17 16:14:28 2025 +0545
+
+    Update README.md
+
+[33mcommit a22d3e356d982b0747701a0eab520382724e338b[m
+Author: Rahul Dev Banjara <92905572+devrahulbanjara@users.noreply.github.com>
+Date:   Mon Mar 17 16:12:48 2025 +0545
+
+    Update README.md
+
+[33mcommit ad9986b5f4c93533c654d257b4012a2907ae62a7[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Sun Mar 16 09:05:39 2025 +0545
+
+    Remove unnecessary files
+
+[33mcommit 60d9ceff88e80dd710c1e8ae74280bfee6f50bc6[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Sat Mar 15 21:52:36 2025 +0545
+
+    Update README.md
+
+[33mcommit f16ed4948ac99b47b287ad4cb5a0cf0b447d549b[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Sat Mar 15 21:46:34 2025 +0545
+
+    Add the docker compose file
+
+[33mcommit b2fbcb60f90a53d72b76809bf95b40693501905a[m
+Author: devrahulbanjara <rdbanjara07@gmail.com>
+Date:   Sat

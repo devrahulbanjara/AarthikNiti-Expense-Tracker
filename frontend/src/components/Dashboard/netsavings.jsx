@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { useTheme } from "../../context/ThemeContext"
 
-const NetSavings = ({ darkMode }) => {
+const NetSavings = () => {
+  const { darkMode } = useTheme()
   const [hoveredMonth, setHoveredMonth] = useState(null)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const chartRef = useRef(null)
@@ -62,23 +64,25 @@ const NetSavings = ({ darkMode }) => {
 
   return (
     <div
-      className={`${darkMode ? "bg-gray-800" : "bg-white"} p-4 rounded-lg border ${darkMode ? "border-gray-700" : "border-gray-300"} h-full`}
+      className={`${darkMode ? "bg-[#111827]" : "bg-white"} p-4 rounded-lg border ${darkMode ? "border-gray-800" : "border-gray-300"} h-full transition-all duration-300`}
     >
       <div className="flex justify-between items-center mb-1">
         <h2 className="text-lg font-semibold">Net Savings Trend</h2>
         <select
           className={`text-sm border rounded-md px-2 py-1 cursor-pointer ${
             darkMode
-              ? "bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
+              ? "bg-[#1f2937] border-gray-700 text-white hover:bg-gray-700"
               : "bg-white border-gray-300 hover:bg-gray-50"
-          }`}
+          } transition-all duration-300`}
         >
           <option>Last 6 months</option>
           <option>Last year</option>
           <option>Last 3 months</option>
         </select>
       </div>
-      <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} text-sm mb-4`}>Your savings over time</p>
+      <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} text-sm mb-4 transition-colors duration-300`}>
+        Your savings over time
+      </p>
 
       <div className="h-[300px] relative" ref={chartRef} onMouseMove={handleMouseMove}>
         <div className="absolute inset-0">
@@ -88,7 +92,7 @@ const NetSavings = ({ darkMode }) => {
             {[0, 1, 2, 3, 4].map((i) => (
               <div
                 key={`h-${i}`}
-                className={`col-span-6 border-t border-dashed ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+                className={`col-span-6 border-t border-dashed ${darkMode ? "border-gray-700" : "border-gray-200"} transition-colors duration-300`}
               ></div>
             ))}
 
@@ -96,14 +100,14 @@ const NetSavings = ({ darkMode }) => {
             {[0, 1, 2, 3, 4, 5].map((i) => (
               <div
                 key={`v-${i}`}
-                className={`row-span-5 border-l border-dashed ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+                className={`row-span-5 border-l border-dashed ${darkMode ? "border-gray-700" : "border-gray-200"} transition-colors duration-300`}
               ></div>
             ))}
           </div>
 
           {/* Y-axis labels */}
           <div
-            className={`absolute left-0 top-0 h-full flex flex-col justify-between text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} py-2`}
+            className={`absolute left-0 top-0 h-full flex flex-col justify-between text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} py-2 transition-colors duration-300`}
           >
             <span>$2400</span>
             <span>$1800</span>
@@ -114,7 +118,7 @@ const NetSavings = ({ darkMode }) => {
 
           {/* X-axis labels */}
           <div
-            className={`absolute bottom-0 left-10 right-0 flex justify-between text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+            className={`absolute bottom-0 left-10 right-0 flex justify-between text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} transition-colors duration-300`}
           >
             {months.map((month) => (
               <span key={month}>{month}</span>
@@ -124,7 +128,11 @@ const NetSavings = ({ darkMode }) => {
           {/* Area chart */}
           <div className="absolute left-10 right-0 top-2 bottom-6">
             <svg width="100%" height="100%" viewBox={`0 0 ${chartWidth} ${chartHeight}`} preserveAspectRatio="none">
-              <path d={createAreaPath()} fill="rgba(59, 130, 246, 0.3)" stroke="none" />
+              <path
+                d={createAreaPath()}
+                fill={darkMode ? "rgba(59, 130, 246, 0.2)" : "rgba(59, 130, 246, 0.3)"}
+                stroke="none"
+              />
             </svg>
 
             {/* Interactive overlay */}
@@ -142,7 +150,7 @@ const NetSavings = ({ darkMode }) => {
             {/* Tooltip */}
             {hoveredMonth && (
               <div
-                className={`absolute ${darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200"} border rounded-md p-2 z-20 pointer-events-none`}
+                className={`absolute ${darkMode ? "bg-[#1f2937] border-gray-700" : "bg-white border-gray-200"} border rounded-md p-2 z-20 pointer-events-none transition-all duration-300`}
                 style={{
                   left: `${mousePosition.x}px`,
                   top: `${mousePosition.y - 60}px`,
@@ -150,7 +158,9 @@ const NetSavings = ({ darkMode }) => {
                 }}
               >
                 <div className="font-medium">{hoveredMonth}</div>
-                <div className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                <div
+                  className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"} transition-colors duration-300`}
+                >
                   savings <span className="font-bold">${savingsData.find((d) => d.month === hoveredMonth)?.value}</span>
                 </div>
               </div>
@@ -163,4 +173,3 @@ const NetSavings = ({ darkMode }) => {
 }
 
 export default NetSavings
-

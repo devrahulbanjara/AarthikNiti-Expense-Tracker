@@ -2,8 +2,10 @@
 
 import { useState, useRef } from "react"
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts"
+import { useTheme } from "../../context/ThemeContext"
 
-const ExpensesBreakdown = ({ data, activeIndex, setActiveIndex, totalExpenses, darkMode }) => {
+const ExpensesBreakdown = ({ data, activeIndex, setActiveIndex, totalExpenses }) => {
+  const { darkMode } = useTheme()
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
   const [showTooltip, setShowTooltip] = useState(false)
   const [tooltipData, setTooltipData] = useState(null)
@@ -51,14 +53,18 @@ const ExpensesBreakdown = ({ data, activeIndex, setActiveIndex, totalExpenses, d
 
   return (
     <div
-      className={`${darkMode ? "bg-gray-800" : "bg-white"} p-4 rounded-lg border ${darkMode ? "border-gray-700" : "border-gray-300"} h-full`}
+      className={`${darkMode ? "bg-[#111827] border-gray-800" : "bg-white border-gray-300"} p-4 rounded-lg border h-full transition-all duration-300`}
       ref={chartRef}
       onMouseMove={handleMouseMove}
     >
       <h2 className="text-lg font-semibold mb-4">Expenses Breakdown</h2>
 
       {data.length === 0 ? (
-        <p className={`text-center ${darkMode ? "text-gray-400" : "text-gray-500"} py-4`}>No expense data available</p>
+        <p
+          className={`text-center ${darkMode ? "text-gray-400" : "text-gray-500"} py-4 transition-colors duration-300`}
+        >
+          No expense data available
+        </p>
       ) : (
         <>
           <div className="h-[220px] mb-4 relative">
@@ -86,7 +92,7 @@ const ExpensesBreakdown = ({ data, activeIndex, setActiveIndex, totalExpenses, d
 
             {showTooltip && tooltipData && (
               <div
-                className={`absolute ${darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200"} border rounded-md p-3 z-20`}
+                className={`absolute ${darkMode ? "bg-[#1f2937] border-gray-700" : "bg-white border-gray-200"} border rounded-md p-3 z-20 transition-all duration-300`}
                 style={{
                   left: `${tooltipPosition.x}px`,
                   top: `${tooltipPosition.y}px`,
@@ -97,7 +103,7 @@ const ExpensesBreakdown = ({ data, activeIndex, setActiveIndex, totalExpenses, d
                   {tooltipData.name}
                 </p>
                 <p className="text-md font-semibold">${tooltipData.value.toFixed(2)}</p>
-                <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"} transition-colors duration-300`}>
                   {((tooltipData.value / totalExpenses) * 100).toFixed(1)}%
                 </p>
               </div>
@@ -112,15 +118,19 @@ const ExpensesBreakdown = ({ data, activeIndex, setActiveIndex, totalExpenses, d
                 <div
                   key={`legend-${index}`}
                   className={`flex items-center gap-2 cursor-pointer ${
-                    darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"
-                  } p-1 rounded`}
+                    darkMode ? "hover:bg-[#1f2937]" : "hover:bg-gray-50"
+                  } p-1 rounded transition-all duration-300`}
                   onMouseEnter={() => setActiveIndex(index)}
                   onMouseLeave={() => setActiveIndex(null)}
                 >
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
                   <div>
                     <div className="text-xs font-medium">{entry.name}</div>
-                    <div className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>{percentage}%</div>
+                    <div
+                      className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} transition-colors duration-300`}
+                    >
+                      {percentage}%
+                    </div>
                   </div>
                 </div>
               )
@@ -133,4 +143,3 @@ const ExpensesBreakdown = ({ data, activeIndex, setActiveIndex, totalExpenses, d
 }
 
 export default ExpensesBreakdown
-

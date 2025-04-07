@@ -2,8 +2,10 @@
 
 import { useState } from "react"
 import { Search, Filter, Edit, Trash2 } from "lucide-react"
+import { useTheme } from "../../context/ThemeContext"
 
-const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, formatDate, totalIncome }) => {
+const IncomeSources = ({ incomes, incomeSources, onEdit, onDelete, formatDate, totalIncome }) => {
+  const { darkMode } = useTheme()
   const [searchTerm, setSearchTerm] = useState("")
   const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState({
@@ -35,9 +37,9 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
 
   return (
     <div
-      className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg border ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+      className={`${darkMode ? "bg-[#111827]" : "bg-white"} rounded-lg border ${darkMode ? "border-gray-800" : "border-gray-200"} transition-colors duration-300`}
     >
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className={`p-4 border-b ${darkMode ? "border-gray-800" : "border-gray-200"}`}>
         <div>
           <h2 className="text-xl font-bold">Income Sources</h2>
         </div>
@@ -47,11 +49,11 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
       </div>
 
       {/* Search and Filter */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className={`p-4 border-b ${darkMode ? "border-gray-800" : "border-gray-200"}`}>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500"
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? "text-gray-500" : "text-gray-400"}`}
               size={18}
             />
             <input
@@ -61,16 +63,16 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
                 darkMode
-                  ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                  ? "bg-[#1f2937] border-gray-700 text-white placeholder-gray-400"
                   : "bg-white border-gray-300 text-gray-700"
-              } focus:outline-none focus:ring-2 focus:ring-[#065336]`}
+              } focus:outline-none focus:ring-2 focus:ring-[#065336] transition-colors duration-300`}
             />
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`px-4 py-2 rounded-lg border flex items-center ${
-              darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-700"
-            } hover:bg-gray-100 dark:hover:bg-gray-600`}
+              darkMode ? "bg-[#1f2937] border-gray-700 text-white" : "bg-white border-gray-300 text-gray-700"
+            } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-300`}
           >
             <Filter size={18} className="mr-2" />
             Filters {showFilters ? "▲" : "▼"}
@@ -89,8 +91,8 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
                 value={filters.source}
                 onChange={handleFilterChange}
                 className={`w-full p-2 rounded-lg border ${
-                  darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-[#065336]`}
+                  darkMode ? "bg-[#1f2937] border-gray-700 text-white" : "bg-white border-gray-300 text-gray-700"
+                } focus:outline-none focus:ring-2 focus:ring-[#065336] transition-colors duration-300`}
               >
                 <option value="">All Sources</option>
                 {incomeSources.map((source) => (
@@ -110,8 +112,8 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
                 value={filters.dateFrom}
                 onChange={handleFilterChange}
                 className={`w-full p-2 rounded-lg border ${
-                  darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-[#065336]`}
+                  darkMode ? "bg-[#1f2937] border-gray-700 text-white" : "bg-white border-gray-300 text-gray-700"
+                } focus:outline-none focus:ring-2 focus:ring-[#065336] transition-colors duration-300`}
               />
             </div>
             <div>
@@ -124,8 +126,8 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
                 value={filters.dateTo}
                 onChange={handleFilterChange}
                 className={`w-full p-2 rounded-lg border ${
-                  darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-[#065336]`}
+                  darkMode ? "bg-[#1f2937] border-gray-700 text-white" : "bg-white border-gray-300 text-gray-700"
+                } focus:outline-none focus:ring-2 focus:ring-[#065336] transition-colors duration-300`}
               />
             </div>
             <div>
@@ -140,9 +142,9 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
                 placeholder="Filter by description"
                 className={`w-full p-2 rounded-lg border ${
                   darkMode
-                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                    ? "bg-[#1f2937] border-gray-700 text-white placeholder-gray-400"
                     : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-[#065336]`}
+                } focus:outline-none focus:ring-2 focus:ring-[#065336] transition-colors duration-300`}
               />
             </div>
             <div className="md:col-span-4 flex justify-end">
@@ -161,7 +163,7 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead
-            className={`${darkMode ? "bg-gray-700" : "bg-gray-50"} border-b ${darkMode ? "border-gray-600" : "border-gray-200"}`}
+            className={`${darkMode ? "bg-[#1f2937]" : "bg-gray-50"} border-b ${darkMode ? "border-gray-800" : "border-gray-200"}`}
           >
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Source</th>
@@ -172,10 +174,13 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
               <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+          <tbody className={`divide-y ${darkMode ? "divide-gray-800" : "divide-gray-200"}`}>
             {filteredIncomes.length > 0 ? (
               filteredIncomes.map((income) => (
-                <tr key={income.id} className={`${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"}`}>
+                <tr
+                  key={income.id}
+                  className={`${darkMode ? "hover:bg-[#1f2937]" : "hover:bg-gray-50"} transition-colors duration-300`}
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div
@@ -228,11 +233,11 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
             )}
           </tbody>
           <tfoot
-            className={`${darkMode ? "bg-gray-700" : "bg-gray-50"} border-t ${darkMode ? "border-gray-600" : "border-gray-200"}`}
+            className={`${darkMode ? "bg-[#1f2937]" : "bg-gray-50"} border-t ${darkMode ? "border-gray-800" : "border-gray-200"}`}
           >
             <tr>
-              <td className="px-6 py-3 text-left font-medium">Total</td>
-              <td className="px-6 py-3 text-left font-medium text-green-500">+${totalIncome.toFixed(2)}</td>
+              <td className="px-6 py-3 text-left font-bold">Total</td>
+              <td className="px-6 py-3 text-left font-bold text-black">+${totalIncome.toFixed(2)}</td>
               <td colSpan="4"></td>
             </tr>
           </tfoot>
@@ -243,4 +248,3 @@ const IncomeSources = ({ incomes, incomeSources, darkMode, onEdit, onDelete, for
 }
 
 export default IncomeSources
-

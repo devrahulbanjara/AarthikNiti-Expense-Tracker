@@ -69,7 +69,7 @@ const EditTransactionModal = ({
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">{editingTransaction ? "Edit Transaction" : "Add Transaction"}</h2>
           <button
-            className={`${darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"} cursor-pointer`}
+            className={`${darkMode ? "text-gray-400 hover:text-gray-200" : "text-[#065336] hover:text-gray-700"} cursor-pointer`}
             onClick={onClose}
           >
             <X className="h-5 w-5" />
@@ -234,4 +234,3 @@ const EditTransactionModal = ({
 }
 
 export default EditTransactionModal
-

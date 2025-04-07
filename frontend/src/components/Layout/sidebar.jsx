@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
-import {
-  Home, ArrowUp, ArrowDown, BarChart, Bell,
-  User, ChevronDown, Settings, Plus, Moon, Sun
-} from "lucide-react"
+import { Home, ArrowUp, ArrowDown, BarChart, Bell, User, ChevronDown, Settings, Plus, Moon, Sun } from "lucide-react"
 import AddAccountModal from "./AddAccountModal"
+import { useTheme } from "../../context/ThemeContext"
 
 const navItems = [
   { name: "Dashboard", icon: Home, href: "/dashboard" },
@@ -16,15 +14,18 @@ const navItems = [
   { name: "Budgeting & Alerts", icon: Bell, href: "/budgeting" },
 ]
 
-const Sidebar = ({ darkMode, toggleDarkMode }) => {
+const Sidebar = () => {
+  // Use the global theme context
+  const { darkMode, toggleDarkMode } = useTheme()
+
   const [showAccountDropdown, setShowAccountDropdown] = useState(false)
   const [activeAccount, setActiveAccount] = useState("Personal")
   const [showAddAccountModal, setShowAddAccountModal] = useState(false)
   const [error, setError] = useState("")
   const [accounts, setAccounts] = useState([
-    { name: "Personal", id: "personal", email: "john@example.com" },
-    { name: "Business", id: "business", email: "john@company.com" },
-    { name: "Travel", id: "travel", email: "john@travel.com" },
+    { name: "Personal", id: "personal" },
+    { name: "Business", id: "business" },
+    { name: "Travel", id: "travel" },
   ])
 
   const location = useLocation()
@@ -40,22 +41,13 @@ const Sidebar = ({ darkMode, toggleDarkMode }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [showAccountDropdown])
 
-  const handleAddAccount = ({ name, email }) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-    if (!name || !email) {
-      setError("Both name and email are required.")
+  const handleAddAccount = ({ name }) => {
+    if (!name) {
+      setError("Account name is required.")
       return
     }
 
-    if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address.")
-      return
-    }
-
-    const isDuplicateName = accounts.some(
-      (acc) => acc.name.toLowerCase() === name.toLowerCase()
-    )
+    const isDuplicateName = accounts.some((acc) => acc.name.toLowerCase() === name.toLowerCase())
     if (isDuplicateName) {
       setError("An account with this name already exists.")
       return
@@ -64,7 +56,6 @@ const Sidebar = ({ darkMode, toggleDarkMode }) => {
     const newAccount = {
       name,
       id: name.toLowerCase().replace(/\s+/g, "-"),
-      email,
     }
 
     setAccounts([...accounts, newAccount])
@@ -76,16 +67,20 @@ const Sidebar = ({ darkMode, toggleDarkMode }) => {
   return (
     <>
       <div
-        className={`fixed top-0 left-0 w-1/5 h-full ${darkMode ? "bg-gray-900 text-gray-100" : "bg-[#065336] text-white"} p-4 border-r ${darkMode ? "border-gray-700" : "border-[#054328]"} min-h-screen z-30 transition-colors duration-300 flex flex-col`}
+        className={`fixed top-0 left-0 w-1/6 h-full ${
+          darkMode ? "bg-[#0f172a] text-gray-100" : "bg-[#065336] text-white"
+        } p-4 border-r ${darkMode ? "border-[#1e293b]" : "border-[#054328]"} min-h-screen z-30 transition-colors duration-300 flex flex-col`}
       >
         <div>
           <h2 className="text-xl font-bold mb-4">AarthikNiti</h2>
-          <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-[#0a6e47]"}`} />
+          <hr className={`my-3 ${darkMode ? "border-[#1e293b]" : "border-[#0a6e47]"}`} />
 
           {/* Account Dropdown */}
           <div className="mb-4 relative account-dropdown-container">
             <div
-              className={`flex justify-between items-center p-2 border rounded-md cursor-pointer ${darkMode ? "hover:bg-gray-800 border-gray-700" : "hover:bg-[#0a6e47] border-[#0a6e47]"}`}
+              className={`flex justify-between items-center p-2 border rounded-md cursor-pointer ${
+                darkMode ? "hover:bg-[#1e293b] border-[#1e293b]" : "hover:bg-[#0a6e47] border-[#0a6e47]"
+              }`}
               onClick={() => setShowAccountDropdown(!showAccountDropdown)}
             >
               <span>{activeAccount}</span>
@@ -94,23 +89,24 @@ const Sidebar = ({ darkMode, toggleDarkMode }) => {
 
             {showAccountDropdown && (
               <div
-                className={`absolute left-0 right-0 mt-1 ${darkMode ? "bg-gray-900 border-gray-700" : "bg-[#065336] border-[#0a6e47]"} border rounded-md shadow-md z-10`}
+                className={`absolute left-0 right-0 mt-1 ${
+                  darkMode ? "bg-[#0f172a] border-[#1e293b]" : "bg-[#065336] border-[#0a6e47]"
+                } border rounded-md shadow-md z-10`}
               >
                 {accounts.map((account) => (
                   <div
                     key={account.id}
-                    className={`p-2 ${darkMode ? "hover:bg-gray-800" : "hover:bg-[#0a6e47]"} cursor-pointer`}
+                    className={`p-2 ${darkMode ? "hover:bg-[#1e293b]" : "hover:bg-[#0a6e47]"} cursor-pointer`}
                     onClick={() => {
                       setActiveAccount(account.name)
                       setShowAccountDropdown(false)
                     }}
                   >
                     <div className="font-medium">{account.name}</div>
-                    <div className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-300"}`}>{account.email}</div>
                   </div>
                 ))}
                 <div
-                  className={`p-2 border-t ${darkMode ? "border-gray-700 hover:bg-gray-800" : "border-[#0a6e47] hover:bg-[#0a6e47]"} cursor-pointer flex items-center`}
+                  className={`p-2 border-t ${darkMode ? "border-[#1e293b] hover:bg-[#1e293b]" : "border-[#0a6e47] hover:bg-[#0a6e47]"} cursor-pointer flex items-center`}
                   onClick={() => {
                     setShowAccountDropdown(false)
                     setShowAddAccountModal(true)
@@ -122,7 +118,7 @@ const Sidebar = ({ darkMode, toggleDarkMode }) => {
             )}
           </div>
 
-          <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-[#0a6e47]"}`} />
+          <hr className={`my-3 ${darkMode ? "border-[#1e293b]" : "border-[#0a6e47]"}`} />
 
           {/* Nav Items */}
           <ul>
@@ -135,14 +131,16 @@ const Sidebar = ({ darkMode, toggleDarkMode }) => {
                     className={`flex items-center py-2 px-4 rounded-md mb-1 ${
                       isActive
                         ? darkMode
-                          ? "bg-gray-800 text-white"
+                          ? "bg-[#1e293b] text-white"
                           : "bg-[#0a6e47] text-white"
                         : darkMode
-                          ? "hover:bg-gray-800 text-gray-300"
+                          ? "hover:bg-[#1e293b] text-gray-300"
                           : "hover:bg-[#0a6e47] text-gray-200"
                     } transition-all`}
                   >
-                    <item.icon className={`mr-2 h-4 w-4 ${isActive ? "text-white" : darkMode ? "text-gray-300" : "text-gray-200"}`} />
+                    <item.icon
+                      className={`mr-2 h-4 w-4 ${isActive ? "text-white" : darkMode ? "text-gray-300" : "text-gray-200"}`}
+                    />
                     {item.name}
                   </Link>
                 </li>
@@ -153,9 +151,12 @@ const Sidebar = ({ darkMode, toggleDarkMode }) => {
 
         {/* Profile & Settings */}
         <div className="mt-auto mb-6">
-          <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-[#0a6e47]"}`} />
+          <hr className={`my-3 ${darkMode ? "border-[#1e293b]" : "border-[#0a6e47]"}`} />
           <ul>
-            {[{ name: "Profile", icon: User, href: "/profile" }, { name: "Settings", icon: Settings, href: "/settings" }].map((item) => {
+            {[
+              { name: "Profile", icon: User, href: "/profile" },
+              { name: "Settings", icon: Settings, href: "/settings" },
+            ].map((item) => {
               const isActive = location.pathname === item.href
               return (
                 <li key={item.name}>
@@ -164,14 +165,16 @@ const Sidebar = ({ darkMode, toggleDarkMode }) => {
                     className={`flex items-center py-2 px-4 rounded-md mb-1 ${
                       isActive
                         ? darkMode
-                          ? "bg-gray-800 text-white"
+                          ? "bg-[#1e293b] text-white"
                           : "bg-[#0a6e47] text-white"
                         : darkMode
-                          ? "hover:bg-gray-800 text-gray-300"
+                          ? "hover:bg-[#1e293b] text-gray-300"
                           : "hover:bg-[#0a6e47] text-gray-200"
                     } transition-all`}
                   >
-                    <item.icon className={`mr-2 h-4 w-4 ${isActive ? "text-white" : darkMode ? "text-gray-300" : "text-gray-200"}`} />
+                    <item.icon
+                      className={`mr-2 h-4 w-4 ${isActive ? "text-white" : darkMode ? "text-gray-300" : "text-gray-200"}`}
+                    />
                     {item.name}
                   </Link>
                 </li>
@@ -180,24 +183,22 @@ const Sidebar = ({ darkMode, toggleDarkMode }) => {
           </ul>
 
           {/* Dark Mode Toggle */}
-          {toggleDarkMode && (
-            <button
-              onClick={toggleDarkMode}
-              className={`flex items-center py-2 px-4 rounded-md mt-3 w-full ${
-                darkMode ? "hover:bg-gray-800 text-gray-300" : "hover:bg-[#0a6e47] text-gray-200"
-              } transition-all`}
-            >
-              {darkMode ? (
-                <>
-                  <Sun className="mr-2 h-4 w-4" /> Light Mode
-                </>
-              ) : (
-                <>
-                  <Moon className="mr-2 h-4 w-4" /> Dark Mode
-                </>
-              )}
-            </button>
-          )}
+          <button
+            onClick={toggleDarkMode}
+            className={`flex items-center py-2 px-4 rounded-md mt-3 w-full ${
+              darkMode ? "hover:bg-[#1e293b] text-gray-300" : "hover:bg-[#0a6e47] text-gray-200"
+            } transition-all`}
+          >
+            {darkMode ? (
+              <>
+                <Sun className="mr-2 h-4 w-4" /> Light Mode
+              </>
+            ) : (
+              <>
+                <Moon className="mr-2 h-4 w-4" /> Dark Mode
+              </>
+            )}
+          </button>
         </div>
       </div>
 

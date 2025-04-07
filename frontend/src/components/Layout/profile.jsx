@@ -3,8 +3,12 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { User, Settings, LogOut } from "lucide-react"
+import { useTheme } from "../../context/ThemeContext"
 
-const Profile = ({ darkMode, handleLogout }) => {
+const Profile = ({ handleLogout }) => {
+  // Use the global theme context
+  const { darkMode } = useTheme()
+
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
 
   // Close dropdown menu when clicking outside
@@ -24,7 +28,7 @@ const Profile = ({ darkMode, handleLogout }) => {
   return (
     <div className="relative profile-dropdown-container">
       <button
-        className={`p-2 ${darkMode ? "bg-gray-800 hover:bg-gray-700" : "bg-gray-200 hover:bg-gray-300"} rounded-full`}
+        className={`p-2 ${darkMode ? "bg-gray-900 hover:bg-gray-800" : "bg-gray-200 hover:bg-gray-300"} rounded-full`}
         onClick={() => setShowProfileDropdown(!showProfileDropdown)}
       >
         <User className={`h-5 w-5 ${darkMode ? "text-gray-300" : "text-gray-600"}`} />
@@ -33,7 +37,7 @@ const Profile = ({ darkMode, handleLogout }) => {
       {/* profile dropdown menu */}
       {showProfileDropdown && (
         <div
-          className={`absolute right-0 mt-2 w-48 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"} rounded-md border py-1 z-10`}
+          className={`absolute right-0 mt-2 w-48 ${darkMode ? "bg-gray-900 border-gray-800" : "bg-white border-gray-300"} rounded-md border py-1 z-10`}
         >
           <Link
             to="/profile"
@@ -64,4 +68,3 @@ const Profile = ({ darkMode, handleLogout }) => {
 }
 
 export default Profile
-

@@ -6,12 +6,14 @@ import { Plus } from "lucide-react"
 import axios from "axios"
 
 // Import components
-import Sidebar from "./sidebar"
-import Profile from "./profile"
-import DarkMode from "./darkmode"
-import AddIncome from "./AddIncome"
-import IncomeOverview from "./IncomeOverview"
-import IncomeSources from "./IncomeSources"
+import Sidebar from "../../components/Layout/sidebar"
+import Profile from "../../components/Layout/profile"
+import DarkMode from "../../components/Layout/darkmode"
+import AddIncome from "../../components/Income/AddIncome"
+import IncomeOverview from "../../components/Income/IncomeOverview"
+import IncomeSources from "../../components/Income/IncomeSources"
+import Chatbot from "../../components/Chatbot/chatbot"
+import { useTheme } from "../../context/ThemeContext"
 
 const initialIncomes = [
   { id: 1, source: "Salary", amount: 250000, description: "Monthly salary", date: "2025-03-15", recurring: true },
@@ -46,10 +48,12 @@ const incomeSources = [
 
 const Income = () => {
   const navigate = useNavigate()
+  // Use the global theme context
+  const { darkMode } = useTheme()
+
   const [incomes, setIncomes] = useState(initialIncomes)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingIncome, setEditingIncome] = useState(null)
-  const [darkMode, setDarkMode] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [timeRange, setTimeRange] = useState("Last 7 days")
 
@@ -155,13 +159,8 @@ const Income = () => {
     navigate("/")
   }
 
+  // Add scroll event listener
   useEffect(() => {
-    // Set light mode by default
-    setDarkMode(false)
-    document.documentElement.classList.remove("dark")
-    localStorage.setItem("darkMode", "false")
-
-    // Add scroll event listener
     const handleScroll = () => {
       if (window.scrollY > 10) {
         setScrolled(true)
@@ -176,18 +175,6 @@ const Income = () => {
     }
   }, [])
 
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode
-    setDarkMode(newDarkMode)
-    localStorage.setItem("darkMode", newDarkMode.toString())
-
-    if (newDarkMode) {
-      document.documentElement.classList.add("dark")
-    } else {
-      document.documentElement.classList.remove("dark")
-    }
-  }
-
   // Format date for display
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "short", day: "numeric" }
@@ -196,16 +183,16 @@ const Income = () => {
 
   return (
     <div
-      className={`flex ${darkMode ? "bg-gray-900 text-white" : "bg-white text-black"} transition-colors duration-300`}
+      className={`flex ${darkMode ? "bg-gray-950 text-white" : "bg-white text-black"} transition-colors duration-300`}
     >
-      <Sidebar darkMode={darkMode} scrolled={scrolled} activePage={activePage} />
+      <Sidebar />
 
       {/* main content income page */}
-      <div className="w-4/5 ml-[20%] p-6 min-h-screen relative">
+      <div className="w-4/5 ml-[calc(20%-15px)] p-6 min-h-screen relative">
         <div
-          className={`fixed top-0 left-1/5 right-0 ${darkMode ? "bg-gray-900" : "bg-white"} z-30 p-6 transition-all duration-300 ${
+          className={`fixed top-0 left-[calc(20%-15px)] right-0 ${darkMode ? "bg-gray-950" : "bg-white"} z-30 p-6 transition-all duration-300 ${
             scrolled
-              ? `${darkMode ? "bg-opacity-80" : "bg-opacity-90"} backdrop-blur-sm border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`
+              ? `${darkMode ? "bg-opacity-80" : "bg-opacity-90"} backdrop-blur-sm border-b ${darkMode ? "border-gray-800" : "border-gray-200"}`
               : "bg-opacity-100"
           }`}
         >
@@ -217,9 +204,9 @@ const Income = () => {
                   Manage your income sources and track your earnings.
                 </p>
               </div>
-              <div className="flex items-center space-x-4">
-                <DarkMode darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-                <Profile darkMode={darkMode} handleLogout={handleLogout} />
+              <div className="flex items-center space-x-3 mr-3">
+                <DarkMode />
+                <Profile handleLogout={handleLogout} />
               </div>
             </div>
           </div>
@@ -246,20 +233,16 @@ const Income = () => {
           </div>
 
           {/* Income Overview Component with explicit border */}
-          <div className="border border-gray-200 rounded-xl overflow-hidden shadow-md mb-6">
-            <IncomeOverview
-              chartData={chartData}
-              darkMode={darkMode}
-              timeRange={timeRange}
-              setTimeRange={setTimeRange}
-            />
+          <div
+            className={`border ${darkMode ? "border-gray-800" : "border-gray-200"} rounded-xl overflow-hidden shadow-md mb-6`}
+          >
+            <IncomeOverview chartData={chartData} timeRange={timeRange} setTimeRange={setTimeRange} />
           </div>
 
           {/* Income Sources Component */}
           <IncomeSources
             incomes={incomes}
             incomeSources={incomeSources}
-            darkMode={darkMode}
             onEdit={handleEdit}
             onDelete={handleDelete}
             formatDate={formatDate}
@@ -275,11 +258,12 @@ const Income = () => {
         onSubmit={handleSubmit}
         editingIncome={editingIncome}
         incomeSources={incomeSources}
-        darkMode={darkMode}
       />
+
+      {/* Chatbot Component */}
+      <Chatbot />
     </div>
   )
 }
 
 export default Income
-
