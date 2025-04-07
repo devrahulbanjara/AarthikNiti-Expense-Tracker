@@ -1,50 +1,49 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useMemo } from "react"
 
 const CategoryBreakdownChart = ({ darkMode, data }) => {
-  const [hoveredSegment, setHoveredSegment] = useState(null);
-  const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
+  const [hoveredSegment, setHoveredSegment] = useState(null)
+  const totalAmount = useMemo(() => data.reduce((sum, item) => sum + item.amount, 0), [data])
 
   return (
     <div className="h-full flex flex-col items-center justify-center">
-      <div className="relative w-80 h-80">
-        <svg viewBox="0 0 100 100" className="w-full h-full">
+      <div className="w-full h-[350px] flex items-center justify-center">
+        <svg
+          viewBox="0 0 120 120"
+          className="w-full h-full max-w-[400px] mx-auto"
+          style={{ overflow: "visible" }} // This ensures labels outside the SVG are visible
+        >
           {(() => {
-            let cumulativePercent = 0;
+            let cumulativePercent = 0
             return data.map((item, index) => {
-              const startPercent = cumulativePercent;
-              cumulativePercent += item.value;
+              const startPercent = cumulativePercent
+              cumulativePercent += item.value
 
-              const startX = 50 + 40 * Math.cos((2 * Math.PI * startPercent) / 100);
-              const startY = 50 + 40 * Math.sin((2 * Math.PI * startPercent) / 100);
-              const endX = 50 + 40 * Math.cos((2 * Math.PI * cumulativePercent) / 100);
-              const endY = 50 + 40 * Math.sin((2 * Math.PI * cumulativePercent) / 100);
+              const startX = 60 + 40 * Math.cos((2 * Math.PI * startPercent) / 100)
+              const startY = 60 + 40 * Math.sin((2 * Math.PI * startPercent) / 100)
+              const endX = 60 + 40 * Math.cos((2 * Math.PI * cumulativePercent) / 100)
+              const endY = 60 + 40 * Math.sin((2 * Math.PI * cumulativePercent) / 100)
 
-              const largeArcFlag = item.value > 50 ? 1 : 0;
+              const largeArcFlag = item.value > 50 ? 1 : 0
 
               // Position for the label
-              const labelAngle = (2 * Math.PI * (startPercent + item.value / 2)) / 100;
-              const labelRadius = 70;
-              const labelX = 50 + labelRadius * Math.cos(labelAngle);
-              const labelY = 50 + labelRadius * Math.sin(labelAngle);
-
-              // Position for the percentage
-              const percentRadius = 55;
-              const percentX = 50 + percentRadius * Math.cos(labelAngle);
-              const percentY = 50 + percentRadius * Math.sin(labelAngle);
+              const labelAngle = (2 * Math.PI * (startPercent + item.value / 2)) / 100
+              const labelRadius = 55
+              const labelX = 60 + labelRadius * Math.cos(labelAngle)
+              const labelY = 60 + labelRadius * Math.sin(labelAngle)
 
               return (
                 <g key={index}>
                   <path
-                    d={`M 50 50 L ${startX} ${startY} A 40 40 0 ${largeArcFlag} 1 ${endX} ${endY} Z`}
+                    d={`M 60 60 L ${startX} ${startY} A 40 40 0 ${largeArcFlag} 1 ${endX} ${endY} Z`}
                     fill={item.color}
                     opacity={hoveredSegment === index ? 0.8 : 1}
                     onMouseEnter={() => setHoveredSegment(index)}
                     onMouseLeave={() => setHoveredSegment(null)}
                     style={{ cursor: "pointer" }}
                   />
-                  
+
                   {/* Category name label */}
                   <text
                     x={labelX}
@@ -57,15 +56,15 @@ const CategoryBreakdownChart = ({ darkMode, data }) => {
                   >
                     {item.name}
                   </text>
-                  
+
                   {/* Percentage label */}
                   <text
-                    x={percentX}
-                    y={percentY}
+                    x={labelX}
+                    y={labelY + 4}
                     textAnchor="middle"
                     dominantBaseline="middle"
                     fill={darkMode ? "white" : "black"}
-                    fontSize="3.5"
+                    fontSize="3"
                   >
                     {item.value}%
                   </text>
@@ -73,26 +72,26 @@ const CategoryBreakdownChart = ({ darkMode, data }) => {
                   {hoveredSegment === index && (
                     <text
                       x={labelX}
-                      y={labelY + 5}
+                      y={labelY + 8}
                       textAnchor="middle"
                       dominantBaseline="middle"
                       fill={darkMode ? "white" : "black"}
-                      fontSize="3"
+                      fontSize="2.5"
                     >
                       ${item.amount}
                     </text>
                   )}
                 </g>
-              );
-            });
+              )
+            })
           })()}
 
-          <circle cx="50" cy="50" r="30" fill={darkMode ? "#1f2937" : "white"} />
-          
+          <circle cx="60" cy="60" r="30" fill={darkMode ? "#1f2937" : "white"} />
+
           {/* center text showing total or hovered amount */}
           <text
-            x="50"
-            y="46"
+            x="60"
+            y="56"
             textAnchor="middle"
             dominantBaseline="middle"
             fill={darkMode ? "white" : "black"}
@@ -101,10 +100,10 @@ const CategoryBreakdownChart = ({ darkMode, data }) => {
           >
             ${hoveredSegment !== null ? data[hoveredSegment].amount.toFixed(2) : totalAmount.toFixed(2)}
           </text>
-          
+
           <text
-            x="50"
-            y="54"
+            x="60"
+            y="64"
             textAnchor="middle"
             dominantBaseline="middle"
             fill={darkMode ? "gray" : "gray"}
@@ -124,12 +123,14 @@ const CategoryBreakdownChart = ({ darkMode, data }) => {
             onMouseLeave={() => setHoveredSegment(null)}
           >
             <div className="w-3 h-3 rounded-full mr-1" style={{ backgroundColor: item.color }}></div>
-            <span className="text-sm">{item.name}: {item.value}%</span>
+            <span className="text-sm">
+              {item.name}: {item.value}%
+            </span>
           </div>
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
 export default CategoryBreakdownChart;

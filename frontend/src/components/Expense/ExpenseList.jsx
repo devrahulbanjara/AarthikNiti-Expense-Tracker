@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Search, Edit, Trash, ChevronDown, ChevronUp, Calendar, CreditCard } from "lucide-react"
-import { expenseCategories } from "./expenseCategories"
+import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
 
 const ExpenseList = ({
   darkMode,
@@ -17,7 +17,6 @@ const ExpenseList = ({
 }) => {
   const [hoveredRow, setHoveredRow] = useState(null)
 
-  // Filter and sort expenses
   const filteredExpenses = expenses.filter(expense => 
     !searchTerm || 
     expense.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
