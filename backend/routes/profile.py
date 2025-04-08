@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from core.config import get_current_user
 from services.profile_service import (
-    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,get_transaction_trend,income_expense_table
+    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,get_transaction_trend,income_expense_table,get_all_profile_names,get_active_profile_info
 )
 from pydantic import BaseModel
 from typing import List 
@@ -130,3 +130,13 @@ async def transactions_endpoint(
 ):
     """Fetches income or expense transactions dynamically."""
     return await income_expense_table(user["user_id"], transaction_type, days)
+
+@router.get("/get_profile_names")
+async def get_profiles(user: dict = Depends(get_current_user)):
+    user_id = user["user_id"]
+    profiles = await get_all_profile_names(user_id)
+    return profiles
+
+@router.get("/active_profile_info")
+async def active_profile_info(current_user: dict = Depends(get_current_user)):
+    return await get_active_profile_info(current_user["user_id"])
