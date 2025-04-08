@@ -312,42 +312,52 @@ async def context_for_chatbot(user_id: int, profile_id: int):
     return {"context": context}
 
 async def get_transaction_trend(user_id: int, transaction_type: str, days: int):
-    """Fetches income or expense for the last `days` days grouped by short weekday names or date."""
-    
     if transaction_type not in ["income", "expense"]:
         raise HTTPException(status_code=400, detail="Invalid transaction type. Must be 'income' or 'expense'.")
 
+    # Calculate the date range for the past 'days' days
     end_date = datetime.utcnow()
     start_date = end_date - timedelta(days=days)
 
+    # Ensure the datetime objects are in UTC
+    start_date = start_date.replace(tzinfo=None)  # Remove any timezone info
+    end_date = end_date.replace(tzinfo=None)
+
+    # Print the start and end date for debugging
+    print(f"Start Date: {start_date}, End Date: {end_date}")
+
+    # Fetch transactions for the given date range, sorted by timestamp descending
     transactions = await transactions_collection.find(
         {
             "user_id": user_id,
             "profile_id": (await get_active_profile(user_id))["profile_id"],
-            "transaction_type": transaction_type,
+            "transaction_type": {"$in": ["income", "expense"]},  # Fetch both income and expense
             "timestamp": {"$gte": start_date, "$lte": end_date}
         }
-    ).to_list(length=None)
+    ).sort("timestamp", 1).to_list(length=None)
+
+    # Check if there are any transactions within the specified date range
+    if not transactions:
+        return {"message": "No transactions found in the given date range"}
 
     transaction_data = {}
 
     for transaction in transactions:
-        timestamp = transaction["timestamp"].replace(tzinfo=None)
+        timestamp = transaction["timestamp"].replace(tzinfo=None)  # Ensure UTC timestamp without tzinfo
 
-        # If last 7 days, use short weekday names (Mon, Tue, etc.); else, use "Month Day"
+        # Use short weekday names if last 7 days, or "Month Day" if more than 7 days
         key = timestamp.strftime("%a") if days == 7 else timestamp.strftime("%b %d")
 
         transaction_data[key] = transaction_data.get(key, 0) + transaction["transaction_amount"]
 
-    # Convert data to required format
-    formatted_data = [{("day" if days == 7 else "date"): k, transaction_type: v} for k, v in transaction_data.items()]
+    # Format the transaction data in the required structure
+    formatted_data = [{("date" if days == 7 else "date"): k, transaction_type: v} for k, v in transaction_data.items()]
 
     return formatted_data
 
 
+
 async def income_expense_table(user_id: int, transaction_type: str, days: int):
-    """Fetches income or expense transactions dynamically based on parameters."""
-    
     if transaction_type not in ["income", "expense"]:
         raise HTTPException(status_code=400, detail="Invalid transaction type. Must be 'income' or 'expense'.")
 
@@ -361,20 +371,46 @@ async def income_expense_table(user_id: int, transaction_type: str, days: int):
             "transaction_type": transaction_type,
             "timestamp": {"$gte": start_date, "$lte": end_date}
         }
-    ).to_list(length=None)
+    ).sort("timestamp", -1).to_list(length=None)
 
     formatted_transactions = []
     for transaction in transactions:
         transaction_data = {
             "category": transaction["transaction_category"],
             "amount": transaction["transaction_amount"],
-            "date": transaction["timestamp"].strftime("%b %d"),  # "Apr 01", "Apr 02", etc.
+            "date": transaction["timestamp"].strftime("%b %d, %Y"),
             "description": transaction["transaction_description"],
         }
 
         if transaction_type == "expense":
             transaction_data["recurring"] = transaction.get("recurring", False)
+            if transaction_data["recurring"]:
+                transaction_data["recurrence_duration"] = transaction.get("recurrence_duration", None)
 
         formatted_transactions.append(transaction_data)
 
     return formatted_transactions
+
+async def get_all_profile_names(user_id: int):
+    profiles = await profiles_collection.find(
+        {"user_id": user_id},
+        {"_id": 0, "profile_name": 1, "profile_id": 1}
+    ).to_list(length=None)
+
+    return {"profiles": profiles}
+
+
+async def get_active_profile_info(user_id: int):
+    user = await users_collection.find_one({"user_id": user_id})
+    if not user or "active_profile_id" not in user:
+        raise HTTPException(status_code=404, detail="User or active profile not found")
+
+    profile = await profiles_collection.find_one(
+        {"user_id": user_id, "profile_id": user["active_profile_id"]},
+        {"_id": 0, "profile_id": 1, "profile_name": 1}
+    )
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="Active profile not found")
+
+    return profile
