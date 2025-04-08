@@ -2,8 +2,11 @@
 
 import { expenseCategories } from "../../pages/Dashboard/expenseCategories"
 import { X } from "lucide-react"
+import { useTheme } from "../../context/ThemeContext"
 
-const AddExpenseModal = ({ darkMode, showAddModal, setShowAddModal, newExpense, setNewExpense, handleAddExpense }) => {
+const AddExpenseModal = ({ showAddModal, setShowAddModal, newExpense, setNewExpense, handleAddExpense }) => {
+  const { darkMode } = useTheme()
+
   if (!showAddModal) return null
 
   const handleChange = (field) => (e) => {

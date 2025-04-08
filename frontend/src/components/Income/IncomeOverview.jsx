@@ -6,7 +6,6 @@ import { useTheme } from "../../context/ThemeContext"
 const IncomeOverview = ({ chartData, timeRange, setTimeRange }) => {
   const { darkMode } = useTheme()
 
-  // Sample data to ensure bars are visible
   const sampleData = [
     { day: "Mon", amount: 250000 },
     { day: "Tue", amount: 120000 },

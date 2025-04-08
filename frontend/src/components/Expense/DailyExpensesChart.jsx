@@ -2,8 +2,10 @@
 
 import { useState } from "react"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
+import { useTheme } from "../../context/ThemeContext"
 
-const DailyExpensesChart = ({ darkMode, data }) => {
+const DailyExpensesChart = ({ data }) => {
+  const { darkMode } = useTheme()
   const [activeBar, setActiveBar] = useState(null)
   const maxExpense = Math.max(...data.map((day) => day.amount), 100)
 
@@ -44,12 +46,7 @@ const DailyExpensesChart = ({ darkMode, data }) => {
             onMouseLeave={() => setActiveBar(null)}
           >
             {/* CartesianGrid removed to avoid double horizontal line */}
-            <XAxis
-              dataKey="day"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }}
-            />
+            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }} />
             <YAxis
               axisLine={false}
               tickLine={false}
