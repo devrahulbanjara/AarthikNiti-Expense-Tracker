@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useTheme } from "../../context/ThemeContext"
 
-const CategoryBreakdownChart = ({ darkMode, data }) => {
+const CategoryBreakdownChart = ({ data }) => {
+  const { darkMode } = useTheme()
   const [hoveredSegment, setHoveredSegment] = useState(null)
   const totalAmount = useMemo(() => data.reduce((sum, item) => sum + item.amount, 0), [data])
 
@@ -12,7 +14,7 @@ const CategoryBreakdownChart = ({ darkMode, data }) => {
         <svg
           viewBox="0 0 120 120"
           className="w-full h-full max-w-[400px] mx-auto"
-          style={{ overflow: "visible" }} // This ensures labels outside the SVG are visible
+          style={{ overflow: "visible" }}
         >
           {(() => {
             let cumulativePercent = 0

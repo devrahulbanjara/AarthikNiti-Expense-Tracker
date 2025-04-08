@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
+import { useTheme } from "../../context/ThemeContext"
 
-const AddIncome = ({ isOpen, onClose, onSubmit, editingIncome, incomeSources, darkMode }) => {
+const AddIncome = ({ isOpen, onClose, onSubmit, editingIncome, incomeSources }) => {
+  const { darkMode } = useTheme()
   const [formData, setFormData] = useState({
     id: null,
     source: "",
@@ -174,5 +176,4 @@ const AddIncome = ({ isOpen, onClose, onSubmit, editingIncome, incomeSources, da
   )
 }
 
-export default AddIncome
-
+export default AddIncome;

@@ -1,67 +1,65 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Link, useLocation } from "react-router-dom"
-import { Home, ArrowUp, ArrowDown, BarChart, Bell, User, ChevronDown, Settings, Plus, Moon, Sun } from "lucide-react"
-import AddAccountModal from "./AddAccountModal"
-import { useTheme } from "../../context/ThemeContext"
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Home, ArrowUp, ArrowDown, BarChart, Bell, User, ChevronDown, Settings, Plus, Moon, Sun } from "lucide-react";
+import AddAccountModal from "./AddAccountModal";
+import { useTheme } from "../../context/ThemeContext";
 
 const navItems = [
   { name: "Dashboard", icon: Home, href: "/dashboard" },
   { name: "Income", icon: ArrowUp, href: "/income" },
-  { name: "Expenses", icon: ArrowDown, href: "/expenses" },
-  { name: "Reports", icon: BarChart, href: "/reports" },
-  { name: "Budgeting & Alerts", icon: Bell, href: "/budgeting" },
-]
+  { name: "Expenses", icon: ArrowDown, href: "/expenses" }
+];
 
 const Sidebar = () => {
-  const { darkMode, toggleDarkMode } = useTheme()
+  const { darkMode, toggleDarkMode } = useTheme();
 
-  const [showAccountDropdown, setShowAccountDropdown] = useState(false)
-  const [activeAccount, setActiveAccount] = useState("Personal")
-  const [showAddAccountModal, setShowAddAccountModal] = useState(false)
-  const [error, setError] = useState("")
+  const [showAccountDropdown, setShowAccountDropdown] = useState(false);
+  const [activeAccount, setActiveAccount] = useState("Personal");
+  const [showAddAccountModal, setShowAddAccountModal] = useState(false);
+  const [error, setError] = useState("");
   const [accounts, setAccounts] = useState([
     { name: "Personal", id: "personal" },
     { name: "Business", id: "business" },
     { name: "Travel", id: "travel" },
-  ])
+  ]);
 
-  const location = useLocation()
+  const location = useLocation();
 
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (showAccountDropdown && !event.target.closest(".account-dropdown-container")) {
-        setShowAccountDropdown(false)
+        setShowAccountDropdown(false);
       }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [showAccountDropdown])
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showAccountDropdown]);
 
   const handleAddAccount = ({ name }) => {
     if (!name) {
-      setError("Account name is required.")
-      return
+      setError("Account name is required.");
+      return;
     }
 
-    const isDuplicateName = accounts.some((acc) => acc.name.toLowerCase() === name.toLowerCase())
+    const isDuplicateName = accounts.some((acc) => acc.name.toLowerCase() === name.toLowerCase());
     if (isDuplicateName) {
-      setError("An account with this name already exists.")
-      return
+      setError("An account with this name already exists.");
+      return;
     }
 
     const newAccount = {
       name,
       id: name.toLowerCase().replace(/\s+/g, "-"),
-    }
+    };
 
-    setAccounts([...accounts, newAccount])
-    setActiveAccount(name)
-    setShowAddAccountModal(false)
-    setError("")
-  }
+    setAccounts([...accounts, newAccount]);
+    setActiveAccount(name);
+    setShowAddAccountModal(false);
+    setError("");
+  };
 
   return (
     <>
@@ -97,8 +95,8 @@ const Sidebar = () => {
                     key={account.id}
                     className={`p-2 ${darkMode ? "hover:bg-[#1e293b]" : "hover:bg-[#0a6e47]"} cursor-pointer`}
                     onClick={() => {
-                      setActiveAccount(account.name)
-                      setShowAccountDropdown(false)
+                      setActiveAccount(account.name);
+                      setShowAccountDropdown(false);
                     }}
                   >
                     <div className="font-medium">{account.name}</div>
@@ -107,8 +105,8 @@ const Sidebar = () => {
                 <div
                   className={`p-2 border-t ${darkMode ? "border-[#1e293b] hover:bg-[#1e293b]" : "border-[#0a6e47] hover:bg-[#0a6e47]"} cursor-pointer flex items-center`}
                   onClick={() => {
-                    setShowAccountDropdown(false)
-                    setShowAddAccountModal(true)
+                    setShowAccountDropdown(false);
+                    setShowAddAccountModal(true);
                   }}
                 >
                   <Plus className="h-4 w-4 mr-1" /> Add Account
@@ -122,7 +120,7 @@ const Sidebar = () => {
           {/* Nav Items */}
           <ul>
             {navItems.map((item) => {
-              const isActive = location.pathname === item.href
+              const isActive = location.pathname === item.href;
               return (
                 <li key={item.name}>
                   <Link
@@ -143,7 +141,7 @@ const Sidebar = () => {
                     {item.name}
                   </Link>
                 </li>
-              )
+              );
             })}
           </ul>
         </div>
@@ -156,7 +154,7 @@ const Sidebar = () => {
               { name: "Profile", icon: User, href: "/profile" },
               { name: "Settings", icon: Settings, href: "/settings" },
             ].map((item) => {
-              const isActive = location.pathname === item.href
+              const isActive = location.pathname === item.href;
               return (
                 <li key={item.name}>
                   <Link
@@ -177,7 +175,7 @@ const Sidebar = () => {
                     {item.name}
                   </Link>
                 </li>
-              )
+              );
             })}
           </ul>
 
@@ -205,15 +203,15 @@ const Sidebar = () => {
       <AddAccountModal
         isOpen={showAddAccountModal}
         onClose={() => {
-          setShowAddAccountModal(false)
-          setError("")
+          setShowAddAccountModal(false);
+          setError("");
         }}
         onAddAccount={handleAddAccount}
         darkMode={darkMode}
         error={error}
       />
     </>
-  )
-}
+  );
+};
 
 export default Sidebar;

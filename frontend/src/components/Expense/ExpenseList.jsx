@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import { Search, Edit, Trash, ChevronDown, ChevronUp, Calendar, CreditCard } from "lucide-react"
-import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
+import { expenseCategories } from "../../pages/Dashboard/expenseCategories"
+import { useTheme } from "../../context/ThemeContext"
 
 const ExpenseList = ({
-  darkMode,
   expenses,
   searchTerm,
   setSearchTerm,
@@ -15,21 +15,25 @@ const ExpenseList = ({
   setShowEditModal,
   handleDeleteExpense,
 }) => {
+  const { darkMode } = useTheme()
   const [hoveredRow, setHoveredRow] = useState(null)
 
-  const filteredExpenses = expenses.filter(expense => 
-    !searchTerm || 
-    expense.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    expense.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredExpenses = expenses.filter(
+    (expense) =>
+      !searchTerm ||
+      expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      expense.category.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
 
   const sortedExpenses = [...filteredExpenses].sort((a, b) => {
-    const { key, direction } = sortConfig;
-    if (key === "amount") return direction === "asc" ? a.amount - b.amount : b.amount - a.amount;
-    if (key === "date") return direction === "asc" ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date);
-    if (key === "category") return direction === "asc" ? a.category.localeCompare(b.category) : b.category.localeCompare(a.category);
-    return 0;
-  });
+    const { key, direction } = sortConfig
+    if (key === "amount") return direction === "asc" ? a.amount - b.amount : b.amount - a.amount
+    if (key === "date")
+      return direction === "asc" ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date)
+    if (key === "category")
+      return direction === "asc" ? a.category.localeCompare(b.category) : b.category.localeCompare(a.category)
+    return 0
+  })
 
   return (
     <div className={`p-4 rounded-lg border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"}`}>
@@ -62,7 +66,12 @@ const ExpenseList = ({
                 >
                   <div className="flex items-center">
                     {header.charAt(0).toUpperCase() + header.slice(1)}
-                    {sortConfig.key === header && (sortConfig.direction === "asc" ? <ChevronUp className="h-4 w-4 ml-1" /> : <ChevronDown className="h-4 w-4 ml-1" />)}
+                    {sortConfig.key === header &&
+                      (sortConfig.direction === "asc" ? (
+                        <ChevronUp className="h-4 w-4 ml-1" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 ml-1" />
+                      ))}
                   </div>
                 </th>
               ))}
@@ -74,10 +83,12 @@ const ExpenseList = ({
           <tbody>
             {sortedExpenses.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-4 py-4 text-center">No expenses found. Add your first expense!</td>
+                <td colSpan="6" className="px-4 py-4 text-center">
+                  No expenses found. Add your first expense!
+                </td>
               </tr>
             ) : (
-              sortedExpenses.map(expense => (
+              sortedExpenses.map((expense) => (
                 <tr
                   key={expense.id}
                   className={`border-b ${darkMode ? "border-gray-700 hover:bg-gray-700" : "border-gray-200 hover:bg-gray-50"}`}
@@ -88,9 +99,14 @@ const ExpenseList = ({
                     <div className="flex items-center">
                       <div
                         className="w-3 h-3 rounded-full mr-2"
-                        style={{ backgroundColor: expenseCategories.find(cat => cat.name === expense.category)?.color || "#ccc" }}
+                        style={{
+                          backgroundColor:
+                            expenseCategories.find((cat) => cat.name === expense.category)?.color || "#ccc",
+                        }}
                       />
-                      <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs">{expense.category}</span>
+                      <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs">
+                        {expense.category}
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-4 text-red-500">$ {expense.amount.toFixed(2)}</td>
@@ -109,15 +125,17 @@ const ExpenseList = ({
                   <td className="px-4 py-4">
                     {expense.description}
                     {expense.isRecurring && (
-                      <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs">{expense.recurringPeriod}</span>
+                      <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs">
+                        {expense.recurringPeriod}
+                      </span>
                     )}
                   </td>
                   <td className="px-4 py-4 text-right">
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => {
-                          setCurrentExpense(expense);
-                          setShowEditModal(true);
+                          setCurrentExpense(expense)
+                          setShowEditModal(true)
                         }}
                         className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
                         title="Edit"

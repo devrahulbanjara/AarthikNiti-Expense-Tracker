@@ -1,8 +1,10 @@
+"use client"
+
 import DailyExpensesChart from "./DailyExpensesChart"
 import CategoryBreakdownChart from "./CategoryBreakdownChart"
+import { useTheme } from "../../context/ThemeContext"
 
 const ExpenseOverview = ({
-  darkMode,
   activeTab,
   setActiveTab,
   timeRange,
@@ -10,10 +12,10 @@ const ExpenseOverview = ({
   dailyExpensesData,
   categoryBreakdownData,
 }) => {
+  const { darkMode } = useTheme()
+
   return (
-    <div
-      className={`p-4 rounded-lg ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"} mb-6`}
-    >
+    <div className={`p-4 rounded-lg ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"} mb-6`}>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Expense Overview</h2>
         <select
@@ -64,13 +66,13 @@ const ExpenseOverview = ({
 
       <div className="h-[400px]">
         {activeTab === "Daily Expenses" ? (
-          <DailyExpensesChart darkMode={darkMode} data={dailyExpensesData} />
+          <DailyExpensesChart data={dailyExpensesData} />
         ) : (
-          <CategoryBreakdownChart darkMode={darkMode} data={categoryBreakdownData} />
+          <CategoryBreakdownChart data={categoryBreakdownData} />
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
 export default ExpenseOverview;

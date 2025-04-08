@@ -209,18 +209,18 @@ const Expense = () => {
         </div>
 
         <div className="pt-28">
-  {/* Expense Actions Section */}
-  <div className="mb-6 flex justify-between items-center">
-    <div>
-      <h2 className="text-xl font-semibold">Financial Summary</h2>
-      <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} text-sm`}>
-        Total spending:{" "}
-        {new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "USD",
-        }).format(totalSpending)}
-      </p>
-    </div>
+          {/* Expense Actions Section */}
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold">Financial Summary</h2>
+              <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} text-sm`}>
+                Total spending:{" "}
+                {new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                }).format(totalSpending)}
+              </p>
+            </div>
             <AddExpenseButton setShowAddModal={setShowAddModal} />
           </div>
 
@@ -228,7 +228,6 @@ const Expense = () => {
             className={`border ${darkMode ? "border-gray-800" : "border-gray-200"} rounded-xl overflow-hidden shadow-md mb-6`}
           >
             <ExpenseOverview
-              darkMode={darkMode}
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               timeRange={timeRange}
@@ -238,7 +237,6 @@ const Expense = () => {
             />
           </div>
           <ExpenseList
-            darkMode={darkMode}
             expenses={expenses}
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
@@ -250,7 +248,6 @@ const Expense = () => {
           />
         </div>
         <AddExpenseModal
-          darkMode={darkMode}
           showAddModal={showAddModal}
           setShowAddModal={setShowAddModal}
           newExpense={newExpense}
@@ -258,7 +255,6 @@ const Expense = () => {
           handleAddExpense={handleAddExpense}
         />
         <EditExpenseModal
-          darkMode={darkMode}
           showEditModal={showEditModal}
           setShowEditModal={setShowEditModal}
           currentExpense={currentExpense}
