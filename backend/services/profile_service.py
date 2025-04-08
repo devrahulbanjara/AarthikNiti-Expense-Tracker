@@ -8,6 +8,7 @@ from fastapi.security import OAuth2PasswordBearer
 from dateutil.relativedelta import relativedelta
 from bson import ObjectId
 from pymongo.collection import Collection
+from typing import Optional
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -142,7 +143,7 @@ async def update_income(user_id: int, amount: float, description: str, category:
 
 
 
-async def add_expense(user_id: int, description: str, amount: float, category: str):
+async def add_expense(user_id: int, description: str, amount: float, category: str, recurring: bool, recurrence_duration: Optional[str]):
     """Adds an expense to the active profile."""
     user = await users_collection.find_one({"user_id": user_id})
     profile = await get_active_profile(user_id)
@@ -153,15 +154,19 @@ async def add_expense(user_id: int, description: str, amount: float, category: s
     if new_balance < 0:
         raise HTTPException(status_code=400, detail="Insufficient balance")
 
-    await transactions_collection.insert_one({
+    transaction_data = {
         "user_id": user_id,
         "profile_id": user["active_profile_id"],
         "transaction_type": "expense",
         "transaction_description": description,
         "transaction_category": category,
         "transaction_amount": amount,
+        "recurring": recurring,
+        "recurrence_duration": recurrence_duration,
         "timestamp": datetime.utcnow()
-    })
+    }
+
+    await transactions_collection.insert_one(transaction_data)
 
     await profiles_collection.update_one(
         {"user_id": user_id, "profile_id": user["active_profile_id"]},
@@ -305,3 +310,71 @@ async def context_for_chatbot(user_id: int, profile_id: int):
     
     context = " ".join(formatted_transactions)
     return {"context": context}
+
+async def get_transaction_trend(user_id: int, transaction_type: str, days: int):
+    """Fetches income or expense for the last `days` days grouped by short weekday names or date."""
+    
+    if transaction_type not in ["income", "expense"]:
+        raise HTTPException(status_code=400, detail="Invalid transaction type. Must be 'income' or 'expense'.")
+
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days)
+
+    transactions = await transactions_collection.find(
+        {
+            "user_id": user_id,
+            "profile_id": (await get_active_profile(user_id))["profile_id"],
+            "transaction_type": transaction_type,
+            "timestamp": {"$gte": start_date, "$lte": end_date}
+        }
+    ).to_list(length=None)
+
+    transaction_data = {}
+
+    for transaction in transactions:
+        timestamp = transaction["timestamp"].replace(tzinfo=None)
+
+        # If last 7 days, use short weekday names (Mon, Tue, etc.); else, use "Month Day"
+        key = timestamp.strftime("%a") if days == 7 else timestamp.strftime("%b %d")
+
+        transaction_data[key] = transaction_data.get(key, 0) + transaction["transaction_amount"]
+
+    # Convert data to required format
+    formatted_data = [{("day" if days == 7 else "date"): k, transaction_type: v} for k, v in transaction_data.items()]
+
+    return formatted_data
+
+
+async def income_expense_table(user_id: int, transaction_type: str, days: int):
+    """Fetches income or expense transactions dynamically based on parameters."""
+    
+    if transaction_type not in ["income", "expense"]:
+        raise HTTPException(status_code=400, detail="Invalid transaction type. Must be 'income' or 'expense'.")
+
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days)
+
+    transactions = await transactions_collection.find(
+        {
+            "user_id": user_id,
+            "profile_id": (await get_active_profile(user_id))["profile_id"],
+            "transaction_type": transaction_type,
+            "timestamp": {"$gte": start_date, "$lte": end_date}
+        }
+    ).to_list(length=None)
+
+    formatted_transactions = []
+    for transaction in transactions:
+        transaction_data = {
+            "category": transaction["transaction_category"],
+            "amount": transaction["transaction_amount"],
+            "date": transaction["timestamp"].strftime("%b %d"),  # "Apr 01", "Apr 02", etc.
+            "description": transaction["transaction_description"],
+        }
+
+        if transaction_type == "expense":
+            transaction_data["recurring"] = transaction.get("recurring", False)
+
+        formatted_transactions.append(transaction_data)
+
+    return formatted_transactions
