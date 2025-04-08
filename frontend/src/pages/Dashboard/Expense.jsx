@@ -11,7 +11,7 @@ import EditExpenseModal from "../../components/Expense/EditExpenseModal"
 import Profile from "../../components/Layout/profile"
 import DarkMode from "../../components/Layout/darkmode"
 import ChatAssistant from "../../components/Chatbot/chat-assistant"
-import { useTheme } from "../../context/ThemeContext"
+import { useTheme } from "../../context/ThemeContext" // Remove ThemeProvider import
 
 const Expense = () => {
   const navigate = useNavigate()
@@ -89,12 +89,7 @@ const Expense = () => {
   const [currentExpense, setCurrentExpense] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [sortConfig, setSortConfig] = useState({ key: "date", direction: "desc" })
-  const [activeTab, setActiveTab] = useState(() => {
-    if (typeof localStorage !== "undefined") {
-      return localStorage.getItem("activeTab") || "Daily Expenses"
-    }
-    return "Daily Expenses"
-  })
+  const [activeTab, setActiveTab] = useState("Daily Expenses")
   const [timeRange, setTimeRange] = useState("Last 7 days")
 
   // New expense state
@@ -183,6 +178,12 @@ const Expense = () => {
 
   // Calculate total spending
   const totalSpending = expenses.reduce((sum, expense) => sum + expense.amount, 0).toFixed(2)
+
+  useEffect(() => {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("activeTab", activeTab)
+    }
+  }, [activeTab])
 
   return (
     <div
