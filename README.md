@@ -21,13 +21,14 @@ AarthikNiti is a financial management tool designed for tracking expenses, analy
 
 ## Directory Structure
 
-```plaintext
+```
 AarthikNiti-Expense-Tracker/
 │── backend/
+│── docs/
 │── frontend/
-│── expense-tracker/
 │── docker-compose.yaml
 │── LICENSE
+│── .env.example
 │── README.md
 ```
 
@@ -47,24 +48,22 @@ git clone https://github.com/devrahulbanjara/AarthikNiti-Expense-Tracker.git
 cd AarthikNiti-Expense-Tracker
 ```
 
-### Setting Up the Environment Variables
-
-1. Navigate to the `backend` directory:
-   ```sh
-   cd backend
-   ```
-2. Create a `.env` file:
-   ```sh
-   touch .env
-   ```
-3. Copy the content from `.env.example` and replace placeholders with your actual credentials.
-
 ### Backend Setup (FastAPI & MongoDB)
 
 ```sh
+cd backend
 python -m venv venv
 source venv/bin/activate  # On Windows use 'venv\Scripts\activate'
 pip install -r requirements.txt
+```
+
+Create a `.env` file inside the `backend` directory and add the following:
+
+```
+MONGO_URI="mongodb+srv://<db_username>:<db_password>@cluster0.uydmy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+MONGO_DB_NAME=<your_cluster_name>
+SECRET_KEY=<your_secret_key>
+JWT_ALGORITHM=<your_jwt_algorithm>
 ```
 
 Run the FastAPI server:
