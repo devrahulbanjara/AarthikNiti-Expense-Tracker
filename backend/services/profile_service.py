@@ -8,6 +8,8 @@ from fastapi.security import OAuth2PasswordBearer
 from dateutil.relativedelta import relativedelta
 from bson import ObjectId
 from pymongo.collection import Collection
+from typing import Optional
+import uuid
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -121,8 +123,11 @@ async def update_income(user_id: int, amount: float, description: str, category:
     new_income = profile["profile_total_income"] + amount
     new_balance = profile["profile_total_balance"] + amount
 
+    transaction_id = str(uuid.uuid4())  # Generate a unique transaction ID
+
     # Insert income transaction into transactions_collection
-    await transactions_collection.insert_one({
+    transaction_data = {
+        "transaction_id": transaction_id,  # Add transaction_id
         "user_id": user_id,
         "profile_id": user["active_profile_id"],
         "transaction_type": "income",
@@ -130,7 +135,9 @@ async def update_income(user_id: int, amount: float, description: str, category:
         "transaction_category": category,
         "transaction_amount": amount,
         "timestamp": datetime.utcnow()
-    })
+    }
+
+    await transactions_collection.insert_one(transaction_data)
 
     # Update the profile with new income & balance
     await profiles_collection.update_one(
@@ -138,11 +145,11 @@ async def update_income(user_id: int, amount: float, description: str, category:
         {"$set": {"profile_total_income": new_income, "profile_total_balance": new_balance}}
     )
 
-    return {"message": "Income updated successfully"}
+    return {"message": "Income updated successfully", "transaction_id": transaction_id}
 
 
 
-async def add_expense(user_id: int, description: str, amount: float, category: str):
+async def add_expense(user_id: int, description: str, amount: float, category: str, recurring: bool, recurrence_duration: Optional[str]):
     """Adds an expense to the active profile."""
     user = await users_collection.find_one({"user_id": user_id})
     profile = await get_active_profile(user_id)
@@ -153,23 +160,29 @@ async def add_expense(user_id: int, description: str, amount: float, category: s
     if new_balance < 0:
         raise HTTPException(status_code=400, detail="Insufficient balance")
 
-    await transactions_collection.insert_one({
+    transaction_id = str(uuid.uuid4())  # Generate a unique transaction ID
+
+    transaction_data = {
+        "transaction_id": transaction_id,  # Add transaction_id
         "user_id": user_id,
         "profile_id": user["active_profile_id"],
         "transaction_type": "expense",
         "transaction_description": description,
         "transaction_category": category,
         "transaction_amount": amount,
+        "recurring": recurring,
+        "recurrence_duration": recurrence_duration,
         "timestamp": datetime.utcnow()
-    })
+    }
+
+    await transactions_collection.insert_one(transaction_data)
 
     await profiles_collection.update_one(
         {"user_id": user_id, "profile_id": user["active_profile_id"]},
         {"$set": {"profile_total_expense": new_expense, "profile_total_balance": new_balance}}
     )
 
-    return {"message": "Expense added successfully"}
-
+    return {"message": "Expense added successfully", "transaction_id": transaction_id}
 
 async def create_profile(user_id: int, profile_name: str):
     """Creates a new profile for the user."""
@@ -305,3 +318,111 @@ async def context_for_chatbot(user_id: int, profile_id: int):
     
     context = " ".join(formatted_transactions)
     return {"context": context}
+
+async def get_transaction_trend(user_id: int, transaction_type: str, days: int):
+    if transaction_type not in ["income", "expense"]:
+        raise HTTPException(status_code=400, detail="Invalid transaction type. Must be 'income' or 'expense'.")
+
+    # Calculate the date range for the past 'days' days
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days)
+
+    # Ensure the datetime objects are in UTC
+    start_date = start_date.replace(tzinfo=None)  # Remove any timezone info
+    end_date = end_date.replace(tzinfo=None)
+
+    # Print the start and end date for debugging
+    print(f"Start Date: {start_date}, End Date: {end_date}")
+
+    # Fetch transactions for the given date range, sorted by timestamp descending
+    transactions = await transactions_collection.find(
+        {
+            "user_id": user_id,
+            "profile_id": (await get_active_profile(user_id))["profile_id"],
+            "transaction_type": {"$in": ["income", "expense"]},  # Fetch both income and expense
+            "timestamp": {"$gte": start_date, "$lte": end_date}
+        }
+    ).sort("timestamp", 1).to_list(length=None)
+
+    # Check if there are any transactions within the specified date range
+    if not transactions:
+        return {"message": "No transactions found in the given date range"}
+
+    transaction_data = {}
+
+    for transaction in transactions:
+        timestamp = transaction["timestamp"].replace(tzinfo=None)  # Ensure UTC timestamp without tzinfo
+
+        # Use short weekday names if last 7 days, or "Month Day" if more than 7 days
+        key = timestamp.strftime("%a") if days == 7 else timestamp.strftime("%b %d")
+
+        transaction_data[key] = transaction_data.get(key, 0) + transaction["transaction_amount"]
+
+    # Format the transaction data in the required structure
+    formatted_data = [{("date" if days == 7 else "date"): k, transaction_type: v} for k, v in transaction_data.items()]
+
+    return formatted_data
+
+
+
+async def income_expense_table(user_id: int, transaction_type: str, days: int):
+    if transaction_type not in ["income", "expense"]:
+        raise HTTPException(status_code=400, detail="Invalid transaction type. Must be 'income' or 'expense'.")
+
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days)
+
+    transactions = await transactions_collection.find(
+        {
+            "user_id": user_id,
+            "profile_id": (await get_active_profile(user_id))["profile_id"],
+            "transaction_type": transaction_type,
+            "timestamp": {"$gte": start_date, "$lte": end_date}
+        }
+    ).sort("timestamp", -1).to_list(length=None)
+
+    formatted_transactions = []
+    for transaction in transactions:
+        transaction_data = {
+            "category": transaction["transaction_category"],
+            "amount": transaction["transaction_amount"],
+            "date": transaction["timestamp"].strftime("%b %d, %Y"),
+            "description": transaction["transaction_description"],
+            "transaction_id": transaction["transaction_id"],  # Include transaction_id
+        }
+
+        if transaction_type == "expense":
+            transaction_data["recurring"] = transaction.get("recurring", False)
+            if transaction_data["recurring"]:
+                transaction_data["recurrence_duration"] = transaction.get("recurrence_duration", None)
+
+        formatted_transactions.append(transaction_data)
+
+    return formatted_transactions
+
+
+async def get_all_profile_names(user_id: int):
+    profiles = await profiles_collection.find(
+        {"user_id": user_id},
+        {"_id": 0, "profile_name": 1, "profile_id": 1}
+    ).to_list(length=None)
+
+    return {"profiles": profiles}
+
+
+async def get_active_profile_info(user_id: int):
+    user = await users_collection.find_one({"user_id": user_id})
+    if not user or "active_profile_id" not in user:
+        raise HTTPException(status_code=404, detail="User or active profile not found")
+
+    profile = await profiles_collection.find_one(
+        {"user_id": user_id, "profile_id": user["active_profile_id"]},
+        {"_id": 0, "profile_id": 1, "profile_name": 1}
+    )
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="Active profile not found")
+
+    return profile
+
+

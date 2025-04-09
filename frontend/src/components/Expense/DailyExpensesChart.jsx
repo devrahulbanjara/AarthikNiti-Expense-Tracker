@@ -1,18 +1,25 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
-import { useTheme } from "../../context/ThemeContext"
+import { useState } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { useTheme } from "../../context/ThemeContext";
 
 const DailyExpensesChart = ({ data }) => {
-  const { darkMode } = useTheme()
-  const [activeBar, setActiveBar] = useState(null)
-  const maxExpense = Math.max(...data.map((day) => day.amount), 100)
+  const { darkMode } = useTheme();
+
+  const [activeBar, setActiveBar] = useState(null);
 
   const chartData = data.map((day) => ({
-    day: day.day,
-    amount: day.amount,
-  }))
+    day: day.date,
+    amount: day.income,
+  }));
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -23,12 +30,15 @@ const DailyExpensesChart = ({ data }) => {
           } rounded-md shadow-md`}
         >
           <p className="font-medium">{label}</p>
-          <p className="text-sm font-semibold">${payload[0].value.toFixed(2)}</p>
+          <p className="text-sm font-semibold">
+            ${payload[0].value.toFixed(2)}
+          </p>
         </div>
-      )
+      );
     }
-    return null
-  }
+    return null;
+  };
+  console.log(chartData);
 
   return (
     <div className="h-full flex flex-col">
@@ -37,16 +47,21 @@ const DailyExpensesChart = ({ data }) => {
           <BarChart
             data={chartData}
             margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
-            barCategoryGap={50}
+            barCategoryGap={20} 
             onMouseMove={(e) => {
               if (e && e.activeTooltipIndex !== undefined) {
-                setActiveBar(e.activeTooltipIndex)
+                setActiveBar(e.activeTooltipIndex);
               }
             }}
             onMouseLeave={() => setActiveBar(null)}
           >
             {/* CartesianGrid removed to avoid double horizontal line */}
-            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }} />
+            <XAxis
+              dataKey="day"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }}
+            />
             <YAxis
               axisLine={false}
               tickLine={false}
@@ -55,12 +70,17 @@ const DailyExpensesChart = ({ data }) => {
             />
             <Tooltip
               content={<CustomTooltip />}
-              cursor={{ fill: darkMode ? "rgba(55, 65, 81, 0.3)" : "rgba(0, 0, 0, 0.05)" }}
+              cursor={{
+                fill: darkMode
+                  ? "rgba(55, 65, 81, 0.3)"
+                  : "rgba(0, 0, 0, 0.05)",
+              }}
             />
             <Bar
               dataKey="amount"
               fill="#ef4444"
               radius={[4, 4, 0, 0]}
+              barSize={50}
               isAnimationActive={true}
               animationBegin={0}
               animationDuration={1200}
@@ -70,7 +90,7 @@ const DailyExpensesChart = ({ data }) => {
         </ResponsiveContainer>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default DailyExpensesChart;
