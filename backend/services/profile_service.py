@@ -9,6 +9,7 @@ from dateutil.relativedelta import relativedelta
 from bson import ObjectId
 from pymongo.collection import Collection
 from typing import Optional
+import uuid
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -122,8 +123,11 @@ async def update_income(user_id: int, amount: float, description: str, category:
     new_income = profile["profile_total_income"] + amount
     new_balance = profile["profile_total_balance"] + amount
 
+    transaction_id = str(uuid.uuid4())  # Generate a unique transaction ID
+
     # Insert income transaction into transactions_collection
-    await transactions_collection.insert_one({
+    transaction_data = {
+        "transaction_id": transaction_id,  # Add transaction_id
         "user_id": user_id,
         "profile_id": user["active_profile_id"],
         "transaction_type": "income",
@@ -131,7 +135,9 @@ async def update_income(user_id: int, amount: float, description: str, category:
         "transaction_category": category,
         "transaction_amount": amount,
         "timestamp": datetime.utcnow()
-    })
+    }
+
+    await transactions_collection.insert_one(transaction_data)
 
     # Update the profile with new income & balance
     await profiles_collection.update_one(
@@ -139,7 +145,7 @@ async def update_income(user_id: int, amount: float, description: str, category:
         {"$set": {"profile_total_income": new_income, "profile_total_balance": new_balance}}
     )
 
-    return {"message": "Income updated successfully"}
+    return {"message": "Income updated successfully", "transaction_id": transaction_id}
 
 
 
@@ -154,7 +160,10 @@ async def add_expense(user_id: int, description: str, amount: float, category: s
     if new_balance < 0:
         raise HTTPException(status_code=400, detail="Insufficient balance")
 
+    transaction_id = str(uuid.uuid4())  # Generate a unique transaction ID
+
     transaction_data = {
+        "transaction_id": transaction_id,  # Add transaction_id
         "user_id": user_id,
         "profile_id": user["active_profile_id"],
         "transaction_type": "expense",
@@ -173,8 +182,7 @@ async def add_expense(user_id: int, description: str, amount: float, category: s
         {"$set": {"profile_total_expense": new_expense, "profile_total_balance": new_balance}}
     )
 
-    return {"message": "Expense added successfully"}
-
+    return {"message": "Expense added successfully", "transaction_id": transaction_id}
 
 async def create_profile(user_id: int, profile_name: str):
     """Creates a new profile for the user."""
@@ -380,6 +388,7 @@ async def income_expense_table(user_id: int, transaction_type: str, days: int):
             "amount": transaction["transaction_amount"],
             "date": transaction["timestamp"].strftime("%b %d, %Y"),
             "description": transaction["transaction_description"],
+            "transaction_id": transaction["transaction_id"],  # Include transaction_id
         }
 
         if transaction_type == "expense":
@@ -390,6 +399,7 @@ async def income_expense_table(user_id: int, transaction_type: str, days: int):
         formatted_transactions.append(transaction_data)
 
     return formatted_transactions
+
 
 async def get_all_profile_names(user_id: int):
     profiles = await profiles_collection.find(
@@ -414,3 +424,5 @@ async def get_active_profile_info(user_id: int):
         raise HTTPException(status_code=404, detail="Active profile not found")
 
     return profile
+
+
