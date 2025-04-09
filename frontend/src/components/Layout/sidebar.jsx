@@ -102,13 +102,17 @@ const Sidebar = () => {
 
       setActiveAccount(profileName);
       setShowAccountDropdown(false);
-      window.location.reload(); // This will reload the page immediately after profile switch
+
+      // Delay the reload to ensure the toast appears
+      setTimeout(() => {
+        window.location.reload(); // This will reload the page after the toast is shown
+      }, 500); // Delay of 500ms
 
       // Show success toast
       toast.success(`Switched to ${profileName} successfully!`);
     } catch (err) {
       console.error("Error switching profile:", err);
-      toast.error("Failed to switch profile!");
+      toast.error("Failed to switch profile!"); // Show error toast in case of failure
     }
   };
 
@@ -152,6 +156,9 @@ const Sidebar = () => {
 
       // Now switch to the new profile and set it as active both on frontend and backend
       await switchProfile(newAccount.profile_id, newAccount.profile_name);
+
+      // Show success toast
+      toast.success(`Switched to ${newAccount.profile_name} successfully!`);
 
       setShowAddAccountModal(false);
       setError("");
