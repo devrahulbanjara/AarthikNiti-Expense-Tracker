@@ -16,7 +16,7 @@ import {
 import AddAccountModal from "./AddAccountModal";
 import { useTheme } from "../../context/ThemeContext";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Import Toastify CSS
+import "react-toastify/dist/ReactToastify.css";
 
 const navItems = [
   { name: "Dashboard", icon: Home, href: "/dashboard" },
@@ -53,7 +53,7 @@ const Sidebar = () => {
       }
 
       const data = await response.json();
-      setAccounts(data.profiles); // Ensure profiles are correctly set
+      setAccounts(data.profiles);
     } catch (err) {
       console.error("Error fetching profiles:", err);
     }
@@ -78,7 +78,7 @@ const Sidebar = () => {
       }
 
       const data = await response.json();
-      setActiveAccount(data.profile_name); // Set the active profile based on the backend
+      setActiveAccount(data.profile_name);
     } catch (err) {
       console.error("Error fetching active profile:", err);
     }
@@ -103,22 +103,26 @@ const Sidebar = () => {
       setActiveAccount(profileName);
       setShowAccountDropdown(false);
 
-      // Delay the reload to ensure the toast appears
-      setTimeout(() => {
-        window.location.reload(); // This will reload the page after the toast is shown
-      }, 500); // Delay of 500ms
-
-      // Show success toast
       toast.success(`Switched to ${profileName} successfully!`);
+
+      // Add delay before reloading
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000); // Delay of 2 seconds
     } catch (err) {
       console.error("Error switching profile:", err);
-      toast.error("Failed to switch profile!"); // Show error toast in case of failure
+      toast.error("Failed to switch profile!");
+
+      // Add delay before reloading in case of an error
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000); // Delay of 2 seconds
     }
   };
 
   useEffect(() => {
     fetchProfiles();
-    fetchActiveProfile(); // Fetch the active profile when the component loads
+    fetchActiveProfile();
   }, []);
 
   const handleAddAccount = async ({ name }) => {
@@ -151,13 +155,11 @@ const Sidebar = () => {
         throw new Error(errorData.detail || "Failed to create profile");
       }
 
-      const newAccount = await response.json(); // Assuming the API returns the created profile
+      const newAccount = await response.json();
       setAccounts([...accounts, newAccount]);
 
-      // Now switch to the new profile and set it as active both on frontend and backend
       await switchProfile(newAccount.profile_id, newAccount.profile_name);
 
-      // Show success toast
       toast.success(`Switched to ${newAccount.profile_name} successfully!`);
 
       setShowAddAccountModal(false);
@@ -184,7 +186,6 @@ const Sidebar = () => {
             }`}
           />
 
-          {/* Account Dropdown */}
           <div className="mb-4 relative account-dropdown-container">
             <div
               className={`flex justify-between items-center p-2 border rounded-md cursor-pointer ${
@@ -242,7 +243,6 @@ const Sidebar = () => {
             }`}
           />
 
-          {/* Nav Items */}
           <ul>
             {navItems.map((item) => {
               const isActive = location.pathname === item.href;
@@ -277,7 +277,6 @@ const Sidebar = () => {
           </ul>
         </div>
 
-        {/* Profile & Settings */}
         <div className="mt-auto mb-6">
           <hr
             className={`my-3 ${
@@ -320,7 +319,6 @@ const Sidebar = () => {
             })}
           </ul>
 
-          {/* Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}
             className={`flex items-center py-2 px-4 rounded-md mt-3 w-full ${
@@ -342,7 +340,6 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* Add Account Modal */}
       <AddAccountModal
         isOpen={showAddAccountModal}
         onClose={() => {
@@ -354,7 +351,6 @@ const Sidebar = () => {
         error={error}
       />
 
-      {/* Toast Notifications */}
       <ToastContainer />
     </>
   );
