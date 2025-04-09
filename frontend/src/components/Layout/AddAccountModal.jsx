@@ -1,28 +1,36 @@
-"\"use client"
+"\"use client";
 
-import { useState, useEffect } from "react"
-import { X } from "lucide-react"
+import { useState, useEffect } from "react";
+import { X } from "lucide-react";
 
-const AddAccountModal = ({ isOpen, onClose, onAddAccount, darkMode, error }) => {
-  const [newAccountData, setNewAccountData] = useState({ name: "" })
+const AddAccountModal = ({
+  isOpen,
+  onClose,
+  onAddAccount,
+  darkMode,
+  error,
+}) => {
+  const [newAccountData, setNewAccountData] = useState({ name: "" });
 
   useEffect(() => {
     if (!isOpen) {
-      setNewAccountData({ name: "" })
+      setNewAccountData({ name: "" });
     }
-  }, [isOpen])
+  }, [isOpen]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const handleSubmit = () => {
-    onAddAccount(newAccountData)
-  }
+    onAddAccount(newAccountData);
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-transparent">
       <div
         className={`${
-          darkMode ? "bg-gray-800 bg-opacity-95 text-gray-100" : "bg-white bg-opacity-95 text-gray-800"
+          darkMode
+            ? "bg-gray-800 bg-opacity-95 text-gray-100"
+            : "bg-white bg-opacity-95 text-gray-800"
         } rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden transition-colors duration-300`}
       >
         <div
@@ -33,9 +41,15 @@ const AddAccountModal = ({ isOpen, onClose, onAddAccount, darkMode, error }) => 
           <h2 className="text-xl font-semibold">Add New Account</h2>
           <button
             onClick={onClose}
-            className={`${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"} p-2 rounded-full transition-colors`}
+            className={`${
+              darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+            } p-2 rounded-full transition-colors`}
           >
-            <X className={`h-5 w-5 ${darkMode ? "text-gray-400" : "text-gray-500"}`} />
+            <X
+              className={`h-5 w-5 ${
+                darkMode ? "text-gray-400" : "text-gray-500"
+              }`}
+            />
           </button>
         </div>
 
@@ -46,13 +60,19 @@ const AddAccountModal = ({ isOpen, onClose, onAddAccount, darkMode, error }) => 
 
           <div className="space-y-4">
             <div>
-              <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>
+              <label
+                className={`block text-sm font-medium ${
+                  darkMode ? "text-gray-300" : "text-gray-700"
+                } mb-1`}
+              >
                 Name
               </label>
               <input
                 type="text"
                 value={newAccountData.name}
-                onChange={(e) => setNewAccountData({ ...newAccountData, name: e.target.value })}
+                onChange={(e) =>
+                  setNewAccountData({ ...newAccountData, name: e.target.value })
+                }
                 placeholder="Personal, Business, etc."
                 className={`w-full p-3 rounded-lg border ${
                   darkMode
@@ -63,7 +83,15 @@ const AddAccountModal = ({ isOpen, onClose, onAddAccount, darkMode, error }) => 
             </div>
 
             {/* Error message block */}
-            {error && <div className={`text-sm mt-2 ${darkMode ? "text-red-400" : "text-red-600"}`}>{error}</div>}
+            {error && (
+              <div
+                className={`text-sm mt-2 ${
+                  darkMode ? "text-red-400" : "text-red-600"
+                }`}
+              >
+                {error}
+              </div>
+            )}
           </div>
 
           <div className="mt-6 flex justify-end">
@@ -71,13 +99,13 @@ const AddAccountModal = ({ isOpen, onClose, onAddAccount, darkMode, error }) => 
               onClick={handleSubmit}
               className="px-4 py-2 bg-[#065336] hover:bg-[#054328] text-white rounded-lg transition-colors"
             >
-              Add Account
+              Add Profile
             </button>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default AddAccountModal;
