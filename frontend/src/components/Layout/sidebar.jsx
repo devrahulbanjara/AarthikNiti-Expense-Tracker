@@ -6,8 +6,6 @@ import {
   Home,
   ArrowUp,
   ArrowDown,
-  BarChart,
-  Bell,
   User,
   ChevronDown,
   Settings,
@@ -17,6 +15,8 @@ import {
 } from "lucide-react";
 import AddAccountModal from "./AddAccountModal";
 import { useTheme } from "../../context/ThemeContext";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Import Toastify CSS
 
 const navItems = [
   { name: "Dashboard", icon: Home, href: "/dashboard" },
@@ -34,7 +34,6 @@ const Sidebar = () => {
   const [accounts, setAccounts] = useState([]);
   const location = useLocation();
 
-  // Fetch profiles from the API
   const fetchProfiles = async () => {
     try {
       const token = localStorage.getItem("access_token");
@@ -60,7 +59,6 @@ const Sidebar = () => {
     }
   };
 
-  // Fetch active profile info from the API
   const fetchActiveProfile = async () => {
     try {
       const token = localStorage.getItem("access_token");
@@ -102,15 +100,15 @@ const Sidebar = () => {
         throw new Error("Failed to switch profile");
       }
 
-      // Directly update the active profile without reloading the page
       setActiveAccount(profileName);
       setShowAccountDropdown(false);
-
-      // Sync with the backend by fetching the active profile again
-      // Reload the page to reflect changes
       window.location.reload(); // This will reload the page immediately after profile switch
+
+      // Show success toast
+      toast.success(`Switched to ${profileName} successfully!`);
     } catch (err) {
       console.error("Error switching profile:", err);
+      toast.error("Failed to switch profile!");
     }
   };
 
@@ -151,7 +149,10 @@ const Sidebar = () => {
 
       const newAccount = await response.json(); // Assuming the API returns the created profile
       setAccounts([...accounts, newAccount]);
-      setActiveAccount(name);
+
+      // Now switch to the new profile and set it as active both on frontend and backend
+      await switchProfile(newAccount.profile_id, newAccount.profile_name);
+
       setShowAddAccountModal(false);
       setError("");
     } catch (err) {
@@ -345,6 +346,9 @@ const Sidebar = () => {
         darkMode={darkMode}
         error={error}
       />
+
+      {/* Toast Notifications */}
+      <ToastContainer />
     </>
   );
 };
