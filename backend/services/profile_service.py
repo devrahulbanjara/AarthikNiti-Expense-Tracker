@@ -331,15 +331,12 @@ async def get_transaction_trend(user_id: int, transaction_type: str, days: int):
     start_date = start_date.replace(tzinfo=None)  # Remove any timezone info
     end_date = end_date.replace(tzinfo=None)
 
-    # Print the start and end date for debugging
-    print(f"Start Date: {start_date}, End Date: {end_date}")
-
     # Fetch transactions for the given date range, sorted by timestamp descending
     transactions = await transactions_collection.find(
         {
             "user_id": user_id,
             "profile_id": (await get_active_profile(user_id))["profile_id"],
-            "transaction_type": {"$in": ["income", "expense"]},  # Fetch both income and expense
+            "transaction_type": transaction_type,
             "timestamp": {"$gte": start_date, "$lte": end_date}
         }
     ).sort("timestamp", 1).to_list(length=None)

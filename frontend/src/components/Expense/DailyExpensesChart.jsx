@@ -16,10 +16,13 @@ const DailyExpensesChart = ({ data }) => {
 
   const [activeBar, setActiveBar] = useState(null);
 
-  const chartData = data.map((day) => ({
-    day: day.date,
-    amount: day.income,
-  }));
+  // Ensure data is always an array
+  const chartData = Array.isArray(data)
+    ? data.map((day) => ({
+        day: day.date,
+        amount: day.expense,
+      }))
+    : [];
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -38,7 +41,6 @@ const DailyExpensesChart = ({ data }) => {
     }
     return null;
   };
-  console.log(chartData);
 
   return (
     <div className="h-full flex flex-col">
@@ -47,7 +49,7 @@ const DailyExpensesChart = ({ data }) => {
           <BarChart
             data={chartData}
             margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
-            barCategoryGap={20} 
+            barCategoryGap={20}
             onMouseMove={(e) => {
               if (e && e.activeTooltipIndex !== undefined) {
                 setActiveBar(e.activeTooltipIndex);
@@ -55,7 +57,6 @@ const DailyExpensesChart = ({ data }) => {
             }}
             onMouseLeave={() => setActiveBar(null)}
           >
-            {/* CartesianGrid removed to avoid double horizontal line */}
             <XAxis
               dataKey="day"
               axisLine={false}
