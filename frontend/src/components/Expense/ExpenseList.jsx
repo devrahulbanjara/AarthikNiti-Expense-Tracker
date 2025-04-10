@@ -126,6 +126,14 @@ const ExpenseList = ({
                 <th
                   key={header}
                   className="px-4 py-2 text-left cursor-pointer font-medium text-sm"
+                  style={{
+                    width:
+                      header === "category"
+                        ? "20%"
+                        : header === "amount"
+                        ? "15%"
+                        : "20%",
+                  }}
                   onClick={() => handleSort(header)}
                 >
                   <div className="flex items-center">
@@ -139,10 +147,16 @@ const ExpenseList = ({
                   </div>
                 </th>
               ))}
-              <th className="px-4 py-2 text-left font-medium text-sm">
+              <th
+                className="px-4 py-2 text-left font-medium text-sm"
+                style={{ width: "30%" }}
+              >
                 Description
               </th>
-              <th className="px-4 py-2 text-right font-medium text-sm">
+              <th
+                className="px-4 py-2 text-right font-medium text-sm"
+                style={{ width: "15%" }}
+              >
                 Actions
               </th>
             </tr>
