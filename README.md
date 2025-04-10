@@ -24,11 +24,10 @@ AarthikNiti is a financial management tool designed for tracking expenses, analy
 ```
 AarthikNiti-Expense-Tracker/
 │── backend/
-│── docs/
 │── frontend/
+│── expense-tracker/
 │── docker-compose.yaml
 │── LICENSE
-│── .env.example
 │── README.md
 ```
 

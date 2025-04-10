@@ -1,60 +1,16 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
-import axios from "axios";
-import Sidebar from "../../components/Layout/sidebar";
-import Profile from "../../components/Layout/profile";
-import DarkMode from "../../components/Layout/darkmode";
-import AddIncome from "../../components/Income/AddIncome";
-import IncomeOverview from "../../components/Income/IncomeOverview";
-import IncomeSources from "../../components/Income/IncomeSources";
-import Chatbot from "../../components/Chatbot/chat-assistant";
-import { useTheme } from "../../context/ThemeContext";
-
-const initialIncomes = [
-  {
-    id: 1,
-    source: "Salary",
-    amount: 250000,
-    description: "Monthly salary",
-    date: "2025-03-15",
-    recurring: true,
-  },
-  {
-    id: 2,
-    source: "Freelance",
-    amount: 450000,
-    description: "Website design project",
-    date: "2025-03-10",
-    recurring: false,
-  },
-  {
-    id: 3,
-    source: "Investments",
-    amount: 2527070,
-    description: "Dividend payment",
-    date: "2025-03-05",
-    recurring: true,
-  },
-  {
-    id: 4,
-    source: "Side Gig",
-    amount: 2252887,
-    description: "Tutoring",
-    date: "2025-03-01",
-    recurring: true,
-  },
-  {
-    id: 5,
-    source: "Bonus",
-    amount: 2985698,
-    description: "Performance bonus",
-    date: "2025-02-28",
-    recurring: false,
-  },
-];
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { Plus } from "lucide-react"
+import Sidebar from "../../components/Layout/sidebar"
+import Profile from "../../components/Layout/profile"
+import DarkMode from "../../components/Layout/darkmode"
+import AddIncome from "../../components/Income/AddIncome"
+import IncomeOverview from "../../components/Income/IncomeOverview"
+import IncomeSources from "../../components/Income/IncomeSources"
+import Chatbot from "../../components/Chatbot/chat-assistant"
+import { useTheme } from "../../context/ThemeContext"
 
 const incomeSources = [
   { name: "Salary", color: "#3b82f6" },
@@ -63,138 +19,170 @@ const incomeSources = [
   { name: "Side Gig", color: "#f97316" },
   { name: "Bonus", color: "#ec4899" },
   { name: "Other", color: "#6b7280" },
-];
+]
 
 const Income = () => {
-  const navigate = useNavigate();
-  // Use the global theme context
-  const { darkMode } = useTheme();
+  const navigate = useNavigate()
+  const { darkMode } = useTheme()
 
-  const [incomes, setIncomes] = useState(initialIncomes);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingIncome, setEditingIncome] = useState(null);
-  const [scrolled, setScrolled] = useState(false);
-  const [timeRange, setTimeRange] = useState("Last 7 days");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [editingIncome, setEditingIncome] = useState(null)
+  const [scrolled, setScrolled] = useState(false)
+  const [timeRange, setTimeRange] = useState("Last 7 days")
+  const [totalIncome, setTotalIncome] = useState(0)
+  const [incomes, setIncomes] = useState([])
 
-  // Pass this to the Sidebar component
-  const activePage = "income";
+  useEffect(() => {
+    const fetchIncomeData = async () => {
+      try {
+        const dashboardResponse = await fetch("http://localhost:8000/profile/dashboard", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        })
 
-  // Calculate total income
-  const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
+        if (!dashboardResponse.ok) throw new Error("Failed to fetch dashboard data")
 
-  // Token validation
+        const dashboardData = await dashboardResponse.json()
+        setTotalIncome(dashboardData.profile_total_income)
+
+        const incomeResponse = await fetch(
+          "http://127.0.0.1:8000/profile/income_expense_table?transaction_type=income&days=30",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            },
+          },
+        )
+
+        if (!incomeResponse.ok) throw new Error("Failed to fetch incomes")
+
+        const incomeData = await incomeResponse.json()
+        console.log("Income data from API:", incomeData)
+
+        const formattedIncomes = incomeData.map((income, index) => ({
+          id: index + 1,
+          source: income.category,
+          amount: income.amount,
+          date: income.date,
+          description: income.description,
+          recurring: income.recurring,
+          recurrence_duration: income.recurrence_duration || null,
+        }))
+
+        setIncomes(formattedIncomes)
+      } catch (error) {
+        console.error("Error fetching income data:", error)
+      }
+    }
+
+    fetchIncomeData()
+  }, [])
+
   useEffect(() => {
     const validateToken = async () => {
-      const accessToken = localStorage.getItem("access_token");
+      const accessToken = localStorage.getItem("access_token")
 
       if (!accessToken) {
-        navigate("/");
-        return;
+        navigate("/")
+        return
       }
-    };
-
-    validateToken();
-  }, [navigate]);
-
-  // Generate chart data for the last 7 days
-  const getDayName = (dateString) => {
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const date = new Date(dateString);
-    return days[date.getDay()];
-  };
-
-  const getLast7Days = () => {
-    const result = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-
-      // Add some sample amount data to ensure bars are visible
-      const sampleAmounts = [
-        250000, 180000, 320000, 150000, 420000, 280000, 190000,
-      ];
-
-      result.push({
-        date: date.toISOString().split("T")[0],
-        day: getDayName(date),
-        // Use sample data to ensure bars are visible
-        amount: sampleAmounts[6 - i],
-      });
-    }
-    return result;
-  };
-
-  const chartData = getLast7Days();
-
-  // Fill in the chart data with actual income amounts
-  incomes.forEach((income) => {
-    const incomeDate = income.date;
-    const chartDay = chartData.find((day) => day.date === incomeDate);
-    if (chartDay) {
-      chartDay.amount += income.amount;
-    }
-  });
-
-  const handleSubmit = (incomeData, isEditing) => {
-    if (isEditing) {
-      setIncomes(
-        incomes.map((income) =>
-          income.id === incomeData.id ? incomeData : income
-        )
-      );
-    } else {
-      setIncomes([...incomes, incomeData]);
     }
 
-    setIsAddModalOpen(false);
-    setEditingIncome(null);
-  };
+    validateToken()
+  }, [navigate])
 
-  const handleCloseModal = () => {
-    setIsAddModalOpen(false);
-    setEditingIncome(null);
-  };
-
-  const handleEdit = (income) => {
-    setEditingIncome(income);
-    setIsAddModalOpen(true);
-  };
-
-  const handleDelete = (id) =>
-    setIncomes(incomes.filter((income) => income.id !== id));
-
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    navigate("/");
-  };
-
-  // Add scroll event listener
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 10) {
-        setScrolled(true);
+        setScrolled(true)
       } else {
-        setScrolled(false);
+        setScrolled(false)
       }
-    };
+    }
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll)
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
+      window.removeEventListener("scroll", handleScroll)
+    }
+  }, [])
 
-  // Format date for display
+  const handleSubmit = async (incomeData, isEditing) => {
+    try {
+      const incomeToAdd = {
+        category: incomeData.category || incomeData.source,
+        description: incomeData.description || "",
+        amount: Number.parseFloat(incomeData.amount),
+      }
+
+      console.log("Sending income data to API:", incomeToAdd)
+      const response = await fetch("http://127.0.0.1:8000/profile/update_income", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+        body: JSON.stringify(incomeToAdd),
+      })
+
+      const responseText = await response.text()
+
+      if (!response.ok) {
+        throw new Error(`Failed to add income: ${responseText}`)
+      }
+
+      window.location.reload()
+    } catch (error) {
+      console.error("Error saving income:", error)
+      alert("Failed to save income. Please try again.")
+    }
+
+    setIsAddModalOpen(false)
+    setEditingIncome(null)
+  }
+
+  const handleCloseModal = () => {
+    setIsAddModalOpen(false)
+    setEditingIncome(null)
+  }
+
+  const handleEdit = (income) => {
+    setEditingIncome(income)
+    setIsAddModalOpen(false)
+  }
+
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete this income?")) {
+      setIncomes((prev) => prev.filter((income) => income.id !== id))
+    }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token")
+    navigate("/")
+  }
+
   const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "short", day: "numeric" };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    if (!dateString) return "N/A";
+  
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "Invalid date";
+      }
+      const options = { year: "numeric", month: "2-digit", day: "2-digit" };
+      return date.toLocaleDateString("en-US", options);
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
   };
 
   return (
     <div
-      className={`flex ${
-        darkMode ? "bg-gray-950 text-white" : "bg-white text-black"
-      } transition-colors duration-300`}
+      className={`flex ${darkMode ? "bg-gray-950 text-white" : "bg-white text-black"} transition-colors duration-300`}
     >
       <Sidebar />
 
@@ -205,9 +193,7 @@ const Income = () => {
             darkMode ? "bg-gray-950" : "bg-white"
           } z-30 p-6 transition-all duration-300 ${
             scrolled
-              ? `${
-                  darkMode ? "bg-opacity-80" : "bg-opacity-90"
-                } backdrop-blur-sm border-b ${
+              ? `${darkMode ? "bg-opacity-80" : "bg-opacity-90"} backdrop-blur-sm border-b ${
                   darkMode ? "border-gray-800" : "border-gray-200"
                 }`
               : "bg-opacity-100"
@@ -217,9 +203,7 @@ const Income = () => {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl font-bold">Income</h1>
-                <p
-                  className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}
-                >
+                <p className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>
                   Manage your income sources and track your earnings.
                 </p>
               </div>
@@ -231,22 +215,17 @@ const Income = () => {
           </div>
         </div>
 
-        {/* Content with padding to account for fixed header - increased padding */}
         <div className="pt-28">
           {/* Income Actions Section */}
           <div className="mb-6 flex justify-between items-center">
             <div>
               <h2 className="text-xl font-semibold">Financial Summary</h2>
-              <p
-                className={`${
-                  darkMode ? "text-gray-400" : "text-gray-600"
-                } text-sm`}
-              >
+              <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} text-sm`}>
                 Total earnings:{" "}
                 {new Intl.NumberFormat("en-US", {
                   style: "currency",
                   currency: "USD",
-                }).format(totalIncome / 100)}
+                }).format(totalIncome)}
               </p>
             </div>
             <button
@@ -264,21 +243,15 @@ const Income = () => {
               darkMode ? "border-gray-800" : "border-gray-200"
             } rounded-xl overflow-hidden shadow-md mb-6`}
           >
-            <IncomeOverview
-              chartData={chartData}
-              timeRange={timeRange}
-              setTimeRange={setTimeRange}
-            />
+            <IncomeOverview timeRange={timeRange} setTimeRange={setTimeRange} />
           </div>
 
           {/* Income Sources Component */}
           <IncomeSources
-            incomes={incomes}
             incomeSources={incomeSources}
             onEdit={handleEdit}
             onDelete={handleDelete}
             formatDate={formatDate}
-            totalIncome={totalIncome}
           />
         </div>
       </div>
@@ -295,7 +268,7 @@ const Income = () => {
       {/* Chatbot Component */}
       <Chatbot />
     </div>
-  );
-};
+  )
+}
 
 export default Income;

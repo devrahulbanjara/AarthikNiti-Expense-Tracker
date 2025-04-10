@@ -34,7 +34,7 @@ const ExpenseOverview = ({ activeTab, setActiveTab }) => {
 
   const [loading, setLoading] = useState(false);
   const [expenseData, setExpenseData] = useState([]);
-  const [timeRange, setTimeRange] = useState(15);
+  const [timeRange, setTimeRange] = useState(7);
 
   const handleLoadExpense = async (timeRange) => {
     setLoading(true);
@@ -43,7 +43,7 @@ const ExpenseOverview = ({ activeTab, setActiveTab }) => {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/profile/transaction-trend?transaction_type=income&days=${timeRange}`,
+        `http://127.0.0.1:8000/profile/transaction-trend?transaction_type=expense&days=${timeRange}`,
         {
           method: "GET",
           headers: {

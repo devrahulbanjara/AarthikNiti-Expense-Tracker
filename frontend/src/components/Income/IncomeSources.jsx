@@ -1,250 +1,234 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Search, Filter, Edit, Trash2 } from "lucide-react"
-import { useTheme } from "../../context/ThemeContext"
+import { useEffect, useState } from "react";
+import {
+  Search,
+  Edit,
+  Trash,
+  ChevronDown,
+  ChevronUp,
+  Calendar,
+} from "lucide-react";
+import { useTheme } from "../../context/ThemeContext";
 
-const IncomeSources = ({ incomes, incomeSources, onEdit, onDelete, formatDate, totalIncome }) => {
-  const { darkMode } = useTheme()
-  const [searchTerm, setSearchTerm] = useState("")
-  const [showFilters, setShowFilters] = useState(false)
-  const [filters, setFilters] = useState({
-    source: "",
-    dateFrom: "",
-    dateTo: "",
-    description: "",
-  })
+const IncomeSources = ({ onEdit, onDelete }) => {
+  const { darkMode } = useTheme();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({
+    key: "date",
+    direction: "desc",
+  });
+  const [incomeList, setIncomeList] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target
-    setFilters((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleLoadIncomeList = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/profile/income_expense_table?transaction_type=income&days=30`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        }
+      );
 
-  const resetFilters = () => setFilters({ source: "", dateFrom: "", dateTo: "", description: "" })
+      if (!response.ok) throw new Error("Failed to fetch income data");
 
-  // Filter incomes based on search and filters
-  const filteredIncomes = incomes.filter((income) => {
-    return (
-      (!searchTerm ||
-        income.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        income.source.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (!filters.source || income.source === filters.source) &&
-      (!filters.dateFrom || new Date(filters.dateFrom) <= new Date(income.date)) &&
-      (!filters.dateTo || new Date(filters.dateTo) >= new Date(income.date)) &&
-      (!filters.description || income.description.toLowerCase().includes(filters.description.toLowerCase()))
-    )
-  })
+      const data = await response.json();
+      setIncomeList(data);
+    } catch (error) {
+      console.error("Error fetching income data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    handleLoadIncomeList();
+  }, []);
+
+  const handleSort = (key) => {
+    const direction =
+      sortConfig.key === key && sortConfig.direction === "asc" ? "desc" : "asc";
+    setSortConfig({ key, direction });
+  };
+
+  const filteredIncomes = incomeList.filter(
+    (income) =>
+      !searchTerm ||
+      income.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      income.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const sortedIncomes = [...filteredIncomes].sort((a, b) => {
+    const { key, direction } = sortConfig;
+    if (key === "amount")
+      return direction === "asc" ? a.amount - b.amount : b.amount - a.amount;
+    if (key === "date")
+      return direction === "asc"
+        ? new Date(a.date) - new Date(b.date)
+        : new Date(b.date) - new Date(a.date);
+    if (key === "category")
+      return direction === "asc"
+        ? a.category.localeCompare(b.category)
+        : b.category.localeCompare(a.category);
+    return 0;
+  });
 
   return (
     <div
-      className={`${darkMode ? "bg-[#111827]" : "bg-white"} rounded-lg border ${darkMode ? "border-gray-800" : "border-gray-200"} transition-colors duration-300`}
+      className={`p-4 rounded-lg border ${
+        darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"
+      }`}
     >
-      <div className={`p-4 border-b ${darkMode ? "border-gray-800" : "border-gray-200"}`}>
+      <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-xl font-bold">Income Sources</h2>
-        </div>
-        <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} text-sm mt-1`}>
-          Manage and track all your income sources
-        </p>
-      </div>
-
-      {/* Search and Filter */}
-      <div className={`p-4 border-b ${darkMode ? "border-gray-800" : "border-gray-200"}`}>
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? "text-gray-500" : "text-gray-400"}`}
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Search income sources..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
-                darkMode
-                  ? "bg-[#1f2937] border-gray-700 text-white placeholder-gray-400"
-                  : "bg-white border-gray-300 text-gray-700"
-              } focus:outline-none focus:ring-2 focus:ring-[#065336] transition-colors duration-300`}
-            />
-          </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`px-4 py-2 rounded-lg border flex items-center ${
-              darkMode ? "bg-[#1f2937] border-gray-700 text-white" : "bg-white border-gray-300 text-gray-700"
-            } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-300`}
+          <h2 className="text-xl font-semibold">Income Sources</h2>
+          <p
+            className={`text-sm ${
+              darkMode ? "text-gray-400" : "text-gray-600"
+            }`}
           >
-            <Filter size={18} className="mr-2" />
-            Filters {showFilters ? "▲" : "▼"}
-          </button>
+            Manage your income sources
+          </p>
         </div>
-
-        {/* Expanded Filters */}
-        {showFilters && (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                Source
-              </label>
-              <select
-                name="source"
-                value={filters.source}
-                onChange={handleFilterChange}
-                className={`w-full p-2 rounded-lg border ${
-                  darkMode ? "bg-[#1f2937] border-gray-700 text-white" : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-[#065336] transition-colors duration-300`}
-              >
-                <option value="">All Sources</option>
-                {incomeSources.map((source) => (
-                  <option key={source.name} value={source.name}>
-                    {source.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                From Date
-              </label>
-              <input
-                type="date"
-                name="dateFrom"
-                value={filters.dateFrom}
-                onChange={handleFilterChange}
-                className={`w-full p-2 rounded-lg border ${
-                  darkMode ? "bg-[#1f2937] border-gray-700 text-white" : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-[#065336] transition-colors duration-300`}
-              />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                To Date
-              </label>
-              <input
-                type="date"
-                name="dateTo"
-                value={filters.dateTo}
-                onChange={handleFilterChange}
-                className={`w-full p-2 rounded-lg border ${
-                  darkMode ? "bg-[#1f2937] border-gray-700 text-white" : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-[#065336] transition-colors duration-300`}
-              />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                Description
-              </label>
-              <input
-                type="text"
-                name="description"
-                value={filters.description}
-                onChange={handleFilterChange}
-                placeholder="Filter by description"
-                className={`w-full p-2 rounded-lg border ${
-                  darkMode
-                    ? "bg-[#1f2937] border-gray-700 text-white placeholder-gray-400"
-                    : "bg-white border-gray-300 text-gray-700"
-                } focus:outline-none focus:ring-2 focus:ring-[#065336] transition-colors duration-300`}
-              />
-            </div>
-            <div className="md:col-span-4 flex justify-end">
-              <button
-                onClick={resetFilters}
-                className="px-4 py-2 text-sm text-[#065336] hover:text-[#054328] dark:text-[#2a9d6e] dark:hover:text-[#3cb485]"
-              >
-                Reset Filters
-              </button>
-            </div>
-          </div>
-        )}
+        <div className="relative w-64">
+          <input
+            type="text"
+            placeholder="Search incomes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={`w-full pl-10 pr-4 py-2 border rounded-md ${
+              darkMode
+                ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                : "bg-white border-gray-300 text-black"
+            }`}
+          />
+          <Search
+            className={`absolute left-3 top-2.5 h-4 w-4 ${
+              darkMode ? "text-gray-400" : "text-gray-500"
+            }`}
+          />
+        </div>
       </div>
 
-      {/* Income List */}
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead
-            className={`${darkMode ? "bg-[#1f2937]" : "bg-gray-50"} border-b ${darkMode ? "border-gray-800" : "border-gray-200"}`}
-          >
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Source</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Amount</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Description</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Recurring</th>
-              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">Actions</th>
+          <thead>
+            <tr className={`${darkMode ? "bg-gray-700" : "bg-gray-100"}`}>
+              {["category", "amount", "date"].map((header) => (
+                <th
+                  key={header}
+                  className="px-4 py-2 text-left cursor-pointer font-medium text-sm"
+                  style={{
+                    width:
+                      header === "category"
+                        ? "20%"
+                        : header === "amount"
+                        ? "15%"
+                        : "20%",
+                  }}
+                  onClick={() => handleSort(header)}
+                >
+                  <div className="flex items-center">
+                    {header.charAt(0).toUpperCase() + header.slice(1)}
+                    {sortConfig.key === header &&
+                      (sortConfig.direction === "asc" ? (
+                        <ChevronUp className="h-4 w-4 ml-1" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 ml-1" />
+                      ))}
+                  </div>
+                </th>
+              ))}
+              <th
+                className="px-4 py-2 text-left font-medium text-sm"
+                style={{ width: "30%" }}
+              >
+                Description
+              </th>
+              <th
+                className="px-4 py-2 text-right font-medium text-sm"
+                style={{ width: "15%" }}
+              >
+                Actions
+              </th>
             </tr>
           </thead>
-          <tbody className={`divide-y ${darkMode ? "divide-gray-800" : "divide-gray-200"}`}>
-            {filteredIncomes.length > 0 ? (
-              filteredIncomes.map((income) => (
+          <tbody>
+            {sortedIncomes.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="px-4 py-4 text-center">
+                  No incomes found. Add your first income source!
+                </td>
+              </tr>
+            ) : (
+              sortedIncomes.map((income, index) => (
                 <tr
-                  key={income.id}
-                  className={`${darkMode ? "hover:bg-[#1f2937]" : "hover:bg-gray-50"} transition-colors duration-300`}
+                  key={index}
+                  className={`border-b ${
+                    darkMode
+                      ? "border-gray-700 hover:bg-gray-700"
+                      : "border-gray-200 hover:bg-gray-50"
+                  }`}
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-4">
                     <div className="flex items-center">
                       <div
                         className="w-3 h-3 rounded-full mr-2"
                         style={{
-                          backgroundColor: incomeSources.find((s) => s.name === income.source)?.color || "#6b7280",
+                          backgroundColor: "#6b7280", // Default color for income categories
                         }}
-                      ></div>
-                      <span>{income.source}</span>
+                      />
+                      <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs">
+                        {income.category}
+                      </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-green-500 font-medium">
-                    +${income.amount.toFixed(2)}
+                  <td className="px-4 py-4 text-green-500">
+                    $ {income.amount.toFixed(2)}
                   </td>
-                  <td className="px-6 py-4">{income.description}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{formatDate(income.date)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {income.recurring ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#e6f0eb] text-[#065336] dark:bg-[#0a3b27] dark:text-[#a3e0c5]">
-                        Recurring
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                        One-time
-                      </span>
-                    )}
+                  <td className="px-4 py-4">
+                    <div className="flex items-center">
+                      <Calendar
+                        className={`h-4 w-4 mr-2 ${
+                          darkMode ? "text-gray-300" : "text-gray-700"
+                        }`}
+                      />
+                      {new Date(income.date).toLocaleDateString()}{" "}
+                      {/* Display formatted date */}
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => onEdit(income)}
-                      className="text-[#065336] hover:text-[#054328] dark:text-[#2a9d6e] dark:hover:text-[#3cb485] mr-3"
-                    >
-                      <Edit size={18} />
-                    </button>
-                    <button
-                      onClick={() => onDelete(income.id)}
-                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                  <td className="px-4 py-4">{income.description || "N/A"}</td>
+                  <td className="px-4 py-4 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => onEdit(income)}
+                        className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                        title="Edit"
+                      >
+                        <Edit className="h-4 w-4 text-blue-500" />
+                      </button>
+                      <button
+                        onClick={() => onDelete(income.id)}
+                        className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                        title="Delete"
+                      >
+                        <Trash className="h-4 w-4 text-red-500" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                  No income sources found. Add your first income source!
-                </td>
-              </tr>
             )}
           </tbody>
-          <tfoot
-            className={`${darkMode ? "bg-[#1f2937]" : "bg-gray-50"} border-t ${darkMode ? "border-gray-800" : "border-gray-200"}`}
-          >
-            <tr>
-              <td className="px-6 py-3 text-left font-bold">Total</td>
-              <td className="px-6 py-3 text-left font-bold text-black">+${totalIncome.toFixed(2)}</td>
-              <td colSpan="4"></td>
-            </tr>
-          </tfoot>
         </table>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default IncomeSources;

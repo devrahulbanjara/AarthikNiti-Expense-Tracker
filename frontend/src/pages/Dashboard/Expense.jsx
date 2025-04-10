@@ -151,7 +151,6 @@ const Expense = () => {
     setSortConfig({ key, direction });
   };
 
-  // Calculate total spending
   const totalSpending = expenses
     .reduce((sum, expense) => sum + expense.amount, 0)
     .toFixed(2);
