@@ -30,10 +30,8 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
             ? 90
             : 180;
 
-        console.log(`Fetching income data with days=${days}`);
-
         const response = await fetch(
-          "http://127.0.0.1:8000/profile/transaction-trend?transaction_type=income&days=7",
+          `http://127.0.0.1:8000/profile/transaction-trend?transaction_type=income&days=${days}`,
           {
             method: "GET",
             headers: {
@@ -46,7 +44,6 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
         if (!response.ok) throw new Error("Failed to fetch income data");
 
         const data = await response.json();
-        console.log("Income chart data:", data);
         setChartData(data);
       } catch (error) {
         console.error("Error fetching income data:", error);
@@ -59,31 +56,22 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
     fetchIncomeData();
   }, [timeRange]);
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return dateString;
-      }
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return dateString;
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div
+          className={`p-2 rounded-md shadow-md ${
+            darkMode ? "bg-gray-700 text-white" : "bg-white text-black"
+          }`}
+        >
+          <p className="font-medium">{label}</p>
+          <p className="text-sm font-semibold">
+            ${payload[0].value.toFixed(2)}
+          </p>
+        </div>
+      );
     }
+    return null;
   };
 
   return (
@@ -117,7 +105,7 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
-              margin={{ top: 10, right: 30, left: 50, bottom: 20 }}
+              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
             >
               <CartesianGrid
                 strokeDasharray="3 3"
@@ -126,45 +114,32 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
               />
               <XAxis
                 dataKey="date"
-                axisLine={false}
-                tickLine={false}
                 tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }}
-                tickFormatter={formatDate}
+                tickLine={false}
+                axisLine={false}
               />
               <YAxis
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(value) => {
-                  if (value === 0) return "$0";
-                  if (value >= 1000) return `$${value / 1000}k`;
-                  return `$${value}`;
-                }}
+                tickFormatter={(value) => `$${value}`}
                 tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }}
-                width={60}
+                tickLine={false}
+                axisLine={false}
               />
               <Tooltip
-                formatter={(value) => formatCurrency(value)}
-                labelFormatter={(label) => formatDate(label)}
-                contentStyle={{
-                  backgroundColor: darkMode ? "#1f2937" : "#fff",
-                  border: "none",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                }}
+                content={<CustomTooltip />}
                 cursor={{
                   fill: darkMode
-                    ? "rgba(55, 65, 81, 0.4)"
-                    : "rgba(243, 244, 246, 0.6)",
+                    ? "rgba(55, 65, 81, 0.3)"
+                    : "rgba(0, 0, 0, 0.05)",
                 }}
-                labelStyle={{ color: darkMode ? "#e5e7eb" : "#374151" }}
               />
               <Bar
                 dataKey="income"
-                fill="#065336"
+                fill="#10b981" // Green color for income
+                stroke={darkMode ? "#065f46" : "#047857"} // Stroke for bars
+                strokeWidth={1.5}
                 radius={[4, 4, 0, 0]}
-                barSize={50}
-                animationDuration={1000}
-                name="Amount"
+                barSize={40} // Consistent bar size
+                animationDuration={800}
               />
             </BarChart>
           </ResponsiveContainer>

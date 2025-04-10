@@ -10,8 +10,6 @@ import {
   ChevronDown,
   Settings,
   Plus,
-  Moon,
-  Sun,
 } from "lucide-react";
 import AddAccountModal from "./AddAccountModal";
 import { useTheme } from "../../context/ThemeContext";
@@ -25,7 +23,7 @@ const navItems = [
 ];
 
 const Sidebar = () => {
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { darkMode } = useTheme();
 
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [activeAccount, setActiveAccount] = useState("Personal");
@@ -105,18 +103,16 @@ const Sidebar = () => {
 
       toast.success(`Switched to ${profileName} successfully!`);
 
-      // Add delay before reloading
       setTimeout(() => {
         window.location.reload();
-      }, 1000); // Delay of 2 seconds
+      }, 1000);
     } catch (err) {
       console.error("Error switching profile:", err);
       toast.error("Failed to switch profile!");
 
-      // Add delay before reloading in case of an error
       setTimeout(() => {
         window.location.reload();
-      }, 1000); // Delay of 2 seconds
+      }, 1000);
     }
   };
 
@@ -318,25 +314,6 @@ const Sidebar = () => {
               );
             })}
           </ul>
-
-          <button
-            onClick={toggleDarkMode}
-            className={`flex items-center py-2 px-4 rounded-md mt-3 w-full ${
-              darkMode
-                ? "hover:bg-[#1e293b] text-gray-300"
-                : "hover:bg-[#0a6e47] text-gray-200"
-            } transition-all`}
-          >
-            {darkMode ? (
-              <>
-                <Sun className="mr-2 h-4 w-4" /> Light Mode
-              </>
-            ) : (
-              <>
-                <Moon className="mr-2 h-4 w-4" /> Dark Mode
-              </>
-            )}
-          </button>
         </div>
       </div>
 
