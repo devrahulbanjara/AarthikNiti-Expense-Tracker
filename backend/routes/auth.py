@@ -68,8 +68,8 @@ async def google_callback(request: Request):
             user_id = existing_user["user_id"]
         
         jwt_token = create_jwt_token({"user_id": user_id, "email": email}, expires_delta=timedelta(hours=1))
-        
-        frontend_redirect_url = f"http://localhost:5173/?access_token={jwt_token}"
+        frontend_url = os.getenv("FRONTEND_URL")
+        frontend_redirect_url = f"{frontend_url}/?access_token={jwt_token}"
         return RedirectResponse(frontend_redirect_url)
     
     except Exception as e:
