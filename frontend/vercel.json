@@ -1,0 +1,15 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "frontend/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "frontend/dist"
+            }
+        }
+    ],
+    "env": {
+        "VITE_BACKEND_URL": "https://aarthikniti-expense-tracker.onrender.com/"
+    }
+}
