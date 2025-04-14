@@ -1,6 +1,8 @@
 import { fetchProtectedData } from "./api";
 import axios from "axios";
-const API_URL = "http://127.0.0.1:8000/auth";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+const API_URL = `${BACKEND_URL}/auth`;
 
 export const signup = async (userData) => {
   const response = await axios.post(`${API_URL}/signup`, userData);

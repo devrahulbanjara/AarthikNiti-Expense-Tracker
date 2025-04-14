@@ -13,6 +13,7 @@ import NetSavings from "../../components/Dashboard/netsavings";
 import IncomeVsExpensesChart from "../../components/Dashboard/income-expenses-chart";
 import ChatAssistant from "../../components/Chatbot/chat-assistant";
 import { useTheme } from "../../context/ThemeContext";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const DashboardPage = () => {
   const fetchTopUIData = async () => {
     setIsTopUILoading(true);
     try {
-      const response = await fetch("http://localhost:8000/profile/dashboard", {
+      const response = await fetch(`${BACKEND_URL}/profile/dashboard`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import aarthiknitiImg from "../../assets/Logo/aarthikniti.png";
 import girlImg from "../../assets/ExtraImg/girl.jpg";
 import axios from "axios";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function Signup() {
   const [name, setName] = useState("");
@@ -59,7 +60,7 @@ function Signup() {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/auth/signup",
+        `${BACKEND_URL}/auth/signup`,
         {
           full_name: name,
           email: email,

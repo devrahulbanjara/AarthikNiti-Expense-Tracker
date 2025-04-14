@@ -3,6 +3,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts";
 import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
 import { useLocation } from "react-router-dom";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const ExpensesBreakdown = ({ totalExpenses }) => {
   const { darkMode } = useTheme();
@@ -18,16 +19,13 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
     try {
       setIsLoading(true);
 
-      const response = await fetch(
-        "http://127.0.0.1:8000/profile/expense-breakdown",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/profile/expense-breakdown`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch transactions");

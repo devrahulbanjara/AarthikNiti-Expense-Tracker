@@ -10,6 +10,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const IncomeSources = ({ onEdit, onDelete }) => {
   const { darkMode } = useTheme();
@@ -25,7 +26,7 @@ const IncomeSources = ({ onEdit, onDelete }) => {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/profile/income_expense_table?transaction_type=income&days=30`,
+        `${BACKEND_URL}/profile/income_expense_table?transaction_type=income&days=30`,
         {
           method: "GET",
           headers: {

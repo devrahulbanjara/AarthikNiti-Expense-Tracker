@@ -10,6 +10,7 @@ import Profile from "../../components/Layout/profile";
 import DarkMode from "../../components/Layout/darkmode";
 import ChatAssistant from "../../components/Chatbot/chat-assistant";
 import { useTheme } from "../../context/ThemeContext";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const Expense = () => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const Expense = () => {
     const fetchExpenses = async () => {
       try {
         const response = await fetch(
-          "http://127.0.0.1:8000/profile/income_expense_table?transaction_type=expense&days=30",
+          `${BACKEND_URL}/profile/income_expense_table?transaction_type=expense&days=30`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -95,17 +96,14 @@ const Expense = () => {
     console.log(expenseToAdd);
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/profile/add_expense",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-          body: JSON.stringify(expenseToAdd),
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/profile/add_expense`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+        body: JSON.stringify(expenseToAdd),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to add expense");

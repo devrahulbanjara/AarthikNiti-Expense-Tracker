@@ -11,6 +11,7 @@ import {
   Tooltip,
 } from "recharts";
 import { useTheme } from "../../context/ThemeContext";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const IncomeOverview = ({ timeRange, setTimeRange }) => {
   const { darkMode } = useTheme();
@@ -31,7 +32,7 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
             : 180;
 
         const response = await fetch(
-          `http://127.0.0.1:8000/profile/transaction-trend?transaction_type=income&days=${days}`,
+          `${BACKEND_URL}/profile/transaction-trend?transaction_type=income&days=${days}`,
           {
             method: "GET",
             headers: {

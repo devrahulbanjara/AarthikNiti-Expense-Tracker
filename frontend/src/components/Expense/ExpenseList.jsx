@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
 import { useTheme } from "../../context/ThemeContext";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const ExpenseList = ({
   searchTerm,
@@ -32,7 +33,7 @@ const ExpenseList = ({
     setLoading(true);
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/profile/income_expense_table?transaction_type=expense&days=30`,
+        `${BACKEND_URL}/profile/income_expense_table?transaction_type=expense&days=30`,
         {
           method: "GET",
           headers: {
