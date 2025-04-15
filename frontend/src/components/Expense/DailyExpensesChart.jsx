@@ -70,11 +70,11 @@ const DailyExpensesChart = ({ data }) => {
         />
         <Bar
           dataKey="amount"
-          fill="#ef4444" // Red color for expenses
-          stroke={darkMode ? "#991b1b" : "#dc2626"} // Stroke for bars
-          strokeWidth={1.5} // Stroke width for better visibility
+          fill={darkMode ? "#ef4444" : "#f87171"} // Lighter red for better contrast
+          stroke={darkMode ? "#7f1d1d" : "#b91c1c"} // Darker stroke for better visibility
+          strokeWidth={2}
           radius={[4, 4, 0, 0]}
-          barSize={40} // Consistent bar size
+          barSize={40}
           animationDuration={800}
         />
       </BarChart>

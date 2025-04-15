@@ -13,11 +13,14 @@ import NetSavings from "../../components/Dashboard/netsavings";
 import IncomeVsExpensesChart from "../../components/Dashboard/income-expenses-chart";
 import ChatAssistant from "../../components/Chatbot/chat-assistant";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { darkMode } = useTheme();
+  const { logout, getToken } = useAuth();
   const [topUIData, setTopUIData] = useState({
     profile_total_income: 0,
     profile_total_expense: 0,
@@ -36,29 +39,41 @@ const DashboardPage = () => {
   const fetchTopUIData = async () => {
     setIsTopUILoading(true);
     try {
+      const token = getToken();
+      if (!token) {
+        logout();
+        return;
+      }
+
       const response = await fetch(`${BACKEND_URL}/profile/dashboard`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${token}`,
         },
       });
+
+      if (response.status === 401) {
+        logout();
+        return;
+      }
 
       if (!response.ok) throw new Error("Failed to fetch dashboard data");
 
       const data = await response.json();
-
       setTopUIData(data);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+      if (error.message === "Failed to fetch dashboard data") {
+        logout();
+      }
     } finally {
       setIsTopUILoading(false);
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    navigate("/");
+    logout();
   };
 
   useEffect(() => {
@@ -138,7 +153,7 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      <ChatAssistant />
+      <ChatAssistant darkMode={darkMode} />
     </div>
   );
 };

@@ -11,10 +11,12 @@ import {
 } from "recharts";
 import { ChevronDown } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const IncomeVsExpensesChart = () => {
   const { darkMode } = useTheme();
+  const { getToken } = useAuth();
   const [timeRange, setTimeRange] = useState("Last 6 months");
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
   const [hoveredBar, setHoveredBar] = useState(null);
@@ -25,8 +27,7 @@ const IncomeVsExpensesChart = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        const token = localStorage.getItem("access_token");
+        const token = getToken();
         const n =
           timeRange === "Last 3 months"
             ? 3

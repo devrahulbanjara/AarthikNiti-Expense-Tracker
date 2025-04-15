@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { Search, Filter, Edit, Trash, ArrowUp, ArrowDown } from "lucide-react";
 import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const RecentTransactions = ({ onTransactionsChange }) => {
   const { darkMode } = useTheme();
+  const { getToken } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,13 +25,14 @@ const RecentTransactions = ({ onTransactionsChange }) => {
   const fetchTransactionsData = async () => {
     setIsLoading(true);
     try {
+      const token = getToken();
       const response = await fetch(
         `${BACKEND_URL}/profile/recent_transactions`,
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );

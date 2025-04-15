@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const ExpenseList = ({
@@ -24,6 +25,7 @@ const ExpenseList = ({
   handleDeleteExpense,
 }) => {
   const { darkMode } = useTheme();
+  const { getToken } = useAuth();
   const [hoveredRow, setHoveredRow] = useState(null);
 
   const [expenseList, setExpenseList] = useState([]);
@@ -32,13 +34,14 @@ const ExpenseList = ({
   const handleLoadExpenseList = async () => {
     setLoading(true);
     try {
+      const token = getToken();
       const response = await fetch(
         `${BACKEND_URL}/profile/income_expense_table?transaction_type=expense&days=30`,
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -46,9 +49,21 @@ const ExpenseList = ({
       if (!response.ok) throw new Error("Failed to fetch expense data");
 
       const data = await response.json();
-      setExpenseList(data);
+      console.log("Raw expense data:", data);
+
+      // Transform the data to match the expected format
+      const transformedData = data.map((expense) => ({
+        ...expense,
+        amount: parseFloat(expense.amount),
+        isRecurring: expense.recurring || false,
+        recurringPeriod: expense.recurrence_duration || null,
+      }));
+
+      console.log("Transformed expense data:", transformedData);
+      setExpenseList(transformedData);
     } catch (error) {
       console.error("Error fetching expense data:", error);
+      setExpenseList([]);
     } finally {
       setLoading(false);
     }
@@ -56,9 +71,7 @@ const ExpenseList = ({
 
   useEffect(() => {
     handleLoadExpenseList();
-  }, []);
-
-  console.log(expenseList);
+  }, [getToken]);
 
   const filteredExpenses = expenseList.filter(
     (expense) =>
@@ -232,7 +245,9 @@ const ExpenseList = ({
                         <Edit className="h-4 w-4 text-blue-500" />
                       </button>
                       <button
-                        onClick={() => handleDeleteExpense(expense.id)}
+                        onClick={() =>
+                          handleDeleteExpense(expense.transaction_id)
+                        }
                         className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
                         title="Delete"
                       >

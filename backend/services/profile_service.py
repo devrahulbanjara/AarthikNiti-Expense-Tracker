@@ -343,7 +343,7 @@ async def get_transaction_trend(user_id: int, transaction_type: str, days: int):
 
     # Check if there are any transactions within the specified date range
     if not transactions:
-        return {"message": "No transactions found in the given date range"}
+        return []
 
     transaction_data = {}
 
@@ -356,7 +356,7 @@ async def get_transaction_trend(user_id: int, transaction_type: str, days: int):
         transaction_data[key] = transaction_data.get(key, 0) + transaction["transaction_amount"]
 
     # Format the transaction data in the required structure
-    formatted_data = [{("date" if days == 7 else "date"): k, transaction_type: v} for k, v in transaction_data.items()]
+    formatted_data = [{"date": k, transaction_type: v} for k, v in transaction_data.items()]
 
     return formatted_data
 
@@ -421,5 +421,90 @@ async def get_active_profile_info(user_id: int):
         raise HTTPException(status_code=404, detail="Active profile not found")
 
     return profile
+
+async def edit_income(user_id: int, transaction_id: str, amount: float, description: str, category: str):
+    """Edits an existing income transaction and updates the profile balance."""
+    
+    # Get the existing transaction
+    transaction = await transactions_collection.find_one({
+        "transaction_id": transaction_id,
+        "user_id": user_id,
+        "transaction_type": "income"
+    })
+    
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Income transaction not found")
+    
+    # Get the active profile
+    profile = await get_active_profile(user_id)
+    
+    # Calculate the difference in amount
+    old_amount = transaction["transaction_amount"]
+    amount_diff = amount - old_amount
+    
+    # Update the transaction
+    await transactions_collection.update_one(
+        {"transaction_id": transaction_id},
+        {
+            "$set": {
+                "transaction_amount": amount,
+                "transaction_description": description,
+                "transaction_category": category
+            }
+        }
+    )
+    
+    # Update the profile totals
+    new_income = profile["profile_total_income"] + amount_diff
+    new_balance = profile["profile_total_balance"] + amount_diff
+    
+    await profiles_collection.update_one(
+        {"user_id": user_id, "profile_id": profile["profile_id"]},
+        {
+            "$set": {
+                "profile_total_income": new_income,
+                "profile_total_balance": new_balance
+            }
+        }
+    )
+    
+    return {"message": "Income updated successfully"}
+
+async def delete_income(user_id: int, transaction_id: str):
+    """Deletes an income transaction and updates the profile balance."""
+    
+    # Get the existing transaction
+    transaction = await transactions_collection.find_one({
+        "transaction_id": transaction_id,
+        "user_id": user_id,
+        "transaction_type": "income"
+    })
+    
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Income transaction not found")
+    
+    # Get the active profile
+    profile = await get_active_profile(user_id)
+    
+    # Calculate new totals
+    amount = transaction["transaction_amount"]
+    new_income = profile["profile_total_income"] - amount
+    new_balance = profile["profile_total_balance"] - amount
+    
+    # Delete the transaction
+    await transactions_collection.delete_one({"transaction_id": transaction_id})
+    
+    # Update the profile totals
+    await profiles_collection.update_one(
+        {"user_id": user_id, "profile_id": profile["profile_id"]},
+        {
+            "$set": {
+                "profile_total_income": new_income,
+                "profile_total_balance": new_balance
+            }
+        }
+    )
+    
+    return {"message": "Income deleted successfully"}
 
 

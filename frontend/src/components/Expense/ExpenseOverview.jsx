@@ -3,20 +3,23 @@
 import DailyExpensesChart from "./DailyExpensesChart";
 import ExpensesBreakdown from "../Dashboard/expensesbreakdown";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 import { useEffect, useState } from "react";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const ExpenseOverview = ({ activeTab, setActiveTab }) => {
   const { darkMode } = useTheme();
+  const { getToken } = useAuth();
   const [totalExpenses, setTotalExpenses] = useState(0);
 
   const fetchTopUIData = async () => {
     try {
+      const token = getToken();
       const response = await fetch(`${BACKEND_URL}/profile/dashboard`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -43,13 +46,14 @@ const ExpenseOverview = ({ activeTab, setActiveTab }) => {
     if (![7, 15, 30].includes(timeRange)) return;
 
     try {
+      const token = getToken();
       const response = await fetch(
         `${BACKEND_URL}/profile/transaction-trend?transaction_type=expense&days=${timeRange}`,
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );

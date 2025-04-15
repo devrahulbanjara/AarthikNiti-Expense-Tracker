@@ -11,6 +11,9 @@ import IncomeOverview from "../../components/Income/IncomeOverview";
 import IncomeSources from "../../components/Income/IncomeSources";
 import Chatbot from "../../components/Chatbot/chat-assistant";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-hot-toast";
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const incomeSources = [
@@ -25,6 +28,7 @@ const incomeSources = [
 const Income = () => {
   const navigate = useNavigate();
   const { darkMode } = useTheme();
+  const { getToken } = useAuth();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState(null);
@@ -36,13 +40,12 @@ const Income = () => {
   useEffect(() => {
     const fetchIncomeData = async () => {
       try {
+        const token = getToken();
         const dashboardResponse = await fetch(
-          `${BACKEND_URL}profile/dashboard`,
+          `${BACKEND_URL}/profile/dashboard`,
           {
-            method: "GET",
             headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -57,7 +60,7 @@ const Income = () => {
           `${BACKEND_URL}/profile/income_expense_table?transaction_type=income&days=30`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -88,16 +91,16 @@ const Income = () => {
 
   useEffect(() => {
     const validateToken = async () => {
-      const accessToken = localStorage.getItem("access_token");
+      const token = getToken();
 
-      if (!accessToken) {
+      if (!token) {
         navigate("/");
         return;
       }
     };
 
     validateToken();
-  }, [navigate]);
+  }, [navigate, getToken]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -114,48 +117,114 @@ const Income = () => {
     };
   }, []);
 
+  const handleEdit = async (income) => {
+    setEditingIncome(income);
+    setIsAddModalOpen(true);
+  };
+
   const handleSubmit = async (incomeData, isEditing) => {
     try {
+      const token = getToken();
       const incomeToAdd = {
         category: incomeData.category || incomeData.source,
         description: incomeData.description || "",
         amount: Number.parseFloat(incomeData.amount),
       };
 
-      console.log("Sending income data to API:", incomeToAdd);
-      const response = await fetch(`${BACKEND_URL}/profile/update_income`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
-        body: JSON.stringify(incomeToAdd),
-      });
+      if (isEditing) {
+        // Update existing income
+        const response = await fetch(`${BACKEND_URL}/profile/edit_income`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            transaction_id: editingIncome.transaction_id,
+            ...incomeToAdd,
+          }),
+        });
 
-      const responseText = await response.text();
+        if (!response.ok) {
+          throw new Error("Failed to update income");
+        }
+      } else {
+        // Add new income
+        const response = await fetch(`${BACKEND_URL}/profile/update_income`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(incomeToAdd),
+        });
 
-      if (!response.ok) {
-        throw new Error(`Failed to add income: ${responseText}`);
+        if (!response.ok) {
+          throw new Error("Failed to add income");
+        }
       }
 
-      window.location.reload();
+      // Refresh all data without reloading the page
+      const fetchIncomeData = async () => {
+        try {
+          const dashboardResponse = await fetch(
+            `${BACKEND_URL}/profile/dashboard`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (!dashboardResponse.ok)
+            throw new Error("Failed to fetch dashboard data");
+
+          const dashboardData = await dashboardResponse.json();
+          setTotalIncome(dashboardData.profile_total_income);
+
+          const incomeResponse = await fetch(
+            `${BACKEND_URL}/profile/income_expense_table?transaction_type=income&days=30`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (!incomeResponse.ok) throw new Error("Failed to fetch incomes");
+
+          const incomeData = await incomeResponse.json();
+          const formattedIncomes = incomeData.map((income, index) => ({
+            id: index + 1,
+            source: income.category,
+            amount: income.amount,
+            date: income.date,
+            description: income.description,
+            recurring: income.recurring,
+            recurrence_duration: income.recurrence_duration || null,
+          }));
+
+          setIncomes(formattedIncomes);
+        } catch (error) {
+          console.error("Error fetching income data:", error);
+        }
+      };
+
+      await fetchIncomeData();
+      setIsAddModalOpen(false);
+      setEditingIncome(null);
+      toast.success(
+        isEditing ? "Income updated successfully" : "Income added successfully"
+      );
     } catch (error) {
       console.error("Error saving income:", error);
-      alert("Failed to save income. Please try again.");
+      toast.error("Failed to save income. Please try again.");
     }
-
-    setIsAddModalOpen(false);
-    setEditingIncome(null);
   };
 
   const handleCloseModal = () => {
     setIsAddModalOpen(false);
     setEditingIncome(null);
-  };
-
-  const handleEdit = (income) => {
-    setEditingIncome(income);
-    setIsAddModalOpen(false);
   };
 
   const handleDelete = (id) => {
@@ -281,7 +350,7 @@ const Income = () => {
       />
 
       {/* Chatbot Component */}
-      <Chatbot />
+      <Chatbot darkMode={darkMode} />
     </div>
   );
 };

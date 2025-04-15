@@ -17,6 +17,13 @@ function Signup() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState({
+    length: false,
+    uppercase: false,
+    number: false,
+    symbol: false,
+  });
   const navigate = useNavigate();
 
   const currencies = [
@@ -37,9 +44,20 @@ function Signup() {
   };
 
   const validatePassword = (password) => {
-    const passwordRegex =
-      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#&*])(?=.*[A-Z])[A-Za-z\d@#&*]{8,}$/;
-    return passwordRegex.test(password);
+    const errors = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      number: /[0-9]/.test(password),
+      symbol: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    };
+    setPasswordErrors(errors);
+    return Object.values(errors).every(Boolean);
+  };
+
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    validatePassword(newPassword);
   };
 
   const handleSubmit = async (e) => {
@@ -51,10 +69,10 @@ function Signup() {
       return setError("Please enter a valid email address.");
     if (!password) return setError("Password is required");
     if (!validatePassword(password))
-      return setError(
-        "Password must be at least 8 characters long with a letter, number & special character."
-      );
+      return setError("Password does not meet the requirements.");
     if (password !== confirmPassword) return setError("Passwords do not match");
+    if (!termsAccepted)
+      return setError("You must agree to the terms and conditions");
 
     setError("");
 
@@ -70,13 +88,26 @@ function Signup() {
         { withCredentials: true }
       );
 
-      toast.success("Signup successful! Please login.");
-      navigate("/");
+      if (response.data) {
+        toast.success("Signup successful! Please login to continue.");
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+      }
     } catch (error) {
       console.error("Error signing up:", error);
-      const errorMessage =
-        error.response?.data?.detail || "Signup failed. Try again.";
-      toast.error(errorMessage);
+      if (
+        error.response?.status === 400 &&
+        error.response?.data?.detail === "Email already registered"
+      ) {
+        setError("Email already exists. Please login instead.");
+        toast.error("Email already exists. Please login instead.");
+      } else {
+        const errorMessage =
+          error.response?.data?.detail || "Signup failed. Please try again.";
+        setError(errorMessage);
+        toast.error(errorMessage);
+      }
     }
   };
 
@@ -155,7 +186,7 @@ function Signup() {
                 id="password"
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
                 className="w-full p-3 mt-1 border border-gray-500 rounded pr-10"
                 required
               />
@@ -165,6 +196,36 @@ function Signup() {
               >
                 {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
               </span>
+            </div>
+            <div className="mt-2 text-sm text-gray-600">
+              <p
+                className={
+                  passwordErrors.length ? "text-green-600" : "text-red-600"
+                }
+              >
+                • At least 8 characters long
+              </p>
+              <p
+                className={
+                  passwordErrors.uppercase ? "text-green-600" : "text-red-600"
+                }
+              >
+                • At least one uppercase letter
+              </p>
+              <p
+                className={
+                  passwordErrors.number ? "text-green-600" : "text-red-600"
+                }
+              >
+                • At least one number
+              </p>
+              <p
+                className={
+                  passwordErrors.symbol ? "text-green-600" : "text-red-600"
+                }
+              >
+                • At least one special character
+              </p>
             </div>
           </div>
 
@@ -215,26 +276,29 @@ function Signup() {
             </select>
           </div>
 
-          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-          <div className="flex justify-between items-center mb-4">
+          <div className="mb-4">
             <div className="flex items-center">
               <input
                 type="checkbox"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={() => setRememberMe(!rememberMe)}
+                id="terms"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
                 className="mr-2"
               />
-              <label htmlFor="rememberMe" className="text-sm cursor-pointer">
-                I agree to the Terms & Conditions
+              <label htmlFor="terms" className="text-sm text-gray-700">
+                I agree to the{" "}
+                <Link to="/terms" className="text-[#065336] hover:underline">
+                  Terms and Conditions
+                </Link>
               </label>
             </div>
           </div>
 
+          {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
+
           <button
             type="submit"
-            className="w-full py-3 bg-green-800 text-white font-medium rounded hover:bg-green-700 cursor-pointer"
+            className="w-full bg-[#065336] text-white py-3 rounded hover:bg-[#054328] transition-colors"
           >
             Sign Up
           </button>

@@ -11,10 +11,12 @@ import {
   Tooltip,
 } from "recharts";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const IncomeOverview = ({ timeRange, setTimeRange }) => {
   const { darkMode } = useTheme();
+  const { getToken } = useAuth();
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,6 +24,7 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
     const fetchIncomeData = async () => {
       setLoading(true);
       try {
+        const token = getToken();
         const days =
           timeRange === "Last 7 days"
             ? 7
@@ -37,7 +40,7 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -45,7 +48,16 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
         if (!response.ok) throw new Error("Failed to fetch income data");
 
         const data = await response.json();
-        setChartData(data);
+        console.log("Raw API response:", data);
+
+        // Transform the data to match the expected format
+        const transformedData = data.map((item) => ({
+          date: item.date,
+          income: parseFloat(item.income),
+        }));
+
+        console.log("Transformed data:", transformedData);
+        setChartData(transformedData);
       } catch (error) {
         console.error("Error fetching income data:", error);
         setChartData([]);
@@ -55,7 +67,7 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
     };
 
     fetchIncomeData();
-  }, [timeRange]);
+  }, [timeRange, getToken]);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -100,6 +112,12 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
       {loading ? (
         <div className="flex justify-center items-center h-80">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+        </div>
+      ) : chartData.length === 0 ? (
+        <div className="flex justify-center items-center h-80">
+          <p className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+            No income data available for the selected time range.
+          </p>
         </div>
       ) : (
         <div className="h-[470px] w-full">

@@ -10,10 +10,13 @@ import {
   Calendar,
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
+import { incomeSources } from "../../pages/Dashboard/incomeSources";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const IncomeSources = ({ onEdit, onDelete }) => {
+const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
   const { darkMode } = useTheme();
+  const { getToken } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({
     key: "date",
@@ -25,13 +28,14 @@ const IncomeSources = ({ onEdit, onDelete }) => {
   const handleLoadIncomeList = async () => {
     setLoading(true);
     try {
+      const token = getToken();
       const response = await fetch(
         `${BACKEND_URL}/profile/income_expense_table?transaction_type=income&days=30`,
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -39,17 +43,48 @@ const IncomeSources = ({ onEdit, onDelete }) => {
       if (!response.ok) throw new Error("Failed to fetch income data");
 
       const data = await response.json();
-      setIncomeList(data);
+      // Transform the data to match the expected format
+      const transformedData = data.map((item) => ({
+        ...item,
+        amount: parseFloat(item.amount),
+        date: formatDate(item.date),
+      }));
+      setIncomeList(transformedData);
     } catch (error) {
       console.error("Error fetching income data:", error);
+      setIncomeList([]);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleDelete = async (transactionId) => {
+    if (window.confirm("Are you sure you want to delete this income?")) {
+      try {
+        const token = getToken();
+        const response = await fetch(`${BACKEND_URL}/profile/delete_income`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ transaction_id: transactionId }),
+        });
+
+        if (!response.ok) throw new Error("Failed to delete income");
+
+        // Refresh the income list
+        handleLoadIncomeList();
+      } catch (error) {
+        console.error("Error deleting income:", error);
+        alert("Failed to delete income. Please try again.");
+      }
+    }
+  };
+
   useEffect(() => {
     handleLoadIncomeList();
-  }, []);
+  }, [getToken, formatDate]);
 
   const handleSort = (key) => {
     const direction =
@@ -181,7 +216,10 @@ const IncomeSources = ({ onEdit, onDelete }) => {
                       <div
                         className="w-3 h-3 rounded-full mr-2"
                         style={{
-                          backgroundColor: "#6b7280", // Default color for income categories
+                          backgroundColor:
+                            incomeSources.find(
+                              (source) => source.name === income.category
+                            )?.color || "#94a3b8",
                         }}
                       />
                       <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs">
@@ -199,8 +237,7 @@ const IncomeSources = ({ onEdit, onDelete }) => {
                           darkMode ? "text-gray-300" : "text-gray-700"
                         }`}
                       />
-                      {new Date(income.date).toLocaleDateString()}{" "}
-                      {/* Display formatted date */}
+                      {new Date(income.date).toLocaleDateString()}
                     </div>
                   </td>
                   <td className="px-4 py-4">{income.description || "N/A"}</td>
@@ -214,7 +251,7 @@ const IncomeSources = ({ onEdit, onDelete }) => {
                         <Edit className="h-4 w-4 text-blue-500" />
                       </button>
                       <button
-                        onClick={() => onDelete(income.id)}
+                        onClick={() => handleDelete(income.transaction_id)}
                         className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
                         title="Delete"
                       >

@@ -2,15 +2,17 @@
 
 import { useState, useEffect, useRef } from "react";
 import { MessageSquare, History, User, X } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const fetchChatbotResponse = async (userInput) => {
+const fetchChatbotResponse = async (userInput, getToken) => {
   try {
+    const token = getToken();
     const response = await fetch(`${BACKEND_URL}/profile/chatbot`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ user_input: userInput }),
     });
@@ -232,9 +234,9 @@ const ChatInput = ({
 };
 
 const ChatAssistant = ({ darkMode }) => {
+  const { getToken } = useAuth();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [activeTab, setActiveTab] = useState("chat");
   const [chatMessages, setChatMessages] = useState(() => {
     const savedMessages = localStorage.getItem("chatHistory");
     return savedMessages
@@ -254,10 +256,10 @@ const ChatAssistant = ({ darkMode }) => {
 
   useEffect(() => {
     localStorage.setItem("chatHistory", JSON.stringify(chatMessages));
-    if (chatEndRef.current && activeTab === "chat") {
+    if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [chatMessages, activeTab]);
+  }, [chatMessages]);
 
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
@@ -272,7 +274,7 @@ const ChatAssistant = ({ darkMode }) => {
     setChatInput("");
     setIsTyping(true);
 
-    const botMessage = await fetchChatbotResponse(chatInput);
+    const botMessage = await fetchChatbotResponse(chatInput, getToken);
     setChatMessages((prev) => [
       ...prev,
       {
@@ -371,132 +373,93 @@ const ChatAssistant = ({ darkMode }) => {
 
           {!isMinimized && (
             <>
-              <div className="flex border-b border-gray-200 dark:border-gray-700">
-                {["chat", "history"].map((tab) => (
-                  <button
-                    key={tab}
-                    className={`flex-1 py-3 px-4 text-center font-medium ${
-                      activeTab === tab
-                        ? "border-b-2 border-green-800 text-green-800"
-                        : darkMode
-                        ? "text-gray-400 hover:text-gray-300"
-                        : "text-gray-500 hover:text-gray-700"
-                    }`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    <div className="flex items-center justify-center">
-                      {tab === "chat" ? (
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                      ) : (
-                        <History className="h-4 w-4 mr-2" />
-                      )}
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                    </div>
-                  </button>
-                ))}
-              </div>
+              <div
+                className={`flex-1 p-4 overflow-y-auto max-h-96 min-h-[300px] ${
+                  darkMode ? "text-white" : "text-gray-800"
+                }`}
+              >
+                {chatMessages.length ? (
+                  chatMessages.map((message, index) => {
+                    const showDate =
+                      index === 0 ||
+                      new Date(message.timestamp).toDateString() !==
+                        new Date(
+                          chatMessages[index - 1].timestamp
+                        ).toDateString();
+                    const isConsecutive =
+                      index > 0 &&
+                      message.sender === chatMessages[index - 1].sender &&
+                      new Date(message.timestamp).getTime() -
+                        new Date(chatMessages[index - 1].timestamp).getTime() <
+                        60000;
 
-              {activeTab === "chat" ? (
-                <div
-                  className={`flex-1 p-4 overflow-y-auto max-h-96 min-h-[300px] ${
-                    darkMode ? "text-white" : "text-gray-800"
-                  }`}
-                >
-                  {chatMessages.length ? (
-                    chatMessages.map((message, index) => {
-                      const showDate =
-                        index === 0 ||
-                        new Date(message.timestamp).toDateString() !==
-                          new Date(
-                            chatMessages[index - 1].timestamp
-                          ).toDateString();
-                      const isConsecutive =
-                        index > 0 &&
-                        message.sender === chatMessages[index - 1].sender &&
-                        new Date(message.timestamp).getTime() -
-                          new Date(
-                            chatMessages[index - 1].timestamp
-                          ).getTime() <
-                          60000;
-
-                      return (
-                        <div key={message.id}>
-                          {showDate && (
-                            <div
-                              className={`text-xs text-center my-2 ${
-                                darkMode ? "text-gray-400" : "text-gray-500"
-                              }`}
-                            >
-                              {new Date(message.timestamp).toLocaleDateString()}
-                            </div>
-                          )}
-                          <Message
-                            message={message}
-                            isConsecutive={isConsecutive}
-                            darkMode={darkMode}
-                          />
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <p
-                        className={`text-center ${
-                          darkMode ? "text-gray-400" : "text-gray-500"
-                        }`}
-                      >
-                        No messages yet. Start a conversation!
-                      </p>
-                    </div>
-                  )}
-                  {isTyping && (
-                    <div className="flex justify-start mb-4 ml-10">
-                      <div
-                        className={`${
-                          darkMode
-                            ? "bg-gray-700 text-white"
-                            : "bg-gray-100 text-gray-800"
-                        } rounded-lg px-4 py-2`}
-                      >
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"></div>
+                    return (
+                      <div key={message.id}>
+                        {showDate && (
                           <div
-                            className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
-                            style={{ animationDelay: "0.2s" }}
-                          ></div>
-                          <div
-                            className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
-                            style={{ animationDelay: "0.4s" }}
-                          ></div>
-                        </div>
+                            className={`text-xs text-center my-2 ${
+                              darkMode ? "text-gray-400" : "text-gray-500"
+                            }`}
+                          >
+                            {new Date(message.timestamp).toLocaleDateString()}
+                          </div>
+                        )}
+                        <Message
+                          message={message}
+                          isConsecutive={isConsecutive}
+                          darkMode={darkMode}
+                        />
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p
+                      className={`text-center ${
+                        darkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      No messages yet. Start a conversation!
+                    </p>
+                  </div>
+                )}
+                {isTyping && (
+                  <div className="flex justify-start mb-4 ml-10">
+                    <div
+                      className={`${
+                        darkMode
+                          ? "bg-gray-700 text-white"
+                          : "bg-gray-100 text-gray-800"
+                      } rounded-lg px-4 py-2`}
+                    >
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"></div>
+                        <div
+                          className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
+                          style={{ animationDelay: "0.4s" }}
+                        ></div>
                       </div>
                     </div>
-                  )}
-                  <div ref={chatEndRef} />
-                </div>
-              ) : (
-                <ChatHistory
-                  chatMessages={chatMessages}
-                  clearChatHistory={clearChatHistory}
-                  darkMode={darkMode}
-                />
-              )}
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
 
-              {activeTab === "chat" && (
-                <>
-                  <QuickReplyButtons
-                    setChatInput={setChatInput}
-                    handleSendMessage={handleSendMessage}
-                    darkMode={darkMode}
-                  />
-                  <ChatInput
-                    chatInput={chatInput}
-                    setChatInput={setChatInput}
-                    handleSendMessage={handleSendMessage}
-                    darkMode={darkMode}
-                  />
-                </>
-              )}
+              <QuickReplyButtons
+                setChatInput={setChatInput}
+                handleSendMessage={handleSendMessage}
+                darkMode={darkMode}
+              />
+              <ChatInput
+                chatInput={chatInput}
+                setChatInput={setChatInput}
+                handleSendMessage={handleSendMessage}
+                darkMode={darkMode}
+              />
             </>
           )}
         </div>

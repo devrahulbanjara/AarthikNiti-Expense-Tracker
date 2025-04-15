@@ -1,14 +1,13 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("access_token");
-
-  return token ? children : <Navigate to="/" />;
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? children : <Navigate to="/" />;
 };
 
 export const PublicRoute = ({ children }) => {
-  const token = localStorage.getItem("access_token");
-
-  return token ? <Navigate to="/dashboard" /> : children;
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Navigate to="/dashboard" /> : children;
 };

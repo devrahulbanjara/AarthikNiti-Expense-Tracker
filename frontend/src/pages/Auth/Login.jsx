@@ -6,11 +6,13 @@ import axios from "axios";
 import aarthiknitiImg from "../../assets/Logo/aarthikniti.png";
 import girlImg from "../../assets/ExtraImg/girl.jpg";
 import googleLogoImg from "../../assets/ExtraImg/google.png";
+import { useAuth } from "../../context/AuthContext";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -22,16 +24,11 @@ function Login() {
     const accessTokenFromURL = urlParams.get("access_token");
 
     if (accessTokenFromURL) {
-      localStorage.setItem("access_token", accessTokenFromURL);
+      login(accessTokenFromURL, rememberMe);
       toast.success("Login successful!");
       navigate("/dashboard");
-    } else {
-      const accessToken = localStorage.getItem("access_token");
-      if (accessToken) {
-        navigate("/dashboard");
-      }
     }
-  }, [navigate]);
+  }, [navigate, login, rememberMe]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,7 +47,7 @@ function Login() {
       );
 
       if (response.data && response.data.access_token) {
-        localStorage.setItem("access_token", response.data.access_token);
+        login(response.data.access_token, rememberMe);
         toast.success("Login successful!");
         navigate("/dashboard");
       } else {

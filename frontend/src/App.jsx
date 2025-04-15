@@ -13,95 +13,101 @@ import Reports from "./pages/Dashboard/Reports";
 import Budgeting from "./pages/Dashboard/Budgeting";
 import Layout from "./components/Layout/Layout";
 import IncomeVsExpensesChart from "./components/Dashboard/income-expenses-chart";
-import { ProtectedRoute, PublicRoute } from "./components/ProtectedRoute/ProtectedRoute";
+import {
+  ProtectedRoute,
+  PublicRoute,
+} from "./components/ProtectedRoute/ProtectedRoute";
 import { ThemeProvider } from "./context/ThemeContext";
+import { AuthProvider } from "./context/AuthContext";
 
 const App = () => {
   return (
     <ThemeProvider>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover={false}
-        theme="light"
-        transition={Bounce}
-      />
       <Router>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route
-              index
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                <PublicRoute>
-                  <Signup />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/income"
-              element={
-                <ProtectedRoute>
-                  <Income />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/expenses"
-              element={
-                <ProtectedRoute>
-                  <Expense />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/income-vs-expenses"
-              element={
-                <ProtectedRoute>
-                  <IncomeVsExpensesChart />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/forgotpw" element={<ForgotPassword />} />
-          </Route>
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute>
-                <Reports />
-              </ProtectedRoute>
-            }
+        <AuthProvider>
+          <ToastContainer
+            position="top-right"
+            autoClose={2000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover={false}
+            theme="light"
+            transition={Bounce}
           />
-          <Route
-            path="/budgeting"
-            element={
-              <ProtectedRoute>
-                <Budgeting />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route
+                index
+                element={
+                  <PublicRoute>
+                    <Login />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/signup"
+                element={
+                  <PublicRoute>
+                    <Signup />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/income"
+                element={
+                  <ProtectedRoute>
+                    <Income />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/expenses"
+                element={
+                  <ProtectedRoute>
+                    <Expense />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/income-vs-expenses"
+                element={
+                  <ProtectedRoute>
+                    <IncomeVsExpensesChart />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/forgotpw" element={<ForgotPassword />} />
+            </Route>
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <Reports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/budgeting"
+              element={
+                <ProtectedRoute>
+                  <Budgeting />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </AuthProvider>
       </Router>
     </ThemeProvider>
   );

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from core.config import get_current_user
 from services.profile_service import (
-    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,get_transaction_trend,income_expense_table,get_all_profile_names,get_active_profile_info
+    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,get_transaction_trend,income_expense_table,get_all_profile_names,get_active_profile_info, edit_income, delete_income
 )
 from pydantic import BaseModel
 from typing import List 
@@ -140,3 +140,22 @@ async def get_profiles(user: dict = Depends(get_current_user)):
 @router.get("/active_profile_info")
 async def active_profile_info(current_user: dict = Depends(get_current_user)):
     return await get_active_profile_info(current_user["user_id"])
+
+class EditIncomeRequest(BaseModel):
+    transaction_id: str
+    amount: float
+    description: str
+    category: str
+
+@router.put("/edit_income")
+async def edit_income_endpoint(request: EditIncomeRequest, user: dict = Depends(get_current_user)):
+    """Edits an existing income transaction."""
+    return await edit_income(user["user_id"], request.transaction_id, request.amount, request.description, request.category)
+
+class DeleteIncomeRequest(BaseModel):
+    transaction_id: str
+
+@router.delete("/delete_income")
+async def delete_income_endpoint(request: DeleteIncomeRequest, user: dict = Depends(get_current_user)):
+    """Deletes an income transaction."""
+    return await delete_income(user["user_id"], request.transaction_id)

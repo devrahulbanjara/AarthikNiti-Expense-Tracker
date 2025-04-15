@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts";
 import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
 import { useLocation } from "react-router-dom";
@@ -7,6 +8,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const ExpensesBreakdown = ({ totalExpenses }) => {
   const { darkMode } = useTheme();
+  const { getToken } = useAuth();
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipData, setTooltipData] = useState(null);
@@ -18,12 +20,12 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
   const fetchExpenseBreakdownData = async () => {
     try {
       setIsLoading(true);
-
+      const token = getToken();
       const response = await fetch(`${BACKEND_URL}/profile/expense-breakdown`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
