@@ -1,49 +1,106 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import { useTheme } from "../../context/ThemeContext"
+import { useState, useMemo, useEffect } from "react";
+import { useTheme } from "../../context/ThemeContext";
 
 const CategoryBreakdownChart = ({ data }) => {
-  const { darkMode } = useTheme()
-  const [hoveredSegment, setHoveredSegment] = useState(null)
-  const totalAmount = useMemo(() => data.reduce((sum, item) => sum + item.amount, 0), [data])
+  const { darkMode } = useTheme();
+  const [hoveredSegment, setHoveredSegment] = useState(null);
+  const [animatedData, setAnimatedData] = useState([]);
+
+  const totalAmount = useMemo(
+    () => data.reduce((sum, item) => sum + item.amount, 0),
+    [data]
+  );
+
+  const percentageData = useMemo(
+    () =>
+      data.map((item) => ({
+        ...item,
+        value: (item.amount / totalAmount) * 100,
+      })),
+    [data, totalAmount]
+  );
+
+  useEffect(() => {
+    // Animate the chart by gradually increasing the segment values
+    let animationFrame;
+    const animate = () => {
+      setAnimatedData((prev) => {
+        if (prev.length === 0) return percentageData.map(() => 0);
+        const next = prev.map((value, index) =>
+          value < percentageData[index].value
+            ? Math.min(value + 2, percentageData[index].value)
+            : value
+        );
+        if (
+          next.every((value, index) => value === percentageData[index].value)
+        ) {
+          cancelAnimationFrame(animationFrame);
+        } else {
+          animationFrame = requestAnimationFrame(animate);
+        }
+        return next;
+      });
+    };
+    animate();
+    return () => cancelAnimationFrame(animationFrame);
+  }, [percentageData]);
 
   return (
     <div className="h-full flex flex-col items-center justify-center">
-      <div className="w-full h-[350px] flex items-center justify-center">
+      <div className="w-full h-[400px] flex items-center justify-center">
         <svg
-          viewBox="0 0 120 120"
-          className="w-full h-full max-w-[400px] mx-auto"
+          viewBox="0 0 160 160"
+          className="w-full h-full max-w-[500px] mx-auto"
           style={{ overflow: "visible" }}
         >
+          {/* Outer stroke */}
+          <circle
+            cx="80"
+            cy="80"
+            r="75"
+            fill="none"
+            stroke={darkMode ? "#374151" : "#e5e7eb"}
+            strokeWidth="2"
+          />
+
           {(() => {
-            let cumulativePercent = 0
-            return data.map((item, index) => {
-              const startPercent = cumulativePercent
-              cumulativePercent += item.value
+            let cumulativePercent = 0;
+            return animatedData.map((value, index) => {
+              const startPercent = cumulativePercent;
+              cumulativePercent += value;
 
-              const startX = 60 + 40 * Math.cos((2 * Math.PI * startPercent) / 100)
-              const startY = 60 + 40 * Math.sin((2 * Math.PI * startPercent) / 100)
-              const endX = 60 + 40 * Math.cos((2 * Math.PI * cumulativePercent) / 100)
-              const endY = 60 + 40 * Math.sin((2 * Math.PI * cumulativePercent) / 100)
+              const startX =
+                80 + 60 * Math.cos((2 * Math.PI * startPercent) / 100);
+              const startY =
+                80 + 60 * Math.sin((2 * Math.PI * startPercent) / 100);
+              const endX =
+                80 + 60 * Math.cos((2 * Math.PI * cumulativePercent) / 100);
+              const endY =
+                80 + 60 * Math.sin((2 * Math.PI * cumulativePercent) / 100);
 
-              const largeArcFlag = item.value > 50 ? 1 : 0
+              const largeArcFlag = value > 50 ? 1 : 0;
 
               // Position for the label
-              const labelAngle = (2 * Math.PI * (startPercent + item.value / 2)) / 100
-              const labelRadius = 55
-              const labelX = 60 + labelRadius * Math.cos(labelAngle)
-              const labelY = 60 + labelRadius * Math.sin(labelAngle)
+              const labelAngle =
+                (2 * Math.PI * (startPercent + value / 2)) / 100;
+              const labelRadius = 70;
+              const labelX = 80 + labelRadius * Math.cos(labelAngle);
+              const labelY = 80 + labelRadius * Math.sin(labelAngle);
 
               return (
                 <g key={index}>
                   <path
-                    d={`M 60 60 L ${startX} ${startY} A 40 40 0 ${largeArcFlag} 1 ${endX} ${endY} Z`}
-                    fill={item.color}
+                    d={`M 80 80 L ${startX} ${startY} A 60 60 0 ${largeArcFlag} 1 ${endX} ${endY} Z`}
+                    fill={percentageData[index].color}
                     opacity={hoveredSegment === index ? 0.8 : 1}
                     onMouseEnter={() => setHoveredSegment(index)}
                     onMouseLeave={() => setHoveredSegment(null)}
-                    style={{ cursor: "pointer" }}
+                    style={{
+                      cursor: "pointer",
+                      transition: "opacity 0.3s ease",
+                    }}
                   />
 
                   {/* Category name label */}
@@ -56,7 +113,7 @@ const CategoryBreakdownChart = ({ data }) => {
                     fontSize="3.5"
                     fontWeight="bold"
                   >
-                    {item.name}
+                    {percentageData[index].name}
                   </text>
 
                   {/* Percentage label */}
@@ -68,7 +125,7 @@ const CategoryBreakdownChart = ({ data }) => {
                     fill={darkMode ? "white" : "black"}
                     fontSize="3"
                   >
-                    {item.value}%
+                    {value.toFixed(0)}%
                   </text>
 
                   {hoveredSegment === index && (
@@ -80,59 +137,75 @@ const CategoryBreakdownChart = ({ data }) => {
                       fill={darkMode ? "white" : "black"}
                       fontSize="2.5"
                     >
-                      ${item.amount}
+                      ${percentageData[index].amount}
                     </text>
                   )}
                 </g>
-              )
-            })
+              );
+            });
           })()}
 
-          <circle cx="60" cy="60" r="30" fill={darkMode ? "#1f2937" : "white"} />
+          {/* Inner stroke */}
+          <circle
+            cx="80"
+            cy="80"
+            r="50"
+            fill={darkMode ? "#1f2937" : "white"}
+            stroke={darkMode ? "#374151" : "#e5e7eb"}
+            strokeWidth="2"
+          />
 
-          {/* center text showing total or hovered amount */}
+          {/* Center text showing total or hovered amount */}
           <text
-            x="60"
-            y="56"
+            x="80"
+            y="76"
             textAnchor="middle"
             dominantBaseline="middle"
             fill={darkMode ? "white" : "black"}
             fontSize="5"
             fontWeight="bold"
           >
-            ${hoveredSegment !== null ? data[hoveredSegment].amount.toFixed(2) : totalAmount.toFixed(2)}
+            $
+            {hoveredSegment !== null
+              ? percentageData[hoveredSegment].amount.toFixed(2)
+              : totalAmount.toFixed(2)}
           </text>
 
           <text
-            x="60"
-            y="64"
+            x="80"
+            y="84"
             textAnchor="middle"
             dominantBaseline="middle"
             fill={darkMode ? "gray" : "gray"}
             fontSize="3"
           >
-            {hoveredSegment !== null ? data[hoveredSegment].name : "Total"}
+            {hoveredSegment !== null
+              ? percentageData[hoveredSegment].name
+              : "Total"}
           </text>
         </svg>
       </div>
 
       <div className="flex flex-wrap justify-center gap-4 mt-4">
-        {data.map((item, index) => (
+        {percentageData.map((item, index) => (
           <div
             key={index}
             className="flex items-center cursor-pointer"
             onMouseEnter={() => setHoveredSegment(index)}
             onMouseLeave={() => setHoveredSegment(null)}
           >
-            <div className="w-3 h-3 rounded-full mr-1" style={{ backgroundColor: item.color }}></div>
+            <div
+              className="w-3 h-3 rounded-full mr-1"
+              style={{ backgroundColor: item.color }}
+            ></div>
             <span className="text-sm">
-              {item.name}: {item.value}%
+              {item.name}: {item.value.toFixed(0)}%
             </span>
           </div>
         ))}
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default CategoryBreakdownChart;

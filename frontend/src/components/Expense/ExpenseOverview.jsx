@@ -4,6 +4,7 @@ import DailyExpensesChart from "./DailyExpensesChart";
 import ExpensesBreakdown from "../Dashboard/expensesbreakdown";
 import { useTheme } from "../../context/ThemeContext";
 import { useEffect, useState } from "react";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const ExpenseOverview = ({ activeTab, setActiveTab }) => {
   const { darkMode } = useTheme();
@@ -11,7 +12,7 @@ const ExpenseOverview = ({ activeTab, setActiveTab }) => {
 
   const fetchTopUIData = async () => {
     try {
-      const response = await fetch("http://localhost:8000/profile/dashboard", {
+      const response = await fetch(`${BACKEND_URL}/profile/dashboard`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -34,7 +35,7 @@ const ExpenseOverview = ({ activeTab, setActiveTab }) => {
 
   const [loading, setLoading] = useState(false);
   const [expenseData, setExpenseData] = useState([]);
-  const [timeRange, setTimeRange] = useState(15);
+  const [timeRange, setTimeRange] = useState(7);
 
   const handleLoadExpense = async (timeRange) => {
     setLoading(true);
@@ -43,7 +44,7 @@ const ExpenseOverview = ({ activeTab, setActiveTab }) => {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/profile/transaction-trend?transaction_type=income&days=${timeRange}`,
+        `${BACKEND_URL}/profile/transaction-trend?transaction_type=expense&days=${timeRange}`,
         {
           method: "GET",
           headers: {

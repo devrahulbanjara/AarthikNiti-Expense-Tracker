@@ -13,6 +13,7 @@ import NetSavings from "../../components/Dashboard/netsavings";
 import IncomeVsExpensesChart from "../../components/Dashboard/income-expenses-chart";
 import ChatAssistant from "../../components/Chatbot/chat-assistant";
 import { useTheme } from "../../context/ThemeContext";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const DashboardPage = () => {
   const fetchTopUIData = async () => {
     setIsTopUILoading(true);
     try {
-      const response = await fetch("http://localhost:8000/profile/dashboard", {
+      const response = await fetch(`${BACKEND_URL}/profile/dashboard`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -191,19 +192,16 @@ const DashboardCards = ({
       <Card
         title="Total Balance"
         amount={`$${totalBalance.toFixed(2)}`}
-        change="+2.5% from last month"
         icon={DollarSign}
       />
       <Card
         title="Total Income"
         amount={`$${totalIncome.toFixed(2)}`}
-        change="+5.2% from last month"
         icon={ArrowUp}
       />
       <Card
         title="Total Expenses"
         amount={`$${totalExpenses.toFixed(2)}`}
-        change="-1.8% from last month"
         icon={ArrowDown}
       />
       <BudgetCard percentage={spentPercentage} isOverBudget={isOverBudget} />
@@ -212,7 +210,7 @@ const DashboardCards = ({
 };
 
 // Card Component
-const Card = ({ title, amount, change, icon: Icon }) => {
+const Card = ({ title, amount, icon: Icon }) => {
   const { darkMode } = useTheme();
 
   return (
@@ -224,15 +222,19 @@ const Card = ({ title, amount, change, icon: Icon }) => {
       } text-center`}
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-md font-semibold">{title}</h2>
+        <h2
+          className="text-md font-semibold"
+          style={{
+            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)", // Full white in dark mode, black with 60% opacity in light mode
+          }}
+        >
+          {title}
+        </h2>
         <Icon
           className={`h-5 w-5 ${darkMode ? "text-gray-400" : "text-gray-600"}`}
         />
       </div>
       <p className="text-2xl font-bold mt-2">{amount}</p>
-      <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-        {change}
-      </p>
     </div>
   );
 };

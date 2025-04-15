@@ -10,13 +10,12 @@ import {
   ChevronDown,
   Settings,
   Plus,
-  Moon,
-  Sun,
 } from "lucide-react";
 import AddAccountModal from "./AddAccountModal";
 import { useTheme } from "../../context/ThemeContext";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const navItems = [
   { name: "Dashboard", icon: Home, href: "/dashboard" },
@@ -25,7 +24,7 @@ const navItems = [
 ];
 
 const Sidebar = () => {
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { darkMode } = useTheme();
 
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [activeAccount, setActiveAccount] = useState("Personal");
@@ -37,16 +36,13 @@ const Sidebar = () => {
   const fetchProfiles = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(
-        "http://127.0.0.1:8000/profile/get_profile_names",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/profile/get_profile_names`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch profiles");
@@ -63,7 +59,7 @@ const Sidebar = () => {
     try {
       const token = localStorage.getItem("access_token");
       const response = await fetch(
-        "http://127.0.0.1:8000/profile/active_profile_info",
+        `${BACKEND_URL}/profile/active_profile_info`,
         {
           method: "GET",
           headers: {
@@ -87,7 +83,7 @@ const Sidebar = () => {
   const switchProfile = async (profileId, profileName) => {
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch("http://127.0.0.1:8000/profile/switch", {
+      const response = await fetch(`${BACKEND_URL}/profile/switch`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -105,18 +101,16 @@ const Sidebar = () => {
 
       toast.success(`Switched to ${profileName} successfully!`);
 
-      // Add delay before reloading
       setTimeout(() => {
         window.location.reload();
-      }, 1000); // Delay of 2 seconds
+      }, 1000);
     } catch (err) {
       console.error("Error switching profile:", err);
       toast.error("Failed to switch profile!");
 
-      // Add delay before reloading in case of an error
       setTimeout(() => {
         window.location.reload();
-      }, 1000); // Delay of 2 seconds
+      }, 1000);
     }
   };
 
@@ -141,7 +135,7 @@ const Sidebar = () => {
 
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch("http://127.0.0.1:8000/profile/create", {
+      const response = await fetch(`${BACKEND_URL}/profile/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -318,25 +312,6 @@ const Sidebar = () => {
               );
             })}
           </ul>
-
-          <button
-            onClick={toggleDarkMode}
-            className={`flex items-center py-2 px-4 rounded-md mt-3 w-full ${
-              darkMode
-                ? "hover:bg-[#1e293b] text-gray-300"
-                : "hover:bg-[#0a6e47] text-gray-200"
-            } transition-all`}
-          >
-            {darkMode ? (
-              <>
-                <Sun className="mr-2 h-4 w-4" /> Light Mode
-              </>
-            ) : (
-              <>
-                <Moon className="mr-2 h-4 w-4" /> Dark Mode
-              </>
-            )}
-          </button>
         </div>
       </div>
 

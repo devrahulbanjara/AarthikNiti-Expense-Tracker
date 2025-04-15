@@ -7,6 +7,8 @@ import aarthiknitiImg from "../../assets/Logo/aarthikniti.png";
 import girlImg from "../../assets/ExtraImg/girl.jpg";
 import googleLogoImg from "../../assets/ExtraImg/google.png";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -18,7 +20,7 @@ function Login() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const accessTokenFromURL = urlParams.get("access_token");
-  
+
     if (accessTokenFromURL) {
       localStorage.setItem("access_token", accessTokenFromURL);
       toast.success("Login successful!");
@@ -30,8 +32,6 @@ function Login() {
       }
     }
   }, [navigate]);
-  
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,7 +44,7 @@ function Login() {
     setIsLoggingIn(true);
     try {
       const response = await axios.post(
-        "http://localhost:8000/auth/login",
+        `${BACKEND_URL}/auth/login`,
         { email, password },
         { withCredentials: true }
       );
@@ -64,7 +64,7 @@ function Login() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8000/auth/google/login";
+    window.location.href = `${BACKEND_URL}/auth/google/login`;
   };
 
   return (

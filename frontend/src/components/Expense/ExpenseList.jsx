@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
 import { useTheme } from "../../context/ThemeContext";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const ExpenseList = ({
   searchTerm,
@@ -32,7 +33,7 @@ const ExpenseList = ({
     setLoading(true);
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/profile/income_expense_table?transaction_type=expense&days=30`,
+        `${BACKEND_URL}/profile/income_expense_table?transaction_type=expense&days=30`,
         {
           method: "GET",
           headers: {
@@ -126,6 +127,14 @@ const ExpenseList = ({
                 <th
                   key={header}
                   className="px-4 py-2 text-left cursor-pointer font-medium text-sm"
+                  style={{
+                    width:
+                      header === "category"
+                        ? "20%"
+                        : header === "amount"
+                        ? "15%"
+                        : "20%",
+                  }}
                   onClick={() => handleSort(header)}
                 >
                   <div className="flex items-center">
@@ -139,10 +148,16 @@ const ExpenseList = ({
                   </div>
                 </th>
               ))}
-              <th className="px-4 py-2 text-left font-medium text-sm">
+              <th
+                className="px-4 py-2 text-left font-medium text-sm"
+                style={{ width: "30%" }}
+              >
                 Description
               </th>
-              <th className="px-4 py-2 text-right font-medium text-sm">
+              <th
+                className="px-4 py-2 text-right font-medium text-sm"
+                style={{ width: "15%" }}
+              >
                 Actions
               </th>
             </tr>

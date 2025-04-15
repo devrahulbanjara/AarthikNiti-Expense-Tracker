@@ -1,16 +1,17 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import { Plus } from "lucide-react"
-import Sidebar from "../../components/Layout/sidebar"
-import Profile from "../../components/Layout/profile"
-import DarkMode from "../../components/Layout/darkmode"
-import AddIncome from "../../components/Income/AddIncome"
-import IncomeOverview from "../../components/Income/IncomeOverview"
-import IncomeSources from "../../components/Income/IncomeSources"
-import Chatbot from "../../components/Chatbot/chat-assistant"
-import { useTheme } from "../../context/ThemeContext"
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus } from "lucide-react";
+import Sidebar from "../../components/Layout/sidebar";
+import Profile from "../../components/Layout/profile";
+import DarkMode from "../../components/Layout/darkmode";
+import AddIncome from "../../components/Income/AddIncome";
+import IncomeOverview from "../../components/Income/IncomeOverview";
+import IncomeSources from "../../components/Income/IncomeSources";
+import Chatbot from "../../components/Chatbot/chat-assistant";
+import { useTheme } from "../../context/ThemeContext";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const incomeSources = [
   { name: "Salary", color: "#3b82f6" },
@@ -19,48 +20,52 @@ const incomeSources = [
   { name: "Side Gig", color: "#f97316" },
   { name: "Bonus", color: "#ec4899" },
   { name: "Other", color: "#6b7280" },
-]
+];
 
 const Income = () => {
-  const navigate = useNavigate()
-  const { darkMode } = useTheme()
+  const navigate = useNavigate();
+  const { darkMode } = useTheme();
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-  const [editingIncome, setEditingIncome] = useState(null)
-  const [scrolled, setScrolled] = useState(false)
-  const [timeRange, setTimeRange] = useState("Last 7 days")
-  const [totalIncome, setTotalIncome] = useState(0)
-  const [incomes, setIncomes] = useState([])
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingIncome, setEditingIncome] = useState(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [timeRange, setTimeRange] = useState("Last 7 days");
+  const [totalIncome, setTotalIncome] = useState(0);
+  const [incomes, setIncomes] = useState([]);
 
   useEffect(() => {
     const fetchIncomeData = async () => {
       try {
-        const dashboardResponse = await fetch("http://localhost:8000/profile/dashboard", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        })
+        const dashboardResponse = await fetch(
+          `${BACKEND_URL}/profile/dashboard`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            },
+          }
+        );
 
-        if (!dashboardResponse.ok) throw new Error("Failed to fetch dashboard data")
+        if (!dashboardResponse.ok)
+          throw new Error("Failed to fetch dashboard data");
 
-        const dashboardData = await dashboardResponse.json()
-        setTotalIncome(dashboardData.profile_total_income)
+        const dashboardData = await dashboardResponse.json();
+        setTotalIncome(dashboardData.profile_total_income);
 
         const incomeResponse = await fetch(
-          "http://127.0.0.1:8000/profile/income_expense_table?transaction_type=income&days=30",
+          `${BACKEND_URL}/profile/income_expense_table?transaction_type=income&days=30`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
             },
-          },
-        )
+          }
+        );
 
-        if (!incomeResponse.ok) throw new Error("Failed to fetch incomes")
+        if (!incomeResponse.ok) throw new Error("Failed to fetch incomes");
 
-        const incomeData = await incomeResponse.json()
-        console.log("Income data from API:", incomeData)
+        const incomeData = await incomeResponse.json();
+        console.log("Income data from API:", incomeData);
 
         const formattedIncomes = incomeData.map((income, index) => ({
           id: index + 1,
@@ -70,44 +75,44 @@ const Income = () => {
           description: income.description,
           recurring: income.recurring,
           recurrence_duration: income.recurrence_duration || null,
-        }))
+        }));
 
-        setIncomes(formattedIncomes)
+        setIncomes(formattedIncomes);
       } catch (error) {
-        console.error("Error fetching income data:", error)
+        console.error("Error fetching income data:", error);
       }
-    }
+    };
 
-    fetchIncomeData()
-  }, [])
+    fetchIncomeData();
+  }, []);
 
   useEffect(() => {
     const validateToken = async () => {
-      const accessToken = localStorage.getItem("access_token")
+      const accessToken = localStorage.getItem("access_token");
 
       if (!accessToken) {
-        navigate("/")
-        return
+        navigate("/");
+        return;
       }
-    }
+    };
 
-    validateToken()
-  }, [navigate])
+    validateToken();
+  }, [navigate]);
 
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 10) {
-        setScrolled(true)
+        setScrolled(true);
       } else {
-        setScrolled(false)
+        setScrolled(false);
       }
-    }
+    };
 
-    window.addEventListener("scroll", handleScroll)
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener("scroll", handleScroll)
-    }
-  }, [])
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   const handleSubmit = async (incomeData, isEditing) => {
     try {
@@ -115,58 +120,58 @@ const Income = () => {
         category: incomeData.category || incomeData.source,
         description: incomeData.description || "",
         amount: Number.parseFloat(incomeData.amount),
-      }
+      };
 
-      console.log("Sending income data to API:", incomeToAdd)
-      const response = await fetch("http://127.0.0.1:8000/profile/update_income", {
+      console.log("Sending income data to API:", incomeToAdd);
+      const response = await fetch(`${BACKEND_URL}/profile/update_income`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
         body: JSON.stringify(incomeToAdd),
-      })
+      });
 
-      const responseText = await response.text()
+      const responseText = await response.text();
 
       if (!response.ok) {
-        throw new Error(`Failed to add income: ${responseText}`)
+        throw new Error(`Failed to add income: ${responseText}`);
       }
 
-      window.location.reload()
+      window.location.reload();
     } catch (error) {
-      console.error("Error saving income:", error)
-      alert("Failed to save income. Please try again.")
+      console.error("Error saving income:", error);
+      alert("Failed to save income. Please try again.");
     }
 
-    setIsAddModalOpen(false)
-    setEditingIncome(null)
-  }
+    setIsAddModalOpen(false);
+    setEditingIncome(null);
+  };
 
   const handleCloseModal = () => {
-    setIsAddModalOpen(false)
-    setEditingIncome(null)
-  }
+    setIsAddModalOpen(false);
+    setEditingIncome(null);
+  };
 
   const handleEdit = (income) => {
-    setEditingIncome(income)
-    setIsAddModalOpen(false)
-  }
+    setEditingIncome(income);
+    setIsAddModalOpen(false);
+  };
 
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this income?")) {
-      setIncomes((prev) => prev.filter((income) => income.id !== id))
+      setIncomes((prev) => prev.filter((income) => income.id !== id));
     }
-  }
+  };
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token")
-    navigate("/")
-  }
+    localStorage.removeItem("access_token");
+    navigate("/");
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-  
+
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
@@ -182,7 +187,9 @@ const Income = () => {
 
   return (
     <div
-      className={`flex ${darkMode ? "bg-gray-950 text-white" : "bg-white text-black"} transition-colors duration-300`}
+      className={`flex ${
+        darkMode ? "bg-gray-950 text-white" : "bg-white text-black"
+      } transition-colors duration-300`}
     >
       <Sidebar />
 
@@ -193,7 +200,9 @@ const Income = () => {
             darkMode ? "bg-gray-950" : "bg-white"
           } z-30 p-6 transition-all duration-300 ${
             scrolled
-              ? `${darkMode ? "bg-opacity-80" : "bg-opacity-90"} backdrop-blur-sm border-b ${
+              ? `${
+                  darkMode ? "bg-opacity-80" : "bg-opacity-90"
+                } backdrop-blur-sm border-b ${
                   darkMode ? "border-gray-800" : "border-gray-200"
                 }`
               : "bg-opacity-100"
@@ -203,7 +212,9 @@ const Income = () => {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl font-bold">Income</h1>
-                <p className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                <p
+                  className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}
+                >
                   Manage your income sources and track your earnings.
                 </p>
               </div>
@@ -220,7 +231,11 @@ const Income = () => {
           <div className="mb-6 flex justify-between items-center">
             <div>
               <h2 className="text-xl font-semibold">Financial Summary</h2>
-              <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} text-sm`}>
+              <p
+                className={`${
+                  darkMode ? "text-gray-400" : "text-gray-600"
+                } text-sm`}
+              >
                 Total earnings:{" "}
                 {new Intl.NumberFormat("en-US", {
                   style: "currency",
@@ -268,7 +283,7 @@ const Income = () => {
       {/* Chatbot Component */}
       <Chatbot />
     </div>
-  )
-}
+  );
+};
 
 export default Income;
