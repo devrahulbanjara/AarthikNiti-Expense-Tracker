@@ -68,7 +68,7 @@ const Expense = () => {
     direction: "desc",
   });
   const [activeTab, setActiveTab] = useState("Daily Expenses");
-  const [timeRange, setTimeRange] = useState("Last 7 days");
+  const [timeRange, setTimeRange] = useState(7);
 
   // New expense state
   const [newExpense, setNewExpense] = useState({
@@ -357,6 +357,7 @@ const Expense = () => {
               setExpenseToDelete(id);
               setShowDeleteModal(true);
             }}
+            timeRange={timeRange}
           />
         </div>
         <AddExpenseModal

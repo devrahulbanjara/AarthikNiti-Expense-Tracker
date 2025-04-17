@@ -25,14 +25,7 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
       setLoading(true);
       try {
         const token = getToken();
-        const days =
-          timeRange === "Last 7 days"
-            ? 7
-            : timeRange === "Last 30 days"
-            ? 30
-            : timeRange === "Last 3 months"
-            ? 90
-            : 180;
+        const days = parseInt(timeRange);
 
         const response = await fetch(
           `${BACKEND_URL}/profile/transaction-trend?transaction_type=income&days=${days}`,
@@ -102,10 +95,9 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
             darkMode ? "bg-[#1f2937] text-white" : "bg-gray-100 text-gray-800"
           } border-0 rounded-lg px-3 py-2 text-sm transition-colors duration-300`}
         >
-          <option>Last 7 days</option>
-          <option>Last 30 days</option>
-          <option>Last 3 months</option>
-          <option>Last 12 months</option>
+          <option value="7">Last 7 days</option>
+          <option value="15">Last 15 days</option>
+          <option value="30">Last 30 days</option>
         </select>
       </div>
 

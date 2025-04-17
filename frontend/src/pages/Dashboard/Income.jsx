@@ -33,7 +33,7 @@ const Income = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState(null);
   const [scrolled, setScrolled] = useState(false);
-  const [timeRange, setTimeRange] = useState("Last 7 days");
+  const [timeRange, setTimeRange] = useState("7");
   const [totalIncome, setTotalIncome] = useState(0);
   const [incomes, setIncomes] = useState([]);
 

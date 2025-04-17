@@ -323,15 +323,18 @@ async def get_transaction_trend(user_id: int, transaction_type: str, days: int):
     if transaction_type not in ["income", "expense"]:
         raise HTTPException(status_code=400, detail="Invalid transaction type. Must be 'income' or 'expense'.")
 
-    # Calculate the date range for the past 'days' days
+    # Calculate the date range
     end_date = datetime.utcnow()
-    start_date = end_date - timedelta(days=days)
+    start_date = end_date - timedelta(days=days)  # Include the full day range
 
-    # Ensure the datetime objects are in UTC
-    start_date = start_date.replace(tzinfo=None)  # Remove any timezone info
-    end_date = end_date.replace(tzinfo=None)
+    # Set start_date to beginning of the day
+    start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    # Set end_date to end of the day
+    end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
 
-    # Fetch transactions for the given date range, sorted by timestamp descending
+    print(f"Fetching transactions from {start_date} to {end_date}")  # Debug log
+
+    # Fetch transactions within the date range
     transactions = await transactions_collection.find(
         {
             "user_id": user_id,
@@ -341,7 +344,9 @@ async def get_transaction_trend(user_id: int, transaction_type: str, days: int):
         }
     ).sort("timestamp", 1).to_list(length=None)
 
-    # Check if there are any transactions within the specified date range
+    print(f"Found {len(transactions)} transactions")  # Debug log
+
+    # Check if there are any transactions
     if not transactions:
         return []
 
@@ -349,14 +354,25 @@ async def get_transaction_trend(user_id: int, transaction_type: str, days: int):
 
     for transaction in transactions:
         timestamp = transaction["timestamp"].replace(tzinfo=None)  # Ensure UTC timestamp without tzinfo
+        
+        # Create a unique key using both month and day
+        key = timestamp.strftime("%Y-%m-%d")  # Use full date format for unique identification
+        
+        # Initialize the key if it doesn't exist
+        if key not in transaction_data:
+            transaction_data[key] = 0
+        
+        # Add the transaction amount
+        transaction_data[key] += transaction["transaction_amount"]
 
-        # Use short weekday names if last 7 days, or "Month Day" if more than 7 days
-        key = timestamp.strftime("%a") if days == 7 else timestamp.strftime("%b %d")
-
-        transaction_data[key] = transaction_data.get(key, 0) + transaction["transaction_amount"]
-
-    # Format the transaction data in the required structure
-    formatted_data = [{"date": k, transaction_type: v} for k, v in transaction_data.items()]
+    # Format the transaction data in the required structure with month-day display
+    formatted_data = [
+        {
+            "date": datetime.strptime(k, "%Y-%m-%d").strftime("%b %d"),
+            transaction_type: v
+        } 
+        for k, v in sorted(transaction_data.items())
+    ]
 
     return formatted_data
 
@@ -366,8 +382,16 @@ async def income_expense_table(user_id: int, transaction_type: str, days: int):
     if transaction_type not in ["income", "expense"]:
         raise HTTPException(status_code=400, detail="Invalid transaction type. Must be 'income' or 'expense'.")
 
+    # Calculate the date range
     end_date = datetime.utcnow()
-    start_date = end_date - timedelta(days=days)
+    start_date = end_date - timedelta(days=days)  # Include the full day range
+
+    # Set start_date to beginning of the day
+    start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    # Set end_date to end of the day
+    end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+    print(f"Fetching transactions from {start_date} to {end_date}")  # Debug log
 
     transactions = await transactions_collection.find(
         {
@@ -378,6 +402,8 @@ async def income_expense_table(user_id: int, transaction_type: str, days: int):
         }
     ).sort("timestamp", -1).to_list(length=None)
 
+    print(f"Found {len(transactions)} transactions")  # Debug log
+
     formatted_transactions = []
     for transaction in transactions:
         transaction_data = {
@@ -385,7 +411,7 @@ async def income_expense_table(user_id: int, transaction_type: str, days: int):
             "amount": transaction["transaction_amount"],
             "date": transaction["timestamp"].strftime("%b %d, %Y"),
             "description": transaction["transaction_description"],
-            "transaction_id": transaction["transaction_id"],  # Include transaction_id
+            "transaction_id": transaction["transaction_id"],
         }
 
         if transaction_type == "expense":

@@ -23,6 +23,7 @@ const ExpenseList = ({
   setCurrentExpense,
   setShowEditModal,
   handleDeleteExpense,
+  timeRange,
 }) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
