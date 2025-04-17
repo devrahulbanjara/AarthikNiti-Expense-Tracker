@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
   ArrowUp,
@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Settings,
   Plus,
+  X,
 } from "lucide-react";
 import AddAccountModal from "./AddAccountModal";
 import { useTheme } from "../../context/ThemeContext";
@@ -24,16 +25,17 @@ const navItems = [
   { name: "Expenses", icon: ArrowDown, href: "/expenses" },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [activeAccount, setActiveAccount] = useState("Personal");
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [error, setError] = useState("");
   const [accounts, setAccounts] = useState([]);
-  const location = useLocation();
 
   const fetchProfiles = async () => {
     try {
@@ -165,30 +167,34 @@ const Sidebar = () => {
     }
   };
 
+  const handleNavigation = (href) => {
+    navigate(href);
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <>
       <div
-        className={`fixed top-0 left-0 w-1/6 h-full ${
-          darkMode ? "bg-[#0f172a] text-gray-100" : "bg-[#065336] text-white"
-        } p-4 border-r ${
-          darkMode ? "border-[#1e293b]" : "border-[#054328]"
-        } min-h-screen z-30 transition-colors duration-300 flex flex-col`}
+        className={`fixed top-0 left-0 h-full w-64 bg-[#065336] transition-transform duration-300 ease-in-out z-40 md:translate-x-0 ${
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
-        <div>
-          <h2 className="text-xl font-bold mb-4">AarthikNiti</h2>
-          <hr
-            className={`my-3 ${
-              darkMode ? "border-[#1e293b]" : "border-[#0a6e47]"
-            }`}
-          />
+        <div className="flex flex-col h-full p-4">
+          <div className="flex justify-between items-center mb-4 md:block">
+            <h2 className="text-xl font-bold text-white">AarthikNiti</h2>
+            <button
+              className="md:hidden p-2 rounded-full bg-[#054328] text-white"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <hr className="my-3 border-gray-400" />
 
           <div className="mb-4 relative account-dropdown-container">
             <div
-              className={`flex justify-between items-center p-2 border rounded-md cursor-pointer ${
-                darkMode
-                  ? "hover:bg-[#1e293b] border-[#1e293b]"
-                  : "hover:bg-[#0a6e47] border-[#0a6e47]"
-              }`}
+              className="flex justify-between items-center p-2 border border-gray-400/50 rounded-md cursor-pointer text-white hover:bg-[#054328] transition-colors"
               onClick={() => setShowAccountDropdown(!showAccountDropdown)}
             >
               <span>{activeAccount}</span>
@@ -196,32 +202,21 @@ const Sidebar = () => {
             </div>
 
             {showAccountDropdown && (
-              <div
-                className={`absolute left-0 right-0 mt-1 ${
-                  darkMode
-                    ? "bg-[#0f172a] border-[#1e293b]"
-                    : "bg-[#065336] border-[#0a6e47]"
-                } border rounded-md shadow-md z-10`}
-              >
+              <div className="absolute left-0 right-0 mt-1 bg-[#065336] border border-gray-400 rounded-md shadow-md z-10">
                 {accounts.map((account) => (
                   <div
                     key={account.profile_id}
-                    className={`p-2 ${
-                      darkMode ? "hover:bg-[#1e293b]" : "hover:bg-[#0a6e47]"
-                    } cursor-pointer`}
-                    onClick={() =>
-                      switchProfile(account.profile_id, account.profile_name)
-                    }
+                    className="p-2 hover:bg-[#054328] cursor-pointer text-white transition-colors"
+                    onClick={() => {
+                      switchProfile(account.profile_id, account.profile_name);
+                      setShowAccountDropdown(false);
+                    }}
                   >
                     <div className="font-medium">{account.profile_name}</div>
                   </div>
                 ))}
                 <div
-                  className={`p-2 border-t ${
-                    darkMode
-                      ? "border-[#1e293b] hover:bg-[#1e293b]"
-                      : "border-[#0a6e47] hover:bg-[#0a6e47]"
-                  } cursor-pointer flex items-center`}
+                  className="p-2 border-t border-gray-400 hover:bg-[#054328] cursor-pointer flex items-center text-white transition-colors"
                   onClick={() => {
                     setShowAccountDropdown(false);
                     setShowAddAccountModal(true);
@@ -233,87 +228,47 @@ const Sidebar = () => {
             )}
           </div>
 
-          <hr
-            className={`my-3 ${
-              darkMode ? "border-[#1e293b]" : "border-[#0a6e47]"
-            }`}
-          />
+          <hr className="my-3 border-gray-400" />
 
           <ul>
             {navItems.map((item) => {
               const isActive = location.pathname === item.href;
               return (
                 <li key={item.name}>
-                  <Link
-                    to={item.href}
-                    className={`flex items-center py-2 px-4 rounded-md mb-1 ${
+                  <button
+                    onClick={() => handleNavigation(item.href)}
+                    className={`w-full flex items-center py-2 px-4 rounded-md mb-1 ${
                       isActive
-                        ? darkMode
-                          ? "bg-[#1e293b] text-white"
-                          : "bg-[#0a6e47] text-white"
-                        : darkMode
-                        ? "hover:bg-[#1e293b] text-gray-300"
-                        : "hover:bg-[#0a6e47] text-gray-200"
+                        ? "bg-[#054328] text-white"
+                        : "text-white hover:bg-[#054328]"
                     } transition-all`}
                   >
-                    <item.icon
-                      className={`mr-2 h-4 w-4 ${
-                        isActive
-                          ? "text-white"
-                          : darkMode
-                          ? "text-gray-300"
-                          : "text-gray-200"
-                      }`}
-                    />
+                    <item.icon className="mr-2 h-4 w-4" />
                     {item.name}
-                  </Link>
+                  </button>
                 </li>
               );
             })}
           </ul>
-        </div>
 
-        <div className="mt-auto mb-6">
-          <hr
-            className={`my-3 ${
-              darkMode ? "border-[#1e293b]" : "border-[#0a6e47]"
-            }`}
-          />
-          <ul>
-            {[
-              { name: "Profile", icon: User, href: "/profile" },
-              { name: "Settings", icon: Settings, href: "/settings" },
-            ].map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <li key={item.name}>
-                  <Link
-                    to={item.href}
-                    className={`flex items-center py-2 px-4 rounded-md mb-1 ${
-                      isActive
-                        ? darkMode
-                          ? "bg-[#1e293b] text-white"
-                          : "bg-[#0a6e47] text-white"
-                        : darkMode
-                        ? "hover:bg-[#1e293b] text-gray-300"
-                        : "hover:bg-[#0a6e47] text-gray-200"
-                    } transition-all`}
-                  >
-                    <item.icon
-                      className={`mr-2 h-4 w-4 ${
-                        isActive
-                          ? "text-white"
-                          : darkMode
-                          ? "text-gray-300"
-                          : "text-gray-200"
-                      }`}
-                    />
-                    {item.name}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="mt-auto mb-6">
+            <hr className="my-3 border-gray-400" />
+            <ul>
+              <li>
+                <button
+                  onClick={() => handleNavigation("/settings")}
+                  className={`w-full flex items-center py-2 px-4 rounded-md mb-1 ${
+                    location.pathname === "/settings"
+                      ? "bg-[#054328] text-white"
+                      : "text-white hover:bg-[#054328]"
+                  } transition-all`}
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 

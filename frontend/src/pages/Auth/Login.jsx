@@ -18,6 +18,7 @@ function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -65,34 +66,32 @@ function Login() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-[#f5f5f5]">
-      <div className="w-full md:w-1/2 bg-[#065336] text-white flex flex-col items-start justify-between p-8 md:p-16">
-        <div className="flex flex-col items-start justify-center w-full h-full mb-4 border-b border-white pb-4 sm:pb-8">
-          <img
-            src={aarthiknitiImg}
-            alt="Logo"
-            className="w-30 h-30 sm:w-48 sm:h-48 md:w-45 md:h-45 absolute top-[-30px] left-2 mb-0 sm:mb-4"
-          />
-          <img
-            src={girlImg}
-            alt="Image Description"
-            className="w-4/5 h-auto mt-4 mx-auto sm:w-50 sm:h-50 sm:mx-auto md:w-3/4 md:h-auto"
-          />
+    <div
+      className={`min-h-screen flex flex-col md:flex-row ${
+        darkMode ? "bg-gray-900" : "bg-gray-50"
+      }`}
+    >
+      {/* Left side - Image */}
+      <div className="w-full md:w-1/2 h-48 md:h-screen relative bg-[#065336]">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center text-white p-4">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">AarthikNiti</h1>
+            <p className="text-lg md:text-xl">Your Personal Finance Manager</p>
+          </div>
         </div>
-        <p className="text-center text-xs mb-0 sm:mb-0 md:mb-5 sm:text-xs md:text-lg">
-          Save, track, and grow your wealth with AarthikNiti.
-        </p>
       </div>
-      <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-8 md:p-16">
-        <h2 className="text-3xl sm:text-2xl md:text-3xl mb-2">Welcome back</h2>
-        <p className="mb-4 text-gray-700 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl">
+
+      {/* Right side - Login Form */}
+      <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-4 md:p-8 lg:p-16">
+        <h2 className="text-2xl md:text-3xl mb-2">Welcome back</h2>
+        <p className="mb-4 text-gray-700 text-sm md:text-base">
           Enter your credentials to sign in to your account
         </p>
         <form onSubmit={handleSubmit} className="w-full max-w-md">
           <div className="mb-4">
             <label
               htmlFor="email"
-              className="block text-md mt-2 font-medium text-gray-700"
+              className="block text-sm md:text-md mt-2 font-medium text-gray-700"
             >
               Email
             </label>
@@ -102,14 +101,14 @@ function Login() {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 mt-1 border border-gray-500 rounded"
+              className="w-full p-2 md:p-3 mt-1 border border-gray-500 rounded text-black"
               required
             />
           </div>
           <div className="mb-4 relative">
             <label
               htmlFor="password"
-              className="block text-md mt-2 font-medium text-gray-700"
+              className="block text-sm md:text-md mt-2 font-medium text-gray-700"
             >
               Password
             </label>
@@ -120,7 +119,7 @@ function Login() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-3 mt-1 border border-gray-500 rounded pr-10"
+                className="w-full p-2 md:p-3 mt-1 border border-gray-500 rounded pr-10 text-black"
                 required
               />
               <span
@@ -131,61 +130,39 @@ function Login() {
               </span>
             </div>
           </div>
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
               <input
                 type="checkbox"
-                id="rememberMe"
+                id="remember"
                 checked={rememberMe}
-                onChange={() => setRememberMe(!rememberMe)}
+                onChange={(e) => setRememberMe(e.target.checked)}
                 className="mr-2"
               />
-              <label htmlFor="rememberMe" className="text-sm cursor-pointer">
+              <label htmlFor="remember" className="text-sm text-gray-700">
                 Remember me
               </label>
             </div>
             <Link
               to="/forgotpw"
-              className="text-sm text-green-800 hover:underline"
+              className="text-sm text-blue-600 hover:text-blue-800"
             >
               Forgot password?
             </Link>
           </div>
           <button
             type="submit"
-            className="w-full py-3 bg-green-800 text-white rounded mb-4 hover:bg-green-700 cursor-pointer"
-            disabled={isLoggingIn}
+            className="w-full bg-[#0a6e47] text-white py-2 md:py-3 rounded hover:bg-[#054328] transition-colors"
           >
-            {isLoggingIn ? "Logging In..." : "Sign In"}
+            Sign In
           </button>
-          <div className="flex items-center justify-center mb-4">
-            <hr className="w-1/4 sm:w-1/3 border-gray-300" />
-            <span className="mx-4 text-xs sm:text-xs md:text-sm">
-              or continue with
-            </span>
-            <hr className="w-1/4 sm:w-1/3 border-gray-300" />
-          </div>
-          <button
-            type="button"
-            className="w-full py-3 bg-gray-300 text-black rounded mb-4 flex items-center hover:bg-gray-400 justify-center cursor-pointer"
-            onClick={handleGoogleLogin}
-          >
-            <img
-              src={googleLogoImg}
-              alt="Google Icon"
-              className="w-6 h-6 mr-2"
-            />
-            Google
-          </button>
-          <p className="text-sm flex items-center justify-center mt-4">
-            <Link
-              to="/signup"
-              className="text-green-800 hover:underline ml-2 mt-2"
-            >
-              Don't have an account? Sign Up
-            </Link>
-          </p>
         </form>
+        <p className="mt-4 text-sm text-gray-700">
+          Don't have an account?{" "}
+          <Link to="/signup" className="text-blue-600 hover:text-blue-800">
+            Sign up
+          </Link>
+        </p>
       </div>
     </div>
   );

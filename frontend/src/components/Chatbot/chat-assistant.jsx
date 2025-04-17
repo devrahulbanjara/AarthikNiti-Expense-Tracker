@@ -235,8 +235,7 @@ const ChatInput = ({
 
 const ChatAssistant = ({ darkMode }) => {
   const { getToken } = useAuth();
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState(() => {
     const savedMessages = localStorage.getItem("chatHistory");
     return savedMessages
@@ -299,169 +298,82 @@ const ChatAssistant = ({ darkMode }) => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {!isChatOpen ? (
-        <button
-          onClick={() => setIsChatOpen(true)}
-          className="bg-green-800 hover:bg-green-700 text-white rounded-full p-4 shadow-lg flex items-center justify-center"
-        >
-          <MessageSquare className="h-6 w-6" />
-        </button>
-      ) : (
+    <div className="fixed bottom-4 right-4 z-50">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`p-3 rounded-full shadow-lg ${
+          darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"
+        }`}
+      >
+        {isOpen ? <X size={24} /> : <MessageSquare size={24} />}
+      </button>
+
+      {isOpen && (
         <div
-          className={`rounded-lg shadow-xl flex flex-col w-80 sm:w-96 border overflow-hidden ${
-            darkMode
-              ? "bg-gray-800 border-gray-700"
-              : "bg-white border-gray-200"
-          }`}
+          className={`fixed bottom-20 right-4 w-full md:w-96 h-[calc(100vh-8rem)] ${
+            darkMode ? "bg-gray-800" : "bg-white"
+          } rounded-lg shadow-xl transition-all duration-300`}
         >
-          <div className="bg-green-800 text-white px-4 py-3 flex justify-between items-center">
-            <div className="flex items-center">
-              <MessageSquare className="h-8 w-8 rounded-full bg-white text-green-800 mr-2" />
-              <h3 className="font-medium">Financial Assistant</h3>
-              <span className="text-xs ml-2 bg-green-700 px-2 py-0.5 rounded-full">
-                Powered by AI
-              </span>
+          <div className="flex flex-col h-full">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold">Chat Assistant</h2>
             </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setIsMinimized(!isMinimized)}
-                className="text-white hover:bg-green-800 rounded p-1"
-                title={isMinimized ? "Expand" : "Minimize"}
-              >
-                {isMinimized ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+
+            <div className="flex-1 overflow-y-auto p-4">
+              {chatMessages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`mb-4 ${
+                    message.sender === "user" ? "text-right" : "text-left"
+                  }`}
+                >
+                  <div
+                    className={`inline-block p-3 rounded-lg ${
+                      message.sender === "user"
+                        ? darkMode
+                          ? "bg-blue-600 text-white"
+                          : "bg-blue-500 text-white"
+                        : darkMode
+                        ? "bg-gray-700 text-white"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M18 12H6"
-                    />
-                  </svg>
-                )}
-              </button>
-              <button
-                onClick={() => setIsChatOpen(false)}
-                className="text-white hover:bg-green-700 rounded p-1"
-                title="Close"
+                    {message.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendMessage();
+                }}
+                className="flex gap-2"
               >
-                <X className="h-5 w-5" />
-              </button>
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder="Type your message..."
+                  className={`flex-1 p-2 rounded-lg ${
+                    darkMode
+                      ? "bg-gray-700 text-white"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                />
+                <button
+                  type="submit"
+                  className={`p-2 rounded-lg ${
+                    darkMode ? "bg-blue-600" : "bg-blue-500"
+                  } text-white`}
+                >
+                  Send
+                </button>
+              </form>
             </div>
           </div>
-
-          {!isMinimized && (
-            <>
-              <div
-                className={`flex-1 p-4 overflow-y-auto max-h-96 min-h-[300px] ${
-                  darkMode ? "text-white" : "text-gray-800"
-                }`}
-              >
-                {chatMessages.length ? (
-                  chatMessages.map((message, index) => {
-                    const showDate =
-                      index === 0 ||
-                      new Date(message.timestamp).toDateString() !==
-                        new Date(
-                          chatMessages[index - 1].timestamp
-                        ).toDateString();
-                    const isConsecutive =
-                      index > 0 &&
-                      message.sender === chatMessages[index - 1].sender &&
-                      new Date(message.timestamp).getTime() -
-                        new Date(chatMessages[index - 1].timestamp).getTime() <
-                        60000;
-
-                    return (
-                      <div key={message.id}>
-                        {showDate && (
-                          <div
-                            className={`text-xs text-center my-2 ${
-                              darkMode ? "text-gray-400" : "text-gray-500"
-                            }`}
-                          >
-                            {new Date(message.timestamp).toLocaleDateString()}
-                          </div>
-                        )}
-                        <Message
-                          message={message}
-                          isConsecutive={isConsecutive}
-                          darkMode={darkMode}
-                        />
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p
-                      className={`text-center ${
-                        darkMode ? "text-gray-400" : "text-gray-500"
-                      }`}
-                    >
-                      No messages yet. Start a conversation!
-                    </p>
-                  </div>
-                )}
-                {isTyping && (
-                  <div className="flex justify-start mb-4 ml-10">
-                    <div
-                      className={`${
-                        darkMode
-                          ? "bg-gray-700 text-white"
-                          : "bg-gray-100 text-gray-800"
-                      } rounded-lg px-4 py-2`}
-                    >
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"></div>
-                        <div
-                          className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
-                          style={{ animationDelay: "0.2s" }}
-                        ></div>
-                        <div
-                          className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
-                          style={{ animationDelay: "0.4s" }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={chatEndRef} />
-              </div>
-
-              <QuickReplyButtons
-                setChatInput={setChatInput}
-                handleSendMessage={handleSendMessage}
-                darkMode={darkMode}
-              />
-              <ChatInput
-                chatInput={chatInput}
-                setChatInput={setChatInput}
-                handleSendMessage={handleSendMessage}
-                darkMode={darkMode}
-              />
-            </>
-          )}
         </div>
       )}
     </div>

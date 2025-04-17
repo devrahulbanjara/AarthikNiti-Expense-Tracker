@@ -309,10 +309,6 @@ const Expense = () => {
                 Manage your expenses and track your spending.
               </p>
             </div>
-            <div className="flex space-x-4">
-              <DarkMode />
-              <Profile handleLogout={handleLogout} />
-            </div>
           </div>
         </div>
 

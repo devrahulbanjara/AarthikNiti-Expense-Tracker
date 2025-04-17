@@ -107,16 +107,16 @@ const DashboardPage = () => {
 
   return (
     <div
-      className={`flex ${
+      className={`flex flex-col md:flex-row ${
         darkMode ? "bg-gray-900 text-white" : "bg-white text-black"
       } transition-colors duration-300`}
     >
       <Sidebar scrolled={scrolled} />
 
-      <div className="w-4/5 ml-[20%] p-6 min-h-screen relative">
+      <div className="w-full md:w-4/5 md:ml-[20%] p-4 md:p-6 min-h-screen relative">
         <Header scrolled={scrolled} handleLogout={handleLogout} />
 
-        <div className="pt-24">
+        <div className="pt-16 md:pt-24">
           <DashboardCards
             totalBalance={totalBalance}
             totalIncome={totalIncome}
@@ -125,7 +125,7 @@ const DashboardPage = () => {
             isOverBudget={isOverBudget}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-10 gap-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-10 gap-4 md:gap-6 mt-4 md:mt-6">
             <div className="md:col-span-7 h-full">
               <RecentTransactions onTransactionsChange={fetchTopUIData} />
             </div>
@@ -134,7 +134,7 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-10 gap-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-10 gap-4 md:gap-6 mt-4 md:mt-6">
             <div className="md:col-span-4 h-full">
               <UpcomingBills />
             </div>
@@ -144,7 +144,7 @@ const DashboardPage = () => {
           </div>
 
           <div
-            className={`mt-6 border-l-2 ${
+            className={`mt-4 md:mt-6 border-l-2 ${
               darkMode ? "border-gray-700" : "border-gray-200"
             } pl-4`}
           >
@@ -164,9 +164,9 @@ const Header = ({ scrolled, handleLogout }) => {
 
   return (
     <div
-      className={`fixed top-0 left-1/5 right-0 ${
+      className={`fixed top-0 left-0 md:left-1/5 right-0 ${
         darkMode ? "bg-gray-900" : "bg-white"
-      } z-30 p-6 transition-all duration-300 ${
+      } z-30 p-4 md:p-6 transition-all duration-300 ${
         scrolled
           ? `${
               darkMode ? "bg-opacity-80" : "bg-opacity-90"
@@ -176,16 +176,16 @@ const Header = ({ scrolled, handleLogout }) => {
           : "bg-opacity-100"
       }`}
     >
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+          <h1 className="text-xl md:text-2xl font-bold">Dashboard</h1>
+          <p
+            className={`text-sm md:text-base ${
+              darkMode ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
             View your financial overview and recent activity.
           </p>
-        </div>
-        <div className="flex space-x-4">
-          <DarkMode />
-          <Profile handleLogout={handleLogout} />
         </div>
       </div>
     </div>
@@ -203,7 +203,7 @@ const DashboardCards = ({
   const { darkMode } = useTheme();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2 -ml-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-2">
       <Card
         title="Total Balance"
         amount={`$${totalBalance.toFixed(2)}`}

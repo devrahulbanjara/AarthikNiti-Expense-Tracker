@@ -287,10 +287,6 @@ const Income = () => {
                   Manage your income sources and track your earnings.
                 </p>
               </div>
-              <div className="flex items-center space-x-3 mr-3">
-                <DarkMode />
-                <Profile handleLogout={handleLogout} />
-              </div>
             </div>
           </div>
         </div>
