@@ -12,6 +12,7 @@ import DashboardPage from "./pages/Dashboard/DashboardPage";
 import Reports from "./pages/Dashboard/Reports";
 import Budgeting from "./pages/Dashboard/Budgeting";
 import Layout from "./components/Layout/Layout";
+import LandingPage from "./pages/Landing/LandingPage";
 import IncomeVsExpensesChart from "./components/Dashboard/income-expenses-chart";
 import {
   ProtectedRoute,
@@ -39,9 +40,13 @@ const App = () => {
             transition={Bounce}
           />
           <Routes>
+            {/* Make landing page the index route */}
+            <Route index element={<LandingPage />} />
+            
+            {/* Auth and Dashboard routes */}
             <Route path="/" element={<Layout />}>
               <Route
-                index
+                path="login"
                 element={
                   <PublicRoute>
                     <Login />
@@ -49,7 +54,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/signup"
+                path="signup"
                 element={
                   <PublicRoute>
                     <Signup />
@@ -57,7 +62,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/dashboard"
+                path="dashboard"
                 element={
                   <ProtectedRoute>
                     <DashboardPage />
@@ -65,7 +70,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/income"
+                path="income"
                 element={
                   <ProtectedRoute>
                     <Income />
@@ -73,7 +78,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/expenses"
+                path="expenses"
                 element={
                   <ProtectedRoute>
                     <Expense />
@@ -81,17 +86,17 @@ const App = () => {
                 }
               />
               <Route
-                path="/income-vs-expenses"
+                path="income-vs-expenses"
                 element={
                   <ProtectedRoute>
                     <IncomeVsExpensesChart />
                   </ProtectedRoute>
                 }
               />
-              <Route path="/forgotpw" element={<ForgotPassword />} />
+              <Route path="forgotpw" element={<ForgotPassword />} />
             </Route>
             <Route
-              path="/reports"
+              path="reports"
               element={
                 <ProtectedRoute>
                   <Reports />
@@ -99,7 +104,7 @@ const App = () => {
               }
             />
             <Route
-              path="/budgeting"
+              path="budgeting"
               element={
                 <ProtectedRoute>
                   <Budgeting />
