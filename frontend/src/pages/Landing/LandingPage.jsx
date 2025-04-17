@@ -16,123 +16,111 @@ const LandingPage = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Navigation */}
-      <header className="fixed top-0 z-50 w-full border-b bg-white shadow-sm">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-[#065336]">AarthikNiti</span>
-          </div>
-          <nav className="hidden md:flex gap-6">
-            <a href="#features" className="text-sm font-medium hover:underline underline-offset-4">
-              Features
-            </a>
-            <a href="#testimonials" className="text-sm font-medium hover:underline underline-offset-4">
-              Testimonials
-            </a>
-            <a href="#pricing" className="text-sm font-medium hover:underline underline-offset-4">
-              Pricing
-            </a>
-            <a href="#faq" className="text-sm font-medium hover:underline underline-offset-4">
-              FAQ
-            </a>
-          </nav>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleSignIn}
-              className="inline-flex h-9 items-center justify-center rounded-md border border-[#065336] px-4 text-sm font-medium text-[#065336] hover:bg-[#065336] hover:text-white transition-colors"
-            >
-              Sign In
-            </button>
-            <button
-              onClick={handleSignUp}
-              className="inline-flex h-9 items-center justify-center rounded-md bg-[#065336] px-4 text-sm font-medium text-white shadow hover:bg-[#065336]/90 transition-colors"
-            >
-              Sign Up
-            </button>
+      {/* Navigation - Simplified and Guaranteed Visible */}
+      <header className="fixed top-0 w-full bg-white shadow-md p-4 z-50">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="text-2xl font-bold text-[#065336]">AarthikNiti</div>
+          <div className="flex items-center space-x-6">
+            <nav className="flex space-x-6">
+              <a href="#features" className="font-medium hover:text-[#065336]">Features</a>
+              <a href="#testimonials" className="font-medium hover:text-[#065336]">Testimonials</a>
+              <a href="#pricing" className="font-medium hover:text-[#065336]">Pricing</a>
+              <a href="#faq" className="font-medium hover:text-[#065336]">FAQ</a>
+            </nav>
+            <div className="flex space-x-4">
+              <button 
+                onClick={handleSignIn}
+                className="px-4 py-2 border border-[#065336] text-[#065336] rounded-md hover:bg-[#065336] hover:text-white transition"
+              >
+                Sign In
+              </button>
+              <button 
+                onClick={handleSignUp}
+                className="px-4 py-2 bg-[#065336] text-white rounded-md hover:bg-[#065336]/90 transition"
+              >
+                Sign Up
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="pt-16"></div>
+      <div className="pt-16"></div> {/* Spacer for fixed header */}
 
-      {/* Hero Section with Video */}
+      {/* Hero Section */}
       <section className="w-full py-12 md:py-24 lg:py-32">
-        <div className="container grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
-          <div className="flex flex-col justify-center space-y-4">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl text-[#065336]">
-                Your Personal Finance Manager
-              </h1>
-              <p className="max-w-[600px] text-gray-600 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Take control of your finances with comprehensive tracking, insightful analytics, and smart budgeting
-                tools.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 min-[400px]:flex-row">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 grid lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight text-[#065336] sm:text-5xl md:text-6xl">
+              Your Personal Finance Manager
+            </h1>
+            <p className="mt-4 text-lg text-gray-600">
+              Take control of your finances with comprehensive tracking, insightful analytics, and smart budgeting tools.
+            </p>
+            <div className="mt-8 flex gap-4">
               <button
                 onClick={handleSignUp}
-                className="inline-flex h-10 items-center justify-center rounded-md bg-[#065336] px-8 text-sm font-medium text-white shadow transition-colors hover:bg-[#065336]/90"
+                className="flex items-center gap-2 rounded-md bg-[#065336] px-6 py-3 text-white hover:bg-[#065336]/90"
               >
-                Get Started
-                <ArrowRight className="ml-2 h-4 w-4" />
+                Get Started <ArrowRight size={18} />
               </button>
               <a
                 href="#features"
-                className="inline-flex h-10 items-center justify-center rounded-md border border-[#065336] px-8 text-sm font-medium text-[#065336] shadow-sm transition-colors hover:bg-[#065336] hover:text-white"
+                className="flex items-center gap-2 rounded-md border border-[#065336] px-6 py-3 text-[#065336] hover:bg-[#065336] hover:text-white"
               >
                 Learn More
               </a>
             </div>
           </div>
-          <div className="flex justify-center lg:justify-end">
-            <div className="relative w-full max-w-[500px] overflow-hidden rounded-xl border shadow-lg">
-              <video 
-                autoPlay 
-                loop 
-                muted 
-                playsInline
-                className="w-full h-auto object-cover"
-                onError={(e) => console.log("Video error:", e.target.error)}
-              >
-                <source src={dashboardVideo} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-            </div>
+          <div className="rounded-xl border shadow-lg overflow-hidden">
+            <video 
+              autoPlay 
+              loop 
+              muted 
+              playsInline
+              className="w-full h-auto"
+            >
+              <source src={dashboardVideo} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-[#f8f9fa]">
-        <div className="container px-4 md:px-6">
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="flex flex-col items-center justify-center space-y-2 p-6 rounded-lg border bg-white shadow-sm">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#065336]/10">
-                <Wallet className="h-8 w-8 text-[#065336]" />
+      <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <Wallet size={32} className="text-[#065336]" />,
+                title: "Track Finances",
+                description: "Monitor your income, expenses, and savings in one place"
+              },
+              {
+                icon: <BarChart3 size={32} className="text-[#065336]" />,
+                title: "Insightful Analytics",
+                description: "Visualize your financial data with intuitive charts and graphs"
+              },
+              {
+                icon: <PieChart size={32} className="text-[#065336]" />,
+                title: "Budget Planning",
+                description: "Create and manage budgets to achieve your financial goals"
+              }
+            ].map((item, index) => (
+              <div key={index} className="bg-white p-8 rounded-lg shadow-sm border">
+                <div className="w-16 h-16 flex items-center justify-center rounded-full bg-[#065336]/10 mb-4">
+                  {item.icon}
+                </div>
+                <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                <p className="text-gray-600">{item.description}</p>
               </div>
-              <h3 className="text-xl font-bold">Track Finances</h3>
-              <p className="text-center text-gray-500">Monitor your income, expenses, and savings in one place</p>
-            </div>
-            <div className="flex flex-col items-center justify-center space-y-2 p-6 rounded-lg border bg-white shadow-sm">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#065336]/10">
-                <BarChart3 className="h-8 w-8 text-[#065336]" />
-              </div>
-              <h3 className="text-xl font-bold">Insightful Analytics</h3>
-              <p className="text-center text-gray-500">
-                Visualize your financial data with intuitive charts and graphs
-              </p>
-            </div>
-            <div className="flex flex-col items-center justify-center space-y-2 p-6 rounded-lg border bg-white shadow-sm">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#065336]/10">
-                <PieChart className="h-8 w-8 text-[#065336]" />
-              </div>
-              <h3 className="text-xl font-bold">Budget Planning</h3>
-              <p className="text-center text-gray-500">Create and manage budgets to achieve your financial goals</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
+
+   
 
       {/* Features Section */}
       <section id="features" className="w-full py-12 md:py-24 lg:py-32">
