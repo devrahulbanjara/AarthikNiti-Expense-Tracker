@@ -1,7 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, BarChart3, PieChart, Wallet, ArrowUpRight, Shield, Clock } from 'lucide-react';
+import { ArrowRight, BarChart3, PieChart, Wallet, ArrowUpRight, Shield, Clock, Quote, ChevronDown } from 'lucide-react';
 import dashboardVideo from "../../assets/Videos/dashboard-preview.mp4";
+import lpImage from "../../assets/ExtraImg/lpimage.jpg";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -17,26 +18,25 @@ const LandingPage = () => {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Navigation - Simplified and Guaranteed Visible */}
-      <header className="fixed top-0 w-full bg-white shadow-md p-4 z-50">
+      <header className="fixed top-0 w-full bg-[#065336] shadow-md p-4 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="text-2xl font-bold text-[#065336]">AarthikNiti</div>
+          <div className="text-2xl font-bold text-white">AarthikNiti</div>
           <div className="flex items-center space-x-6">
             <nav className="flex space-x-6">
-              <a href="#features" className="font-medium hover:text-[#065336]">Features</a>
-              <a href="#testimonials" className="font-medium hover:text-[#065336]">Testimonials</a>
-              <a href="#pricing" className="font-medium hover:text-[#065336]">Pricing</a>
-              <a href="#faq" className="font-medium hover:text-[#065336]">FAQ</a>
+              <a href="#features" className="font-medium text-white hover:text-white/80">Features</a>
+              <a href="#testimonials" className="font-medium text-white hover:text-white/80">Testimonials</a>
+              <a href="#faq" className="font-medium text-white hover:text-white/80">FAQ</a>
             </nav>
             <div className="flex space-x-4">
               <button 
                 onClick={handleSignIn}
-                className="px-4 py-2 border border-[#065336] text-[#065336] rounded-md hover:bg-[#065336] hover:text-white transition"
+                className="px-4 py-2 border border-white text-white rounded-md hover:bg-white hover:text-[#065336] transition"
               >
                 Sign In
               </button>
               <button 
                 onClick={handleSignUp}
-                className="px-4 py-2 bg-[#065336] text-white rounded-md hover:bg-[#065336]/90 transition"
+                className="px-4 py-2 bg-white text-[#065336] rounded-md hover:bg-white/90 transition"
               >
                 Sign Up
               </button>
@@ -120,7 +120,48 @@ const LandingPage = () => {
         </div>
       </section>
 
-   
+      {/* Testimonials Section */}
+      <section id="testimonials" className="w-full py-12 md:py-24 lg:py-32 bg-[#065336]/5">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-[#065336]">What Our Users Say</h2>
+            <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
+              Hear from people who have transformed their financial management with AarthikNiti.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                quote: "AarthikNiti completely changed how I manage my finances. I've saved 20% more since I started using it!",
+                author: "Prajwal Dahal",
+                role: "Cloud Engineer"
+              },
+              {
+                quote: "The budgeting tools are incredibly intuitive. I finally understand where my money goes each month.",
+                author: "Priya Sharma",
+                role: "Marketing Manager"
+              },
+              {
+                quote: "As a freelancer, tracking irregular income was a challenge. AarthikNiti made it simple and stress-free.",
+                author: "Rahul Dev Banjara",
+                role: "Machine Learning Engineer"
+              }
+            ].map((testimonial, index) => (
+              <div key={index} className="bg-white p-6 rounded-lg shadow-md">
+                <div className="flex items-start mb-4">
+                  <Quote className="text-[#065336] mr-2 mt-1" />
+                  <p className="text-gray-700 italic">{testimonial.quote}</p>
+                </div>
+                <div className="border-t pt-4">
+                  <p className="font-semibold text-[#065336]">{testimonial.author}</p>
+                  <p className="text-sm text-gray-500">{testimonial.role}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Features Section */}
       <section id="features" className="w-full py-12 md:py-24 lg:py-32">
@@ -180,14 +221,63 @@ const LandingPage = () => {
               </ul>
             </div>
             <div className="mx-auto flex items-center justify-center">
-              <div className="relative w-full max-w-[500px] overflow-hidden rounded-xl border shadow-lg">
-                <img
-                  src="/placeholder.svg?height=600&width=800"
-                  alt="AarthikNiti Features"
-                  className="w-full object-cover"
-                />
-              </div>
+            <div className="relative w-full max-w-[500px] overflow-hidden rounded-xl border shadow-lg">
+              <img
+                src={lpImage}
+                alt="AarthikNiti Features"
+                className="w-full object-cover"
+              />
             </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="w-full py-12 md:py-24 lg:py-32 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-[#065336]">Frequently Asked Questions</h2>
+            <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
+              Find answers to common questions about AarthikNiti.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {[
+              {
+                question: "How secure is my financial data?",
+                answer: "We use bank-level encryption and security protocols to protect your data. Your information is never shared with third parties without your consent."
+              },
+              {
+                question: "Is there a mobile app available?",
+                answer: "Mobile App is not available currently."
+              },
+              {
+                question: "Can I connect my bank accounts?",
+                answer: "No, but we plan to add this feature in the near future. For now, you can manually enter your transactions."
+              },
+              {
+                question: "How does the budgeting feature work?",
+                answer: "Our budgeting tool allows you to set monthly limits for different categories. The system tracks your spending and alerts you when you're approaching your limits."
+              },
+              {
+                question: "Is there a free version available?",
+                answer: "Yes, this is an all free version for now. You can access all features without any cost."
+              },
+              {
+                question: "How often is my financial data updated?",
+                answer: "For connected accounts, data is typically updated within a few hours. You can also manually update at any time."
+              }
+            ].map((faq, index) => (
+              <details key={index} className="group bg-white p-6 rounded-lg shadow-sm border">
+                <summary className="flex justify-between items-center cursor-pointer">
+                  <h3 className="font-medium text-[#065336]">{faq.question}</h3>
+                  <ChevronDown className="h-5 w-5 text-[#065336] transform group-open:rotate-180 transition-transform" />
+                </summary>
+                <p className="mt-4 text-gray-600">{faq.answer}</p>
+              </details>
+            ))}
           </div>
         </div>
       </section>
@@ -213,10 +303,10 @@ const LandingPage = () => {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </button>
               <a
-                href="#pricing"
+                href="#features"
                 className="inline-flex h-10 items-center justify-center rounded-md border border-white px-8 text-sm font-medium text-white shadow-sm transition-colors hover:bg-white hover:text-[#065336]"
               >
-                View Pricing
+                Learn More
               </a>
             </div>
           </div>
