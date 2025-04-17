@@ -42,30 +42,56 @@ const FixedIcons = () => {
     <div className="fixed top-4 right-4 flex items-center gap-4 z-50">
       <button
         onClick={toggleDarkMode}
-        className="p-2 rounded-full bg-[#065336] text-white hover:bg-[#054328] transition-colors"
+        className={`p-2 rounded-full ${
+          darkMode ? "bg-gray-700" : "bg-[#065336]"
+        } ${
+          darkMode
+            ? "text-gray-100 hover:bg-gray-600"
+            : "text-white hover:bg-[#054328]"
+        } transition-colors`}
       >
         {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
       </button>
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={handleProfileClick}
-          className="p-2 rounded-full bg-[#065336] text-white hover:bg-[#054328] transition-colors flex items-center gap-2"
+          className={`p-2 rounded-full ${
+            darkMode ? "bg-gray-700" : "bg-[#065336]"
+          } ${
+            darkMode
+              ? "text-gray-100 hover:bg-gray-600"
+              : "text-white hover:bg-[#054328]"
+          } transition-colors flex items-center gap-2`}
         >
           <User className="h-5 w-5" />
           <ChevronDown className="h-4 w-4 hidden md:block" />
         </button>
         {showProfileDropdown && (
-          <div className="absolute right-0 mt-2 w-48 bg-[#065336] rounded-lg shadow-lg py-2">
+          <div
+            className={`absolute right-0 mt-2 w-48 ${
+              darkMode ? "bg-gray-800" : "bg-[#065336]"
+            } rounded-lg shadow-lg py-2 border ${
+              darkMode ? "border-gray-700" : "border-gray-400"
+            }`}
+          >
             <button
               onClick={handleProfileOption}
-              className="w-full px-4 py-2 text-left text-white hover:bg-[#054328] transition-colors flex items-center gap-2"
+              className={`w-full px-4 py-2 text-left ${
+                darkMode
+                  ? "text-gray-100 hover:bg-gray-700"
+                  : "text-white hover:bg-[#054328]"
+              } transition-colors flex items-center gap-2`}
             >
               <User className="h-4 w-4" />
               Profile
             </button>
             <button
               onClick={handleLogout}
-              className="w-full px-4 py-2 text-left text-white hover:bg-[#054328] transition-colors flex items-center gap-2"
+              className={`w-full px-4 py-2 text-left ${
+                darkMode
+                  ? "text-gray-100 hover:bg-gray-700"
+                  : "text-white hover:bg-[#054328]"
+              } transition-colors flex items-center gap-2`}
             >
               <LogOut className="h-4 w-4" />
               Logout

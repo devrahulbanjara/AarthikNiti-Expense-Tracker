@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MessageSquare, History, User, X } from "lucide-react";
+import {
+  MessageSquare,
+  History,
+  User,
+  X,
+  Settings,
+  Trash2,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -236,6 +243,7 @@ const ChatInput = ({
 const ChatAssistant = ({ darkMode }) => {
   const { getToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [chatMessages, setChatMessages] = useState(() => {
     const savedMessages = localStorage.getItem("chatHistory");
     return savedMessages
@@ -252,13 +260,21 @@ const ChatAssistant = ({ darkMode }) => {
   const [chatInput, setChatInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+
+  const scrollToBottom = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop =
+        messagesContainerRef.current.scrollHeight;
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem("chatHistory", JSON.stringify(chatMessages));
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (isOpen) {
+      scrollToBottom();
     }
-  }, [chatMessages]);
+  }, [chatMessages, isTyping, isOpen]);
 
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
@@ -295,6 +311,7 @@ const ChatAssistant = ({ darkMode }) => {
         timestamp: new Date().toISOString(),
       },
     ]);
+    setShowSettings(false);
   };
 
   return (
@@ -310,16 +327,69 @@ const ChatAssistant = ({ darkMode }) => {
 
       {isOpen && (
         <div
-          className={`fixed bottom-20 right-4 w-full md:w-96 h-[calc(100vh-8rem)] ${
-            darkMode ? "bg-gray-800" : "bg-white"
+          className={`fixed bottom-20 right-4 w-full md:w-[480px] h-[calc(80vh-8rem)] ${
+            darkMode ? "bg-gray-800" : "bg-[#F9FAFB]"
           } rounded-lg shadow-xl transition-all duration-300`}
         >
           <div className="flex flex-col h-full">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-semibold">Chat Assistant</h2>
+            <div
+              className={`p-4 border-b ${
+                darkMode
+                  ? "border-gray-700 bg-gray-800"
+                  : "border-gray-200 bg-[#F9FAFB]"
+              } flex justify-between items-center`}
+            >
+              <h2
+                className={`text-lg font-semibold ${
+                  darkMode ? "text-white" : "text-gray-800"
+                }`}
+              >
+                Shikshya Chat
+              </h2>
+              <div className="relative">
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className={`p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors`}
+                >
+                  <Settings
+                    size={20}
+                    className={darkMode ? "text-white" : "text-gray-600"}
+                  />
+                </button>
+                {showSettings && (
+                  <div
+                    className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg ${
+                      darkMode ? "bg-gray-700" : "bg-white"
+                    } ring-1 ring-black ring-opacity-5`}
+                  >
+                    <div
+                      className="py-1"
+                      role="menu"
+                      aria-orientation="vertical"
+                      aria-labelledby="options-menu"
+                    >
+                      <button
+                        onClick={clearChatHistory}
+                        className={`flex items-center w-full px-4 py-2 text-sm ${
+                          darkMode
+                            ? "text-white hover:bg-gray-600"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                        role="menuitem"
+                      >
+                        <Trash2 size={16} className="mr-2" />
+                        Clear Chat History
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4">
+            <div
+              ref={messagesContainerRef}
+              className="flex-1 overflow-y-auto p-4"
+            >
               {chatMessages.map((message, index) => (
                 <div
                   key={index}
@@ -331,8 +401,8 @@ const ChatAssistant = ({ darkMode }) => {
                     className={`inline-block p-3 rounded-lg ${
                       message.sender === "user"
                         ? darkMode
-                          ? "bg-blue-600 text-white"
-                          : "bg-blue-500 text-white"
+                          ? "bg-[#065336] text-white"
+                          : "bg-[#065336] text-white"
                         : darkMode
                         ? "bg-gray-700 text-white"
                         : "bg-gray-100 text-gray-800"
@@ -342,6 +412,98 @@ const ChatAssistant = ({ darkMode }) => {
                   </div>
                 </div>
               ))}
+              {isTyping && (
+                <div className="flex items-center space-x-2">
+                  <div className="h-8 w-8 rounded-full bg-[#065336] flex items-center justify-center text-white mr-2 flex-shrink-0">
+                    <MessageSquare className="h-5 w-5" />
+                  </div>
+                  <div
+                    className={`p-3 rounded-lg ${
+                      darkMode ? "bg-gray-700" : "bg-gray-100"
+                    }`}
+                  >
+                    <div className="flex space-x-2">
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0ms" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "150ms" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "300ms" }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Template Messages */}
+            <div
+              className={`px-4 py-2 border-t ${
+                darkMode ? "border-gray-700" : "border-gray-200"
+              }`}
+            >
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                <button
+                  onClick={() => {
+                    setChatInput(
+                      "Give me recommendations on my spending pattern"
+                    );
+                    handleSendMessage();
+                  }}
+                  className={`p-2 text-sm rounded-lg ${
+                    darkMode
+                      ? "bg-gray-700 text-white hover:bg-gray-600"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  } transition-colors`}
+                >
+                  Spending Pattern Analysis
+                </button>
+                <button
+                  onClick={() => {
+                    setChatInput("How can I spend less?");
+                    handleSendMessage();
+                  }}
+                  className={`p-2 text-sm rounded-lg ${
+                    darkMode
+                      ? "bg-gray-700 text-white hover:bg-gray-600"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  } transition-colors`}
+                >
+                  Reduce Expenses
+                </button>
+                <button
+                  onClick={() => {
+                    setChatInput("How can I earn more?");
+                    handleSendMessage();
+                  }}
+                  className={`p-2 text-sm rounded-lg ${
+                    darkMode
+                      ? "bg-gray-700 text-white hover:bg-gray-600"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  } transition-colors`}
+                >
+                  Increase Income
+                </button>
+                <button
+                  onClick={() => {
+                    setChatInput("What are my earnings this month?");
+                    handleSendMessage();
+                  }}
+                  className={`p-2 text-sm rounded-lg ${
+                    darkMode
+                      ? "bg-gray-700 text-white hover:bg-gray-600"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  } transition-colors`}
+                >
+                  Monthly Earnings
+                </button>
+              </div>
             </div>
 
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
@@ -360,13 +522,13 @@ const ChatAssistant = ({ darkMode }) => {
                   className={`flex-1 p-2 rounded-lg ${
                     darkMode
                       ? "bg-gray-700 text-white"
-                      : "bg-gray-100 text-gray-800"
+                      : "bg-white text-gray-800"
                   }`}
                 />
                 <button
                   type="submit"
                   className={`p-2 rounded-lg ${
-                    darkMode ? "bg-blue-600" : "bg-blue-500"
+                    darkMode ? "bg-[#065336]" : "bg-[#065336]"
                   } text-white`}
                 >
                   Send

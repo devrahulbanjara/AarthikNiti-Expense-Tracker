@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from core.config import get_current_user
 from services.profile_service import (
-    get_active_profile, update_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,get_transaction_trend,income_expense_table,get_all_profile_names,get_active_profile_info, edit_income, delete_income,get_upcoming_bills_user
+    get_active_profile, add_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,get_transaction_trend,income_expense_table,get_all_profile_names,get_active_profile_info, edit_income, delete_income,get_upcoming_bills_user
 )
 from pydantic import BaseModel
 from typing import List 
@@ -25,10 +25,10 @@ class IncomeUpdateRequest(BaseModel):
     category: str
 
 
-@router.post("/update_income")
-async def update_income_endpoint(request: IncomeUpdateRequest, user: dict = Depends(get_current_user)):
+@router.post("/add_income")
+async def add_income_endpoint(request: IncomeUpdateRequest, user: dict = Depends(get_current_user)):
     """Updates income for the active profile."""
-    return await update_income(user["user_id"], request.amount, request.description, request.category)
+    return await add_income(user["user_id"], request.amount, request.description, request.category)
 
 
 class AddExpenseRequest(BaseModel):
@@ -36,7 +36,7 @@ class AddExpenseRequest(BaseModel):
     amount: float
     category: str
     recurring: bool = False
-    recurrence_duration: Optional[str] = None
+    recurrence_duration: Optional[str]
 
 
 @router.post("/add_expense")
@@ -162,9 +162,9 @@ async def delete_income_endpoint(request: DeleteIncomeRequest, user: dict = Depe
 
 @router.get("/upcoming-bills")
 async def get_upcoming_bills(
-    current_user: dict = Depends(get_current_user)
+    user: dict = Depends(get_current_user)
 ):
     """
     Get upcoming recurring bills that are due in the next 3 days
     """
-    return get_upcoming_bills_user(current_user["user_id"])
+    return await get_upcoming_bills_user(user["user_id"])

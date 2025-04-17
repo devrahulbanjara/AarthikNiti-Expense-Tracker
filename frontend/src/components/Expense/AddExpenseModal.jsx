@@ -141,9 +141,9 @@ const AddExpenseModal = ({
                       : "bg-white border-gray-300"
                   } focus:ring-2 focus:ring-[#065336] focus:border-[#065336] transition-colors`}
                 >
-                  <option value="Weekly">Weekly</option>
-                  <option value="Monthly">Monthly</option>
-                  <option value="Yearly">Yearly</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
                 </select>
               </div>
             )}

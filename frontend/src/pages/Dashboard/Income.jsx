@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import Sidebar from "../../components/Layout/sidebar";
-import Profile from "../../components/Layout/profile";
-import DarkMode from "../../components/Layout/darkmode";
 import AddIncome from "../../components/Income/AddIncome";
 import IncomeOverview from "../../components/Income/IncomeOverview";
 import IncomeSources from "../../components/Income/IncomeSources";
@@ -150,7 +148,7 @@ const Income = () => {
         }
       } else {
         // Add new income
-        const response = await fetch(`${BACKEND_URL}/profile/update_income`, {
+        const response = await fetch(`${BACKEND_URL}/profile/add_income`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

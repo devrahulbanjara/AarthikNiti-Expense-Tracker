@@ -175,26 +175,46 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   return (
     <>
       <div
-        className={`fixed top-0 left-0 h-full w-64 bg-[#065336] transition-transform duration-300 ease-in-out z-40 md:translate-x-0 ${
+        className={`fixed top-0 left-0 h-full w-64 ${
+          darkMode ? "bg-gray-800" : "bg-[#065336]"
+        } transition-colors duration-300 ease-in-out z-40 md:translate-x-0 ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full p-4">
           <div className="flex justify-between items-center mb-4 md:block">
-            <h2 className="text-xl font-bold text-white">AarthikNiti</h2>
+            <h2
+              className={`text-xl font-bold ${
+                darkMode ? "text-gray-100" : "text-white"
+              }`}
+            >
+              AarthikNiti
+            </h2>
             <button
-              className="md:hidden p-2 rounded-full bg-[#054328] text-white"
+              className={`md:hidden p-2 rounded-full ${
+                darkMode ? "bg-gray-700" : "bg-[#054328]"
+              } text-white`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          <hr className="my-3 border-gray-400" />
+          <hr
+            className={`my-3 ${
+              darkMode ? "border-gray-700" : "border-gray-400"
+            }`}
+          />
 
           <div className="mb-4 relative account-dropdown-container">
             <div
-              className="flex justify-between items-center p-2 border border-gray-400/50 rounded-md cursor-pointer text-white hover:bg-[#054328] transition-colors"
+              className={`flex justify-between items-center p-2 border ${
+                darkMode ? "border-gray-700" : "border-gray-400/50"
+              } rounded-md cursor-pointer ${
+                darkMode
+                  ? "text-gray-100 hover:bg-gray-700"
+                  : "text-white hover:bg-[#054328]"
+              } transition-colors`}
               onClick={() => setShowAccountDropdown(!showAccountDropdown)}
             >
               <span>{activeAccount}</span>
@@ -202,11 +222,21 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
             </div>
 
             {showAccountDropdown && (
-              <div className="absolute left-0 right-0 mt-1 bg-[#065336] border border-gray-400 rounded-md shadow-md z-10">
+              <div
+                className={`absolute left-0 right-0 mt-1 ${
+                  darkMode ? "bg-gray-800" : "bg-[#065336]"
+                } border ${
+                  darkMode ? "border-gray-700" : "border-gray-400"
+                } rounded-md shadow-md z-10`}
+              >
                 {accounts.map((account) => (
                   <div
                     key={account.profile_id}
-                    className="p-2 hover:bg-[#054328] cursor-pointer text-white transition-colors"
+                    className={`p-2 ${
+                      darkMode
+                        ? "hover:bg-gray-700 text-gray-100"
+                        : "hover:bg-[#054328] text-white"
+                    } cursor-pointer transition-colors`}
                     onClick={() => {
                       switchProfile(account.profile_id, account.profile_name);
                       setShowAccountDropdown(false);
@@ -216,7 +246,13 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                   </div>
                 ))}
                 <div
-                  className="p-2 border-t border-gray-400 hover:bg-[#054328] cursor-pointer flex items-center text-white transition-colors"
+                  className={`p-2 border-t ${
+                    darkMode ? "border-gray-700" : "border-gray-400"
+                  } ${
+                    darkMode
+                      ? "hover:bg-gray-700 text-gray-100"
+                      : "hover:bg-[#054328] text-white"
+                  } cursor-pointer flex items-center transition-colors`}
                   onClick={() => {
                     setShowAccountDropdown(false);
                     setShowAddAccountModal(true);
@@ -228,7 +264,11 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
             )}
           </div>
 
-          <hr className="my-3 border-gray-400" />
+          <hr
+            className={`my-3 ${
+              darkMode ? "border-gray-700" : "border-gray-400"
+            }`}
+          />
 
           <ul>
             {navItems.map((item) => {
@@ -239,7 +279,11 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                     onClick={() => handleNavigation(item.href)}
                     className={`w-full flex items-center py-2 px-4 rounded-md mb-1 ${
                       isActive
-                        ? "bg-[#054328] text-white"
+                        ? darkMode
+                          ? "bg-gray-700 text-gray-100"
+                          : "bg-[#054328] text-white"
+                        : darkMode
+                        ? "text-gray-300 hover:bg-gray-700"
                         : "text-white hover:bg-[#054328]"
                     } transition-all`}
                   >
@@ -252,14 +296,22 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           </ul>
 
           <div className="mt-auto mb-6">
-            <hr className="my-3 border-gray-400" />
+            <hr
+              className={`my-3 ${
+                darkMode ? "border-gray-700" : "border-gray-400"
+              }`}
+            />
             <ul>
               <li>
                 <button
                   onClick={() => handleNavigation("/settings")}
                   className={`w-full flex items-center py-2 px-4 rounded-md mb-1 ${
                     location.pathname === "/settings"
-                      ? "bg-[#054328] text-white"
+                      ? darkMode
+                        ? "bg-gray-700 text-gray-100"
+                        : "bg-[#054328] text-white"
+                      : darkMode
+                      ? "text-gray-300 hover:bg-gray-700"
                       : "text-white hover:bg-[#054328]"
                   } transition-all`}
                 >

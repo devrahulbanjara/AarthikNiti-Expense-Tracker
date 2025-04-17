@@ -111,7 +111,7 @@ async def create_default_profile(user_id: int):
     return 1  # Default profile_id
 
 
-async def update_income(user_id: int, amount: float, description: str, category: str):
+async def add_income(user_id: int, amount: float, description: str, category: str):
     """Adds income to the active profile and stores it in transactions."""
     
     user = await users_collection.find_one({"user_id": user_id})
@@ -533,58 +533,49 @@ async def delete_income(user_id: int, transaction_id: str):
     
     return {"message": "Income deleted successfully"}
 
-def get_upcoming_bills_user(user_id: str):
-    """
-    Get upcoming recurring bills that are due in the next 3 days
-    """
-    try:
-        # Get current date and date 3 days from now
-        current_date = datetime.now()
-        three_days_later = current_date + timedelta(days=3)
-        
-        # Query recurring expenses
-        recurring_expenses = transactions_collection.find({
-            "user_id": user_id,
-            "transaction_type": "expense",
-            "is_recurring": True,
-            "recurring_period": {"$exists": True}
-        })
-        
-        upcoming_bills = []
-        
-        for expense in recurring_expenses:
-            last_payment_date = expense.get("timestamp", current_date)
-            recurring_period = expense.get("recurring_period")
-            
-            # Calculate next payment date based on recurring period
-            if recurring_period == "weekly":
-                next_payment = last_payment_date + timedelta(weeks=1)
-            elif recurring_period == "monthly":
-                next_payment = last_payment_date + timedelta(days=30)
-            elif recurring_period == "yearly":
-                next_payment = last_payment_date + timedelta(days=365)
-            else:
-                continue
-                
-            # Check if next payment is within 3 days
-            if current_date <= next_payment <= three_days_later:
-                # Calculate days until payment
-                days_until = (next_payment - current_date).days
-                due_in = "today" if days_until == 0 else f"{days_until} days"
-                
-                upcoming_bills.append({
-                    "id": str(expense["_id"]),
-                    "name": expense.get("transaction_description", "Recurring Expense"),
-                    "category": expense.get("transaction_category", "Uncategorized"),
-                    "amount": expense.get("transaction_amount", 0),
-                    "due_in": due_in,
-                    "next_payment_date": next_payment.isoformat()
-                })
-        
-        return {"upcoming_bills": upcoming_bills}
-        
-    except Exception as e:
-        print(f"Error getting upcoming bills: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to get upcoming bills")
+async def get_upcoming_bills_user(user_id: int):
+    current_date = datetime.utcnow()
+    three_days_later = current_date + timedelta(days=3)
 
+    profile = await get_active_profile(user_id)
+    profile_id = profile["profile_id"]
 
+    recurring_expenses = await transactions_collection.find({
+        "user_id": user_id,
+        "profile_id": profile_id,
+        "transaction_type": "expense",
+        "recurring": True,
+        "recurrence_duration": {"$exists": True}
+    }).to_list(length=None)
+
+    upcoming_bills = []
+
+    for expense in recurring_expenses:
+        last_payment_date = expense.get("timestamp", current_date)
+        recurrence_duration = expense.get("recurrence_duration")
+
+        if recurrence_duration == "weekly":
+            next_payment = last_payment_date + timedelta(weeks=1)
+        elif recurrence_duration == "monthly":
+            next_payment = last_payment_date + timedelta(days=30)
+        elif recurrence_duration == "yearly":
+            next_payment = last_payment_date + timedelta(days=365)
+        else:
+            continue
+
+        if current_date <= next_payment <= three_days_later:
+            days_until = (next_payment - current_date).days
+            due_in = "0 days" if days_until == 0 else f"{days_until} days"
+
+            upcoming_bills.append({
+                "id": str(expense["_id"]),
+                "name": expense.get("transaction_description", "Recurring Expense"),
+                "category": expense.get("transaction_category", "Uncategorized"),
+                "amount": expense.get("transaction_amount", 0),
+                "due_in": due_in,
+                "next_payment_date": next_payment.isoformat()
+            })
+
+    upcoming_bills.sort(key=lambda x: x["next_payment_date"])
+
+    return {"upcoming_bills": upcoming_bills}

@@ -70,7 +70,6 @@ const Expense = () => {
   const [activeTab, setActiveTab] = useState("Daily Expenses");
   const [timeRange, setTimeRange] = useState(7);
 
-  // New expense state
   const [newExpense, setNewExpense] = useState({
     category: "",
     amount: "",

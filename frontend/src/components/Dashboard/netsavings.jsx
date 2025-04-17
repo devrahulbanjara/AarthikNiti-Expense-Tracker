@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const NetSavings = () => {
   const { darkMode } = useTheme();
+  const { getToken } = useAuth();
   const [hoveredMonth, setHoveredMonth] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [savingsData, setSavingsData] = useState([]);
@@ -14,7 +16,7 @@ const NetSavings = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const token = localStorage.getItem("access_token");
+      const token = getToken();
 
       try {
         const response = await fetch(
@@ -26,7 +28,10 @@ const NetSavings = () => {
               : 12
           }`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 
@@ -53,7 +58,7 @@ const NetSavings = () => {
     };
 
     fetchData();
-  }, [timeRange]);
+  }, [timeRange, getToken]);
 
   const handleMouseMove = (e) => {
     if (chartRef.current) {
