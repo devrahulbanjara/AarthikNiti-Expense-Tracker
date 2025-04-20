@@ -11,6 +11,7 @@ import Chatbot from "../../components/Chatbot/chat-assistant";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-hot-toast";
+import Header from "../../components/Layout/Header";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -253,43 +254,16 @@ const Income = () => {
   };
 
   return (
-    <div
-      className={`flex ${
-        darkMode ? "bg-gray-950 text-white" : "bg-white text-black"
-      } transition-colors duration-300`}
-    >
-      <Sidebar />
-
-      {/* main content income page */}
-      <div className="w-4/5 ml-[calc(20%-15px)] p-6 min-h-screen relative">
-        <div
-          className={`fixed top-0 left-[calc(20%-15px)] right-0 ${
-            darkMode ? "bg-gray-950" : "bg-white"
-          } z-30 p-6 transition-all duration-300 ${
-            scrolled
-              ? `${
-                  darkMode ? "bg-opacity-80" : "bg-opacity-90"
-                } backdrop-blur-sm border-b ${
-                  darkMode ? "border-gray-800" : "border-gray-200"
-                }`
-              : "bg-opacity-100"
-          }`}
-        >
-          <div className="flex flex-col">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-2xl font-bold">Income</h1>
-                <p
-                  className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}
-                >
-                  Manage your income sources and track your earnings.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-28">
+    <div className={`${darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"} min-h-screen flex flex-col md:flex-row`}>
+      <Sidebar active="income" />
+      
+      <div className="w-full md:w-4/5 md:ml-[20%] p-4 min-h-screen pb-20">
+        <Header 
+          title="Income" 
+          subtitle="Manage your income sources and track your earnings." 
+        />
+        
+        <div className="pt-28 md:pt-28">
           {/* Income Actions Section */}
           <div className="mb-6 flex justify-between items-center">
             <div>

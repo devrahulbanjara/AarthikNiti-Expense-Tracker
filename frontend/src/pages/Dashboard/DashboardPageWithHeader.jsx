@@ -1,10 +1,8 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowUp, ArrowDown, DollarSign, Percent } from "lucide-react";
-import Sidebar from "../../components/Layout/sidebar";
 import Header from "../../components/Layout/Header";
+import Sidebar from "../../components/Layout/sidebar";
 import RecentTransactions from "../../components/Dashboard/recenttransactions";
 import ExpensesBreakdown from "../../components/Dashboard/expensesbreakdown";
 import UpcomingBills from "../../components/Dashboard/upcomingbills";
@@ -71,10 +69,6 @@ const DashboardPage = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-  };
-
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
@@ -113,9 +107,10 @@ const DashboardPage = () => {
       <Sidebar scrolled={scrolled} />
 
       <div className="w-full md:w-4/5 md:ml-[20%] p-4 md:p-6 min-h-screen relative">
+        {/* Using the reusable Header component */}
         <Header 
           title="Dashboard" 
-          subtitle="View your financial overview and recent activity." 
+          subtitle="View your financial overview and recent activity."
         />
 
         <div className="pt-28 md:pt-28">
@@ -188,55 +183,29 @@ const DashboardCards = ({
   );
 };
 
-// Card Component with animated counter
+// Card Component
 const Card = ({ title, amount, icon: Icon }) => {
   const { darkMode } = useTheme();
-  const [displayValue, setDisplayValue] = useState(0);
-  const amountValue = parseFloat(amount.replace(/[^0-9.-]+/g, ""));
-  
-  useEffect(() => {
-    // Extract the numeric value from the amount string
-    const targetValue = amountValue;
-    let startValue = 0;
-    const duration = 1500; // Animation duration in ms
-    const frameRate = 20; // Update every 20ms
-    const increment = targetValue / (duration / frameRate);
-    let currentValue = 0;
-    
-    const timer = setInterval(() => {
-      currentValue += increment;
-      if (currentValue >= targetValue) {
-        clearInterval(timer);
-        setDisplayValue(targetValue);
-      } else {
-        setDisplayValue(currentValue);
-      }
-    }, frameRate);
-    
-    return () => clearInterval(timer);
-  }, [amountValue]);
 
   const getValueColor = (title) => {
-    // Different colors for dark mode and light mode
     if (darkMode) {
       switch (title) {
         case "Total Balance":
-          return "#4ade80"; // Bright green for better contrast in dark mode
+          return "#4ade80";
         case "Total Income":
-          return "#34d399"; // Slightly different bright green for income
+          return "#34d399";
         case "Total Expenses":
-          return "#ef4444"; // Using the same red color as in recent transactions table
+          return "#ef4444";
         default:
           return "white";
       }
     } else {
-      // Light mode colors remain the same
       switch (title) {
         case "Total Balance":
         case "Total Income":
-          return "#0a6e47"; // Original green
+          return "#0a6e47";
         case "Total Expenses":
-          return "#ef4444"; // Original red
+          return "#ef4444";
         default:
           return "rgba(0, 0, 0, 0.6)";
       }
@@ -251,83 +220,46 @@ const Card = ({ title, amount, icon: Icon }) => {
         darkMode ? "bg-gray-800" : "bg-white"
       } p-3 rounded-lg border ${
         darkMode ? "border-gray-700" : "border-gray-300"
-      } text-center transition-all duration-300 hover:scale-105 hover:shadow-lg animate-fadeIn`}
+      } text-center transition-transform duration-300 hover:scale-105`}
     >
       <div className="flex items-center justify-between">
         <h2
           className="text-md font-semibold"
           style={{
-            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)", // Original title color
+            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)",
           }}
         >
           {title}
         </h2>
         <Icon
-          className="h-5 w-5 transform transition-all duration-700 hover:rotate-12 hover:scale-110 animate-pulse"
+          className="h-5 w-5"
           style={{
             color: valueColor,
-            animationDuration: "3s"
           }}
         />
       </div>
-      <p className="text-2xl font-bold mt-2 flex justify-center items-baseline" style={{ color: valueColor }}>
-        <span className="text-sm mr-1">$</span>
-        <span className="tabular-nums transition-all">
-          {displayValue.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}
-        </span>
+      <p className="text-2xl font-bold mt-2" style={{ color: valueColor }}>
+        {amount}
       </p>
     </div>
   );
 };
 
-// Budget Card Component with animated progress bar
+// Budget Card Component
 const BudgetCard = ({ percentage, isOverBudget }) => {
   const { darkMode } = useTheme();
-  const [animatedPercentage, setAnimatedPercentage] = useState(0);
-  const [progressWidth, setProgressWidth] = useState(0);
   
-  // Get color based on percentage with dark mode awareness
   const getPercentColor = () => {
     if (darkMode) {
-      // Dark mode colors with better contrast
-      if (percentage > 80) return "#ef4444"; // Match red color used in recent transactions
-      if (percentage > 60) return "#fbbf24"; // Brighter yellow for dark mode
-      return "#4ade80"; // Brighter green for dark mode
+      if (percentage > 80) return "#ef4444";
+      if (percentage > 60) return "#fbbf24";
+      return "#4ade80";
     } else {
-      // Light mode colors remain the same
-      if (percentage > 80) return "#ef4444"; // Original red
-      if (percentage > 60) return "#f59e0b"; // Original yellow/amber
-      return "#0a6e47"; // Original green
+      if (percentage > 80) return "#ef4444";
+      if (percentage > 60) return "#f59e0b";
+      return "#0a6e47";
     }
   };
-  
-  useEffect(() => {
-    // Animate percentage counter
-    const duration = 1500; // Animation duration in ms
-    const frameRate = 20; // Update every 20ms
-    const increment = percentage / (duration / frameRate);
-    let currentValue = 0;
-    
-    // Start with progress bar at 0%
-    setProgressWidth(0);
-    
-    const timer = setInterval(() => {
-      currentValue += increment;
-      if (currentValue >= percentage) {
-        clearInterval(timer);
-        setAnimatedPercentage(percentage);
-        // Set final progress bar width after counter finishes
-        setTimeout(() => setProgressWidth(percentage), 50);
-      } else {
-        setAnimatedPercentage(Math.round(currentValue));
-      }
-    }, frameRate);
-    
-    return () => clearInterval(timer);
-  }, [percentage]);
   
   const percentColor = getPercentColor();
 
@@ -337,56 +269,37 @@ const BudgetCard = ({ percentage, isOverBudget }) => {
         darkMode ? "bg-gray-800" : "bg-white"
       } p-3 rounded-lg border ${
         darkMode ? "border-gray-700" : "border-gray-300"
-      } text-center transition-all duration-300 hover:scale-105 hover:shadow-lg animate-fadeIn`}
+      } text-center transition-transform duration-300 hover:scale-105`}
     >
       <div className="flex items-center justify-between">
         <h2
           className="text-md font-semibold"
           style={{
-            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)", // Same as other card titles
+            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)",
           }}
         >
           Spent
         </h2>
         <Percent
-          className="h-5 w-5 transform transition-all duration-700 hover:rotate-12 hover:scale-110 animate-pulse"
+          className="h-5 w-5"
           style={{
             color: percentColor,
-            animationDuration: "3s"
           }}
         />
       </div>
-      <p 
-        className="text-2xl font-bold mt-2 relative" 
-        style={{ color: percentColor }}
-      >
-        <span className="inline-block tabular-nums transition-all">
-          {animatedPercentage}
-        </span>
-        <span className="ml-1">%</span>
-        {isOverBudget && 
-          <span 
-            className="absolute -top-1 -right-1 text-xs px-1 animate-pulse rounded-full" 
-            style={{backgroundColor: percentColor, color: 'white'}}
-          >
-            !
-          </span>
-        }
+      <p className="text-2xl font-bold mt-2" style={{ color: percentColor }}>
+        {percentage}%
       </p>
       <div
         className={`w-full ${
           darkMode ? "bg-gray-700" : "bg-gray-200"
-        } rounded-full h-2 mt-3 overflow-hidden relative`}
+        } rounded-full h-1.5 mt-2`}
       >
         <div
-          className="h-2 rounded-full absolute left-0 top-0 transition-none"
+          className="h-1.5 rounded-full"
           style={{ 
-            width: `${progressWidth}%`,
-            backgroundColor: percentColor,
-            boxShadow: isOverBudget ? `0 0 10px ${percentColor}` : 'none',
-            transitionProperty: 'width',
-            transitionDuration: '1.5s',
-            transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+            width: `${percentage}%`,
+            backgroundColor: percentColor
           }}
         ></div>
       </div>
@@ -394,4 +307,4 @@ const BudgetCard = ({ percentage, isOverBudget }) => {
   );
 };
 
-export default DashboardPage;
+export default DashboardPage; 

@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import Sidebar from "./sidebar";
-import FixedIcons from "./FixedIcons";
 import { useAuth } from "../../context/AuthContext";
 
 const Layout = () => {
@@ -26,7 +25,6 @@ const Layout = () => {
             isMobileMenuOpen={isMobileMenuOpen}
             setIsMobileMenuOpen={setIsMobileMenuOpen}
           />
-          <FixedIcons />
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

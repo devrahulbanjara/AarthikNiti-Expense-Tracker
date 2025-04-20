@@ -1,8 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --font-display: "Poppins", "sans-serif";
   --breakpoint-3xl: 1920px;
   --color-primary: #857cf5;
 }
@@ -63,6 +61,49 @@
 
   body {
     @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
-    font-family: "Poppins", sans-serif;
+    font-family: theme('fontFamily.sans');
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sans font-semibold;
+  }
+}
+
+@layer components {
+  /* Custom scrollbars for chat */
+  .scrollbar-light::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-light::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 8px;
+  }
+  
+  .scrollbar-light::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 8px;
+  }
+  
+  .scrollbar-light::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+  }
+  
+  .scrollbar-dark::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-dark::-webkit-scrollbar-track {
+    background: #2d3748;
+    border-radius: 8px;
+  }
+  
+  .scrollbar-dark::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 8px;
+  }
+  
+  .scrollbar-dark::-webkit-scrollbar-thumb:hover {
+    background: #718096;
   }
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { Calendar, CheckCircle, AlertTriangle, MoreVertical } from "lucide-react";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -15,6 +16,7 @@ const UpcomingBills = () => {
 
   const fetchUpcomingBills = async () => {
     try {
+      setLoading(true);
       const token = getToken();
       const response = await fetch(`${BACKEND_URL}/profile/upcoming-bills`, {
         method: "GET",
@@ -30,6 +32,7 @@ const UpcomingBills = () => {
       setBills(data.upcoming_bills);
     } catch (error) {
       console.error("Error fetching upcoming bills:", error);
+      setBills([]); // Set to empty array on error
     } finally {
       setLoading(false);
     }
@@ -45,162 +48,129 @@ const UpcomingBills = () => {
     setActiveDropdown(activeDropdown === id ? null : id);
   };
 
-  if (loading) {
-    return (
-      <div
-        className={`${
-          darkMode ? "bg-gray-800" : "bg-white"
-        } p-4 rounded-lg border ${
-          darkMode ? "border-gray-700" : "border-gray-300"
-        } h-full -ml-6`}
-      >
-        <h2 className="text-lg font-semibold mb-1">Upcoming Bills</h2>
-        <p
-          className={`${
-            darkMode ? "text-gray-400" : "text-gray-600"
-          } text-sm mb-4`}
-        >
-          Loading bills...
-        </p>
-      </div>
-    );
-  }
+  const getDaysDifference = (dueDate) => {
+    const today = new Date();
+    const due = new Date(dueDate);
+    today.setHours(0, 0, 0, 0);
+    due.setHours(0, 0, 0, 0);
+    const diffTime = due - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const formatDueDate = (days) => {
+    if (days < 0) return `Overdue by ${Math.abs(days)} day${Math.abs(days) !== 1 ? 's' : ''}`;
+    if (days === 0) return "Due today";
+    if (days === 1) return "Due tomorrow";
+    return `Due in ${days} days`;
+  };
 
   return (
     <div
-      className={`${
-        darkMode ? "bg-gray-800" : "bg-white"
-      } p-4 rounded-lg border ${
-        darkMode ? "border-gray-700" : "border-gray-300"
-      } h-full -ml-6`}
+      className={`p-4 lg:p-6 rounded-lg border transition-all duration-300
+        ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}
+        hover:shadow-md h-full`}
     >
-      <h2 className="text-lg font-semibold mb-1">Upcoming Bills</h2>
-      <p
-        className={`${
-          darkMode ? "text-gray-400" : "text-gray-600"
-        } text-sm mb-4`}
-      >
-        Bills due in the next 30 days
-      </p>
-
-      <div className="space-y-4">
-        {bills.length === 0 ? (
-          <p
-            className={`${
-              darkMode ? "text-gray-400" : "text-gray-600"
-            } text-sm text-center`}
-          >
-            No upcoming bills
-          </p>
-        ) : (
-          bills.map((bill) => (
-            <div
-              key={bill.id}
-              className={`border rounded-lg p-4 flex justify-between items-center ${
-                darkMode
-                  ? "border-gray-700 hover:bg-gray-700"
-                  : "border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                <div>
-                  <h3 className="font-medium">{bill.name}</h3>
-                  <span
-                    className={`text-xs px-2 py-0.5 ${
-                      darkMode ? "bg-gray-700" : "bg-gray-100"
-                    } rounded-full`}
-                  >
-                    {bill.category}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div
-                  className={`text-xs ${
-                    darkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
-                >
-                  Due {bill.due_in}
-                </div>
-                <div className="font-semibold">${bill.amount.toFixed(2)}</div>
-                <div className="relative">
-                  <button
-                    className={`${
-                      darkMode
-                        ? "text-gray-400 hover:text-gray-200"
-                        : "text-gray-400 hover:text-gray-600"
-                    } cursor-pointer`}
-                    onClick={() => toggleDropdown(bill.id)}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                    </svg>
-                  </button>
-
-                  {activeDropdown === bill.id && (
-                    <div
-                      className={`absolute right-0 mt-1 w-36 ${
-                        darkMode
-                          ? "bg-gray-700 border-gray-600"
-                          : "bg-white border-gray-300"
-                      } rounded-md border z-10`}
-                    >
-                      <button
-                        className={`flex items-center w-full px-4 py-2 text-sm text-left ${
-                          darkMode ? "hover:bg-gray-600" : "hover:bg-gray-100"
-                        } cursor-pointer`}
-                        onClick={() => {
-                          // Handle mark as paid
-                          setActiveDropdown(null);
-                        }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 mr-2"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Mark as paid
-                      </button>
-                      <button
-                        className={`flex items-center w-full px-4 py-2 text-sm text-left ${
-                          darkMode ? "hover:bg-gray-600" : "hover:bg-gray-100"
-                        } cursor-pointer`}
-                        onClick={() => {
-                          alert(`Reminder set for ${bill.name}`);
-                          setActiveDropdown(null);
-                        }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 mr-2"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                        </svg>
-                        Set reminder
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))
-        )}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Upcoming Bills</h2>
+        <Calendar className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
       </div>
+
+      {loading ? (
+        <div className="flex flex-col justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <span className={`mt-3 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading upcoming bills...</span>
+        </div>
+      ) : bills.length === 0 ? (
+        <div className="text-center py-12">
+          <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+            You have no upcoming bills due within the next 30 days.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {bills.map((bill) => {
+            const daysDiff = getDaysDifference(bill.due_date);
+            const isOverdue = daysDiff < 0;
+            const isDueSoon = daysDiff >= 0 && daysDiff <= 3;
+            
+            return (
+              <div
+                key={bill.id}
+                className={`border rounded-lg p-3 flex flex-col sm:flex-row justify-between sm:items-center gap-2 transition-all duration-200 
+                ${darkMode ? "border-gray-700 hover:bg-gray-700/50" : "border-gray-200 hover:bg-gray-50"}`}
+              >
+                <div className="flex items-center space-x-3 flex-grow">
+                  <div className={`w-2 h-2 rounded-full flex-shrink-0 
+                    ${isOverdue ? 'bg-red-500' : isDueSoon ? 'bg-yellow-500' : 'bg-gray-400'}
+                  `}></div>
+                  <div className="flex-grow">
+                    <h3 className="font-medium text-sm break-words">{bill.name}</h3>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block
+                        ${darkMode ? "bg-gray-600" : "bg-gray-200"}`}
+                    >
+                      {bill.category}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between sm:justify-end space-x-3 w-full sm:w-auto pl-5 sm:pl-0">
+                  <div
+                    className={`text-xs font-medium whitespace-nowrap 
+                    ${isOverdue ? 'text-red-500' : isDueSoon ? 'text-yellow-500' : (darkMode ? "text-gray-400" : "text-gray-500")}`}
+                  >
+                    {formatDueDate(daysDiff)}
+                  </div>
+                  <div className="font-semibold text-sm">${bill.amount.toFixed(2)}</div>
+                  <div className="relative">
+                    <button
+                      className={`p-1 rounded-full transition-colors duration-200 
+                        ${darkMode ? "text-gray-400 hover:bg-gray-600 hover:text-gray-200" : "text-gray-500 hover:bg-gray-200 hover:text-gray-700"}`}
+                      onClick={() => toggleDropdown(bill.id)}
+                      aria-haspopup="true"
+                      aria-expanded={activeDropdown === bill.id}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+
+                    {activeDropdown === bill.id && (
+                      <div
+                        className={`absolute right-0 mt-1 w-40 rounded-lg shadow-lg border 
+                          ${darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200"}
+                          z-10 transform transition-all duration-300 animate-slideDown`}
+                      >
+                        <button
+                          className={`flex items-center w-full px-3 py-2 text-sm text-left transition-colors duration-200 
+                            ${darkMode ? "hover:bg-gray-600 text-white" : "hover:bg-gray-100 text-gray-700"}`}
+                          onClick={() => {
+                            // Handle mark as paid
+                            console.log(`Marking ${bill.name} as paid`);
+                            setActiveDropdown(null);
+                          }}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                          Mark as paid
+                        </button>
+                        <button
+                          className={`flex items-center w-full px-3 py-2 text-sm text-left transition-colors duration-200 
+                            ${darkMode ? "hover:bg-gray-600 text-white" : "hover:bg-gray-100 text-gray-700"}`}
+                          onClick={() => {
+                            alert(`Reminder set for ${bill.name}`);
+                            setActiveDropdown(null);
+                          }}
+                        >
+                          <AlertTriangle className="h-4 w-4 mr-2 text-yellow-500" />
+                          Set reminder
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   );
 };

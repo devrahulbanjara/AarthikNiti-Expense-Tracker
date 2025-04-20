@@ -15,7 +15,9 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
   const [activeIndex, setActiveIndex] = useState(null);
   const [expenseBreakdownData, setExpenseBreakdownData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [animationProgress, setAnimationProgress] = useState(0);
   const chartRef = useRef(null);
+  const animationRef = useRef(null);
 
   const fetchExpenseBreakdownData = async () => {
     try {
@@ -51,11 +53,39 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
       );
 
       setExpenseBreakdownData(breakdownData);
+      startAnimation();
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching expense breakdown data:", error);
       setIsLoading(false);
     }
+  };
+
+  const startAnimation = () => {
+    // Reset animation progress
+    setAnimationProgress(0);
+    
+    // Cancel any existing animation
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    
+    let startTime;
+    const animationDuration = 1500; // 1.5 seconds
+    
+    const animateChart = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / animationDuration, 1);
+      
+      setAnimationProgress(progress);
+      
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animateChart);
+      }
+    };
+    
+    animationRef.current = requestAnimationFrame(animateChart);
   };
 
   useEffect(() => {
@@ -65,7 +95,12 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
       fetchExpenseBreakdownData();
     }, 300000);
 
-    return () => clearInterval(intervalId);
+    return () => {
+      clearInterval(intervalId);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
   }, []);
 
   const handleMouseMove = (e) => {
@@ -76,19 +111,35 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
   };
 
   const renderActiveShape = (props) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } =
-      props;
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+    const { darkMode } = useTheme();
 
     return (
       <g>
         <Sector
           cx={cx}
           cy={cy}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius + 5}
+          innerRadius={innerRadius - 3}
+          outerRadius={outerRadius + 6}
           startAngle={startAngle}
           endAngle={endAngle}
           fill={fill}
+          opacity={0.9}
+          stroke={darkMode ? "#ffffff" : "#000000"}
+          strokeWidth={darkMode ? 1.5 : 0.8}
+          className="filter drop-shadow-md"
+        />
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={outerRadius + 10}
+          outerRadius={outerRadius + 13}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+          stroke={darkMode ? "#ffffff" : "#000000"}
+          strokeWidth={darkMode ? 0.8 : 0.5}
+          opacity={0.5}
         />
       </g>
     );
@@ -122,7 +173,7 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
         darkMode ? "border-gray-700" : "border-gray-300"
       } h-full w-full ${
         location.pathname === "/dashboard" ? "max-w-md" : "w-full"
-      }`}
+      } transition-all duration-300 hover:shadow-lg`}
       ref={chartRef}
       onMouseMove={handleMouseMove}
     >
@@ -130,8 +181,17 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
 
       {isLoading ? (
         <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <span className="ml-2">Loading expense data...</span>
+          <div className="flex flex-col items-center">
+            <div className="relative h-36 w-36">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-24 w-24 rounded-full border-4 border-gray-200 border-opacity-30"></div>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-24 w-24 rounded-full border-4 border-t-transparent border-blue-500 animate-spin"></div>
+              </div>
+            </div>
+            <span className="mt-4 text-sm text-center">Loading expense data...</span>
+          </div>
         </div>
       ) : expenseBreakdownData.length === 0 ? (
         <p
@@ -143,31 +203,34 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
         </p>
       ) : (
         <>
-          <div className="h-[220px] mb-4 relative">
+          <div className="h-[260px] mb-4 relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={expenseBreakdownData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={50}
-                  outerRadius={70}
+                  innerRadius={67}
+                  outerRadius={93}
                   paddingAngle={2}
                   dataKey="value"
                   activeIndex={activeIndex}
                   activeShape={renderActiveShape}
                   onMouseEnter={handlePieEnter}
                   onMouseLeave={handlePieLeave}
+                  startAngle={90}
+                  endAngle={animationProgress * 360 + 90}
                   animationBegin={0}
-                  animationDuration={1000}
-                  animationEasing="ease-out"
-                  isAnimationActive={true}
+                  animationDuration={0}
+                  isAnimationActive={false}
                 >
                   {expenseBreakdownData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={entry.color}
-                      stroke={entry.color}
+                      stroke={darkMode ? "#ffffff" : "#000000"}
+                      strokeWidth={darkMode ? 1.5 : 0.8}
+                      className="filter drop-shadow-sm"
                     />
                   ))}
                 </Pie>
@@ -176,15 +239,15 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
 
             {showTooltip && tooltipData && (
               <div
-                className={`absolute  ${
+                className={`absolute ${
                   darkMode
                     ? "bg-gray-700 border-gray-600"
                     : "bg-white border-gray-200"
-                } border rounded-md p-3 z-20 transition-opacity duration-300 ease-in-out`}
+                } border rounded-md p-3 z-20 shadow-lg transition-all duration-300 ease-in-out transform`}
                 style={{
                   left: `${tooltipPosition.x}px`,
                   top: `${tooltipPosition.y}px`,
-                  transform: "translate(10px, -50%)",
+                  transform: "translate(10px, -50%) scale(1)",
                   opacity: showTooltip ? 1 : 0,
                 }}
               >
@@ -224,7 +287,7 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
               return (
                 <div
                   key={`legend-${index}`}
-                  className={`flex items-center gap-2  cursor-pointer ${
+                  className={`flex items-center gap-2 cursor-pointer ${
                     darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"
                   } p-1 rounded transition-all duration-200 ${
                     activeIndex === index ? "scale-105 font-medium" : ""
@@ -233,7 +296,7 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
                   onMouseLeave={() => setActiveIndex(null)}
                 >
                   <div
-                    className="w-3 h-3 rounded-full"
+                    className="w-3 h-3 rounded-full transition-transform duration-200 hover:scale-125"
                     style={{ backgroundColor: entry.color }}
                   ></div>
                   <div>

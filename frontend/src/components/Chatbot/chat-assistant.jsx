@@ -259,6 +259,7 @@ const ChatAssistant = ({ darkMode }) => {
   });
   const [chatInput, setChatInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const chatEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
@@ -275,6 +276,16 @@ const ChatAssistant = ({ darkMode }) => {
       scrollToBottom();
     }
   }, [chatMessages, isTyping, isOpen]);
+
+  const toggleChat = () => {
+    setIsAnimating(true);
+    setIsOpen(!isOpen);
+    
+    // Reset animation state after animation completes
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 500);
+  };
 
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
@@ -317,227 +328,258 @@ const ChatAssistant = ({ darkMode }) => {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`p-3 rounded-full shadow-lg ${
-          darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"
-        }`}
+        onClick={toggleChat}
+        className={`p-4 rounded-full shadow-xl transform transition-all duration-300 ease-in-out ${
+          isAnimating ? 'animate-pulse' : ''
+        } ${
+          isOpen 
+            ? 'rotate-90 bg-red-500 hover:bg-red-600' 
+            : `${darkMode ? "bg-[#065336]" : "bg-[#065336]"} hover:scale-110`
+        } text-white`}
+        aria-label={isOpen ? "Close chat" : "Open chat"}
       >
-        {isOpen ? <X size={24} /> : <MessageSquare size={24} />}
+        {isOpen ? (
+          <X size={24} className="transform transition-transform duration-300" />
+        ) : (
+          <MessageSquare size={24} className="transform transition-transform duration-300" />
+        )}
       </button>
 
-      {isOpen && (
-        <div
-          className={`fixed bottom-20 right-4 w-full md:w-[480px] h-[calc(80vh-8rem)] ${
-            darkMode ? "bg-gray-800" : "bg-[#F9FAFB]"
-          } rounded-lg shadow-xl transition-all duration-300`}
-        >
-          <div className="flex flex-col h-full">
-            <div
-              className={`p-4 border-b ${
-                darkMode
-                  ? "border-gray-700 bg-gray-800"
-                  : "border-gray-200 bg-[#F9FAFB]"
-              } flex justify-between items-center`}
-            >
-              <h2
-                className={`text-lg font-semibold ${
-                  darkMode ? "text-white" : "text-gray-800"
+      <div
+        className={`fixed bottom-20 right-4 w-full md:w-[400px] lg:w-[480px] max-h-[600px] overflow-hidden rounded-xl shadow-2xl 
+        ${darkMode ? "bg-gray-800 border border-gray-700" : "bg-white border border-gray-200"}
+        transform transition-all duration-500 ease-in-out ${
+          isOpen
+            ? "scale-100 translate-y-0 opacity-100"
+            : "scale-95 translate-y-10 opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="flex flex-col h-[600px]">
+          <div
+            className={`p-4 border-b ${
+              darkMode ? "border-gray-700" : "border-gray-200"
+            } flex justify-between items-center bg-[#065336] text-white`}
+          >
+            <div className="flex items-center space-x-2">
+              <MessageSquare className="h-5 w-5" />
+              <h2 className="text-lg font-semibold">
+                Aarthik Assistant
+              </h2>
+            </div>
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className={`p-2 rounded-full hover:bg-[#054328] transition-colors`}
+                aria-label="Settings"
+              >
+                <Settings size={18} className="text-white" />
+              </button>
+              <button
+                onClick={toggleChat}
+                className={`p-2 rounded-full hover:bg-[#054328] transition-colors`}
+                aria-label="Close chat"
+              >
+                <X size={18} className="text-white" />
+              </button>
+            </div>
+            {showSettings && (
+              <div
+                className={`absolute right-2 top-14 mt-1 w-48 rounded-md shadow-lg ${
+                  darkMode ? "bg-gray-700" : "bg-white"
+                } ring-1 ring-black ring-opacity-5 z-10 transform transition-all duration-300 ease-in-out animate-slideDown`}
+              >
+                <div
+                  className="py-1"
+                  role="menu"
+                  aria-orientation="vertical"
+                >
+                  <button
+                    onClick={clearChatHistory}
+                    className={`flex items-center w-full px-4 py-2 text-sm ${
+                      darkMode
+                        ? "text-white hover:bg-gray-600"
+                        : "text-gray-700 hover:bg-gray-100"
+                    } transition-colors`}
+                    role="menuitem"
+                  >
+                    <Trash2 size={16} className="mr-2 text-red-500" />
+                    <span>Clear Chat History</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div
+            ref={messagesContainerRef}
+            className={`flex-1 overflow-y-auto p-4 ${darkMode ? "scrollbar-dark" : "scrollbar-light"}`}
+          >
+            {chatMessages.map((message, index) => (
+              <div
+                key={index}
+                className={`mb-4 ${
+                  message.sender === "user" ? "text-right" : "text-left"
                 }`}
               >
-                Shikshya Chat
-              </h2>
-              <div className="relative">
-                <button
-                  onClick={() => setShowSettings(!showSettings)}
-                  className={`p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors`}
-                >
-                  <Settings
-                    size={20}
-                    className={darkMode ? "text-white" : "text-gray-600"}
-                  />
-                </button>
-                {showSettings && (
-                  <div
-                    className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg ${
-                      darkMode ? "bg-gray-700" : "bg-white"
-                    } ring-1 ring-black ring-opacity-5`}
-                  >
-                    <div
-                      className="py-1"
-                      role="menu"
-                      aria-orientation="vertical"
-                      aria-labelledby="options-menu"
-                    >
-                      <button
-                        onClick={clearChatHistory}
-                        className={`flex items-center w-full px-4 py-2 text-sm ${
-                          darkMode
-                            ? "text-white hover:bg-gray-600"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
-                        role="menuitem"
-                      >
-                        <Trash2 size={16} className="mr-2" />
-                        Clear Chat History
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div
-              ref={messagesContainerRef}
-              className="flex-1 overflow-y-auto p-4"
-            >
-              {chatMessages.map((message, index) => (
                 <div
-                  key={index}
-                  className={`mb-4 ${
-                    message.sender === "user" ? "text-right" : "text-left"
-                  }`}
-                >
-                  <div
-                    className={`inline-block p-3 rounded-lg ${
+                  className={`inline-block p-3 rounded-lg max-w-[85%] transition-all transform animate-messageScale
+                    ${
                       message.sender === "user"
-                        ? darkMode
-                          ? "bg-[#065336] text-white"
-                          : "bg-[#065336] text-white"
+                        ? "bg-[#065336] text-white rounded-tr-none animate-messageSlideLeft"
                         : darkMode
-                        ? "bg-gray-700 text-white"
-                        : "bg-gray-100 text-gray-800"
+                        ? "bg-gray-700 text-white rounded-tl-none animate-messageSlideRight"
+                        : "bg-gray-100 text-gray-800 rounded-tl-none animate-messageSlideRight"
+                    }
+                  `}
+                >
+                  {message.text}
+                  <div 
+                    className={`text-xs mt-1 ${
+                      message.sender === "user" ? "text-green-200" : darkMode ? "text-gray-400" : "text-gray-500"
                     }`}
                   >
-                    {message.text}
+                    {new Date(message.timestamp).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
                   </div>
                 </div>
-              ))}
-              {isTyping && (
-                <div className="flex items-center space-x-2">
-                  <div className="h-8 w-8 rounded-full bg-[#065336] flex items-center justify-center text-white mr-2 flex-shrink-0">
-                    <MessageSquare className="h-5 w-5" />
-                  </div>
-                  <div
-                    className={`p-3 rounded-lg ${
-                      darkMode ? "bg-gray-700" : "bg-gray-100"
-                    }`}
-                  >
-                    <div className="flex space-x-2">
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0ms" }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "150ms" }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "300ms" }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={chatEndRef} />
-            </div>
-
-            {/* Template Messages */}
-            <div
-              className={`px-4 py-2 border-t ${
-                darkMode ? "border-gray-700" : "border-gray-200"
-              }`}
-            >
-              <div className="grid grid-cols-2 gap-2 mb-2">
-                <button
-                  onClick={() => {
-                    setChatInput(
-                      "Give me recommendations on my spending pattern"
-                    );
-                    handleSendMessage();
-                  }}
-                  className={`p-2 text-sm rounded-lg ${
-                    darkMode
-                      ? "bg-gray-700 text-white hover:bg-gray-600"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                  } transition-colors`}
-                >
-                  Spending Pattern Analysis
-                </button>
-                <button
-                  onClick={() => {
-                    setChatInput("How can I spend less?");
-                    handleSendMessage();
-                  }}
-                  className={`p-2 text-sm rounded-lg ${
-                    darkMode
-                      ? "bg-gray-700 text-white hover:bg-gray-600"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                  } transition-colors`}
-                >
-                  Reduce Expenses
-                </button>
-                <button
-                  onClick={() => {
-                    setChatInput("How can I earn more?");
-                    handleSendMessage();
-                  }}
-                  className={`p-2 text-sm rounded-lg ${
-                    darkMode
-                      ? "bg-gray-700 text-white hover:bg-gray-600"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                  } transition-colors`}
-                >
-                  Increase Income
-                </button>
-                <button
-                  onClick={() => {
-                    setChatInput("What are my earnings this month?");
-                    handleSendMessage();
-                  }}
-                  className={`p-2 text-sm rounded-lg ${
-                    darkMode
-                      ? "bg-gray-700 text-white hover:bg-gray-600"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                  } transition-colors`}
-                >
-                  Monthly Earnings
-                </button>
               </div>
-            </div>
+            ))}
+            {isTyping && (
+              <div className="flex items-center animate-fadeIn">
+                <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700 max-w-[85%] rounded-tl-none">
+                  <div className="flex space-x-2">
+                    <div
+                      className={`w-2 h-2 ${darkMode ? "bg-gray-400" : "bg-gray-500"} rounded-full animate-bounce`}
+                      style={{ animationDelay: "0ms" }}
+                    ></div>
+                    <div
+                      className={`w-2 h-2 ${darkMode ? "bg-gray-400" : "bg-gray-500"} rounded-full animate-bounce`}
+                      style={{ animationDelay: "150ms" }}
+                    ></div>
+                    <div
+                      className={`w-2 h-2 ${darkMode ? "bg-gray-400" : "bg-gray-500"} rounded-full animate-bounce`}
+                      style={{ animationDelay: "300ms" }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
 
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
+          {/* Template Messages */}
+          <div
+            className={`px-4 py-2 border-t ${
+              darkMode ? "border-gray-700 bg-gray-800" : "border-gray-200 bg-gray-50"
+            } transform transition-all duration-300 ease-in-out`}
+          >
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <button
+                onClick={() => {
+                  setChatInput(
+                    "Give me recommendations on my spending pattern"
+                  );
                   handleSendMessage();
                 }}
-                className="flex gap-2"
+                className={`p-2 text-sm rounded-lg shadow-sm ${
+                  darkMode
+                    ? "bg-gray-700 text-white hover:bg-gray-600"
+                    : "bg-white text-gray-800 hover:bg-gray-100"
+                } transition-all duration-300 hover:shadow-md hover:scale-105`}
               >
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Type your message..."
-                  className={`flex-1 p-2 rounded-lg ${
-                    darkMode
-                      ? "bg-gray-700 text-white"
-                      : "bg-white text-gray-800"
-                  }`}
-                />
-                <button
-                  type="submit"
-                  className={`p-2 rounded-lg ${
-                    darkMode ? "bg-[#065336]" : "bg-[#065336]"
-                  } text-white`}
-                >
-                  Send
-                </button>
-              </form>
+                Spending Pattern Analysis
+              </button>
+              <button
+                onClick={() => {
+                  setChatInput("How can I spend less?");
+                  handleSendMessage();
+                }}
+                className={`p-2 text-sm rounded-lg shadow-sm ${
+                  darkMode
+                    ? "bg-gray-700 text-white hover:bg-gray-600"
+                    : "bg-white text-gray-800 hover:bg-gray-100"
+                } transition-all duration-300 hover:shadow-md hover:scale-105`}
+              >
+                Reduce Expenses
+              </button>
+              <button
+                onClick={() => {
+                  setChatInput("How can I earn more?");
+                  handleSendMessage();
+                }}
+                className={`p-2 text-sm rounded-lg shadow-sm ${
+                  darkMode
+                    ? "bg-gray-700 text-white hover:bg-gray-600"
+                    : "bg-white text-gray-800 hover:bg-gray-100"
+                } transition-all duration-300 hover:shadow-md hover:scale-105`}
+              >
+                Increase Income
+              </button>
+              <button
+                onClick={() => {
+                  setChatInput("What are my earnings this month?");
+                  handleSendMessage();
+                }}
+                className={`p-2 text-sm rounded-lg shadow-sm ${
+                  darkMode
+                    ? "bg-gray-700 text-white hover:bg-gray-600"
+                    : "bg-white text-gray-800 hover:bg-gray-100"
+                } transition-all duration-300 hover:shadow-md hover:scale-105`}
+              >
+                Monthly Earnings
+              </button>
             </div>
           </div>
+
+          <div className={`p-4 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              className="flex gap-2"
+            >
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Type your message..."
+                className={`flex-1 p-3 rounded-lg border ${
+                  darkMode
+                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500"
+                    : "bg-white border-gray-300 text-gray-800 focus:ring-green-500 focus:border-green-500"
+                } transition-all duration-300 focus:outline-none focus:ring-2`}
+              />
+              <button
+                type="submit"
+                disabled={!chatInput.trim()}
+                className={`p-3 rounded-lg ${
+                  !chatInput.trim()
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#065336] hover:bg-[#054328]"
+                } text-white transition-all duration-300 transform hover:scale-105`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                  />
+                </svg>
+              </button>
+            </form>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

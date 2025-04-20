@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { ChevronDown } from "lucide-react";
+import LoadingSpinner from "../UI/LoadingSpinner";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const NetSavings = () => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
-  const [hoveredMonth, setHoveredMonth] = useState(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [savingsData, setSavingsData] = useState([]);
   const [timeRange, setTimeRange] = useState("Last 6 months");
   const [loading, setLoading] = useState(true);
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
   const chartRef = useRef(null);
 
   useEffect(() => {
@@ -38,15 +40,18 @@ const NetSavings = () => {
         if (!response.ok) throw new Error("Failed to fetch savings data");
 
         const data = await response.json();
+        console.log("Raw savings data:", data); // Log raw data
 
         const formattedData = data.savings_trend.map(
           ({ year, month, savings }) => ({
             month: new Date(year, month - 1).toLocaleString("default", {
               month: "short",
             }),
-            value: savings,
+            value: Number(savings), // Ensure savings is converted to a number
           })
         );
+        
+        console.log("Formatted Savings Data:", formattedData);
 
         setSavingsData(formattedData);
       } catch (error) {
@@ -60,190 +65,137 @@ const NetSavings = () => {
     fetchData();
   }, [timeRange, getToken]);
 
-  const handleMouseMove = (e) => {
-    if (chartRef.current) {
-      const rect = chartRef.current.getBoundingClientRect();
-      setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const value = payload[0].value;
+      const color = darkMode ? "#4ade80" : "#0a6e47";
+      
+      return (
+        <div
+          className={`p-3 border rounded-lg shadow-md transform transition-all duration-200
+            ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-200 text-gray-800"}`}
+        >
+          <p className="font-semibold text-md mb-1">{label}</p>
+          <p className="text-sm flex items-center">
+            <span className={`font-medium mr-1`}>Net Savings:</span>
+            <span className={`font-bold`} style={{ color: color }}>
+              ${value.toLocaleString()}
+            </span>
+          </p>
+        </div>
+      );
     }
-  };
-
-  const chartWidth = 100;
-  const chartHeight = 100;
-  const points = savingsData.map((data, index) => ({
-    x: (index / (savingsData.length - 1)) * chartWidth,
-    y:
-      chartHeight -
-      (data.value / Math.max(...savingsData.map((d) => d.value))) * chartHeight,
-    ...data,
-  }));
-
-  const createAreaPath = () => {
-    if (points.length === 0) return "";
-
-    let path = `M${points[0].x},${points[0].y}`;
-    for (let i = 1; i < points.length; i++) {
-      const { x: prevX, y: prevY } = points[i - 1];
-      const { x: currX, y: currY } = points[i];
-      const cp1x = prevX + (currX - prevX) / 3;
-      const cp1y = prevY;
-      const cp2x = prevX + (2 * (currX - prevX)) / 3;
-      const cp2y = currY;
-
-      path += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${currX},${currY}`;
-    }
-    path += ` L${points[points.length - 1].x},${chartHeight} L${
-      points[0].x
-    },${chartHeight} Z`;
-    return path;
+    return null;
   };
 
   return (
     <div
-      className={`${
-        darkMode ? "bg-gray-800" : "bg-white"
-      } p-4 rounded-lg border ${
-        darkMode ? "border-gray-700" : "border-gray-300"
-      } h-full`}
+      className={`p-4 lg:p-6 rounded-lg border transition-all duration-300
+        ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}
+        hover:shadow-md h-full`}
     >
-      <div className="flex justify-between items-center mb-1">
-        <h2 className="text-lg font-semibold">Net Savings Trend</h2>
-        <select
-          className={`text-sm border rounded-md px-2 py-1 cursor-pointer ${
-            darkMode
-              ? "bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
-              : "bg-white border-gray-300 hover:bg-gray-50"
-          }`}
-          onChange={(e) => setTimeRange(e.target.value)}
-          value={timeRange}
-        >
-          <option>Last 3 months</option>
-          <option>Last 6 months</option>
-          <option>Last year</option>
-        </select>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+        <div>
+          <h2 className="text-xl font-semibold mb-1">Net Savings Trend</h2>
+          <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+            Your savings accumulation over time
+          </p>
+        </div>
+        <div className="relative mt-2 sm:mt-0">
+          <button
+            className={`flex items-center gap-1 px-3 py-2 border rounded-lg text-sm cursor-pointer transition-colors duration-200 
+              ${darkMode 
+                ? "bg-gray-700 border-gray-600 hover:bg-gray-600 text-white" 
+                : "bg-white border-gray-300 hover:bg-gray-50 text-gray-700"}`}
+            onClick={() => setShowTimeDropdown(!showTimeDropdown)}
+          >
+            {timeRange} 
+            <ChevronDown 
+              className={`h-4 w-4 transition-transform duration-200 ${showTimeDropdown ? 'rotate-180' : ''}`} 
+            />
+          </button>
+          {showTimeDropdown && (
+            <div
+              className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg border 
+              ${darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200"}
+              z-10 transform transition-all duration-300 animate-slideDown`}
+            >
+              {["Last 3 months", "Last 6 months", "Last year"].map((option) => (
+                <div
+                  key={option}
+                  className={`px-4 py-2 text-sm cursor-pointer transition-colors duration-200 
+                  ${darkMode ? "hover:bg-gray-600 text-white" : "hover:bg-gray-100 text-gray-700"}
+                  ${timeRange === option ? (darkMode ? 'bg-gray-600' : 'bg-gray-100') : ''}`}
+                  onClick={() => {
+                    setTimeRange(option);
+                    setShowTimeDropdown(false);
+                  }}
+                >
+                  {option}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-      <p
-        className={`${
-          darkMode ? "text-gray-400" : "text-gray-600"
-        } text-sm mb-4`}
-      >
-        Your savings over time
-      </p>
 
       {loading ? (
-        <div className="flex justify-center items-center h-[300px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <span className="ml-2">Loading savings data...</span>
+        <div className="flex flex-col justify-center items-center h-[300px]">
+          <LoadingSpinner text="Loading savings data..." />
         </div>
       ) : savingsData.length === 0 ? (
         <div className="flex justify-center items-center h-[300px]">
-          <p
-            className={`text-center ${
-              darkMode ? "text-gray-400" : "text-gray-500"
-            }`}
-          >
-            No savings data available
+          <p className={`text-center text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+            No savings data available for the selected period.
           </p>
         </div>
       ) : (
-        <div
-          className="h-[300px] relative"
-          ref={chartRef}
-          onMouseMove={handleMouseMove}
-        >
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 grid grid-cols-6 grid-rows-5">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={`h-${i}`}
-                  className={`col-span-6 border-t border-dashed ${
-                    darkMode ? "border-gray-700" : "border-gray-200"
-                  }`}
-                ></div>
-              ))}
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={`v-${i}`}
-                  className={`row-span-5 border-l border-dashed ${
-                    darkMode ? "border-gray-700" : "border-gray-200"
-                  }`}
-                ></div>
-              ))}
-            </div>
-
-            <div
-              className={`absolute left-0 top-0 h-full flex flex-col justify-between text-xs ${
-                darkMode ? "text-gray-400" : "text-gray-500"
-              } py-2`}
+        <div className="h-[300px] w-full" ref={chartRef}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={savingsData}
+              margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
             >
-              <span>${Math.max(...savingsData.map((d) => d.value))}</span>
-              <span>${Math.max(...savingsData.map((d) => d.value)) / 2}</span>
-              <span>$0</span>
-            </div>
-
-            <div
-              className={`absolute bottom-0 left-10 right-0 flex justify-between text-xs ${
-                darkMode ? "text-gray-400" : "text-gray-500"
-              }`}
-            >
-              {savingsData.map((data) => (
-                <span key={data.month}>{data.month}</span>
-              ))}
-            </div>
-
-            <div className="absolute left-10 right-0 top-2 bottom-6">
-              <svg
-                width="100%"
-                height="100%"
-                viewBox={`0 0 ${100} ${100}`}
-                preserveAspectRatio="none"
-              >
-                <path
-                  d={createAreaPath()}
-                  fill="rgba(59, 130, 246, 0.3)"
-                  stroke="none"
-                />
-              </svg>
-
-              <div className="absolute inset-0 flex">
-                {savingsData.map((data, index) => (
-                  <div
-                    key={index}
-                    className="flex-1 h-full cursor-pointer"
-                    onMouseEnter={() => setHoveredMonth(data.month)}
-                    onMouseLeave={() => setHoveredMonth(null)}
-                  />
-                ))}
-              </div>
-
-              {hoveredMonth && (
-                <div
-                  className={`absolute ${
-                    darkMode
-                      ? "bg-gray-700 border-gray-600"
-                      : "bg-white border-gray-200"
-                  } border rounded-md p-2 z-20 pointer-events-none`}
-                  style={{
-                    left: `${mousePosition.x}px`,
-                    top: `${mousePosition.y - 60}px`,
-                    transform: "translate(-50%, -50%)",
-                  }}
-                >
-                  <div className="font-medium">{hoveredMonth}</div>
-                  <div
-                    className={`text-sm ${
-                      darkMode ? "text-gray-400" : "text-gray-500"
-                    }`}
-                  >
-                    savings{" "}
-                    <span className="font-bold">
-                      $
-                      {savingsData.find((d) => d.month === hoveredMonth)?.value}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+              <XAxis 
+                dataKey="month" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12, fill: darkMode ? "#9ca3af" : "#6b7280" }}
+                dy={10}
+              />
+              <YAxis 
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(value) => `$${Math.abs(value/1000).toFixed(0)}k`}
+                tick={{ fontSize: 12, fill: darkMode ? "#9ca3af" : "#6b7280" }}
+                dx={-10}
+                domain={['auto', 'auto']}
+                allowDataOverflow={false}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: darkMode ? '#4a5568' : '#d1d5db', strokeWidth: 1, strokeDasharray: '3 3' }} />
+              <Area 
+                type="monotone" 
+                dataKey="value" 
+                stroke={darkMode ? "#4ade80" : "#0a6e47"}
+                fill={darkMode ? "#4ade80" : "#0a6e47"}
+                fillOpacity={0.3}
+                strokeWidth={2} 
+                dot={{ 
+                  r: 4, 
+                  strokeWidth: 1,
+                  fill: darkMode ? "#4ade80" : "#0a6e47",
+                  stroke: darkMode ? "#1f2937" : "#ffffff" 
+                }}
+                activeDot={{ 
+                  r: 6, 
+                  strokeWidth: 2,
+                  fill: darkMode ? "#4ade80" : "#0a6e47",
+                  stroke: darkMode ? "#1f2937" : "#ffffff" 
+                }}
+                isAnimationActive={true}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       )}
     </div>

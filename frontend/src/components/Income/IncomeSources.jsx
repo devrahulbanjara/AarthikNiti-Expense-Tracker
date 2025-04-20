@@ -24,6 +24,7 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
   });
   const [incomeList, setIncomeList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [hoveredRow, setHoveredRow] = useState(null);
 
   const handleLoadIncomeList = async () => {
     setLoading(true);
@@ -116,13 +117,13 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
 
   return (
     <div
-      className={`p-4 rounded-lg border ${
-        darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"
-      }`}
+      className={`p-4 lg:p-6 rounded-lg border transition-all duration-300 ${
+        darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+      } hover:shadow-md h-full`}
     >
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-xl font-semibold">Income Sources</h2>
+          <h2 className="text-xl font-semibold mb-1">Income Sources</h2>
           <p
             className={`text-sm ${
               darkMode ? "text-gray-400" : "text-gray-600"
@@ -134,17 +135,17 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
         <div className="relative w-64">
           <input
             type="text"
-            placeholder="Search incomes..."
+            placeholder="Search income..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full pl-10 pr-4 py-2 border rounded-md ${
-              darkMode
-                ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                : "bg-white border-gray-300 text-black"
-            }`}
+            className={`w-full pl-10 pr-4 py-2 border rounded-lg text-sm transition-colors duration-200 
+              ${darkMode 
+                ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500" 
+                : "bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-green-500 focus:border-green-500"}
+              focus:outline-none focus:ring-2`}
           />
           <Search
-            className={`absolute left-3 top-2.5 h-4 w-4 ${
+            className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${
               darkMode ? "text-gray-400" : "text-gray-500"
             }`}
           />
@@ -154,14 +155,14 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className={`${darkMode ? "bg-gray-700" : "bg-gray-100"}`}>
-              {["category", "amount", "date"].map((header) => (
+            <tr className={`${darkMode ? "bg-gray-700/50" : "bg-gray-50"} rounded-t-lg`}>
+              {["source", "amount", "date"].map((header) => (
                 <th
                   key={header}
-                  className="px-4 py-2 text-left cursor-pointer font-medium text-sm"
+                  className="px-4 py-2 text-left cursor-pointer font-medium text-sm first:rounded-tl-lg"
                   style={{
                     width:
-                      header === "category"
+                      header === "source"
                         ? "20%"
                         : header === "amount"
                         ? "15%"
@@ -187,7 +188,7 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
                 Description
               </th>
               <th
-                className="px-4 py-2 text-right font-medium text-sm"
+                className="px-4 py-2 text-right font-medium text-sm last:rounded-tr-lg"
                 style={{ width: "15%" }}
               >
                 Actions
@@ -198,18 +199,20 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
             {sortedIncomes.length === 0 ? (
               <tr>
                 <td colSpan="6" className="px-4 py-4 text-center">
-                  No incomes found. Add your first income source!
+                  No income sources found. Add your first income!
                 </td>
               </tr>
             ) : (
               sortedIncomes.map((income, index) => (
                 <tr
                   key={index}
-                  className={`border-b ${
+                  className={`border-b transition-colors duration-200 ${
                     darkMode
-                      ? "border-gray-700 hover:bg-gray-700"
+                      ? "border-gray-700 hover:bg-gray-700/50"
                       : "border-gray-200 hover:bg-gray-50"
-                  }`}
+                  } ${index === sortedIncomes.length - 1 ? "last:border-0" : ""}`}
+                  onMouseEnter={() => setHoveredRow(income.transaction_id)}
+                  onMouseLeave={() => setHoveredRow(null)}
                 >
                   <td className="px-4 py-4">
                     <div className="flex items-center">
@@ -222,12 +225,12 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
                             )?.color || "#94a3b8",
                         }}
                       />
-                      <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs">
+                      <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs font-medium">
                         {income.category}
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-green-500">
+                  <td className="px-4 py-4 text-green-600 font-medium">
                     $ {income.amount.toFixed(2)}
                   </td>
                   <td className="px-4 py-4">
@@ -240,19 +243,26 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
                       {new Date(income.date).toLocaleDateString()}
                     </div>
                   </td>
-                  <td className="px-4 py-4">{income.description || "N/A"}</td>
+                  <td className="px-4 py-4">
+                    {income.description}
+                    {income.recurring && (
+                      <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                        {income.recurrence_duration}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-4 text-right">
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => onEdit(income)}
-                        className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="p-1.5 rounded-md transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-600"
                         title="Edit"
                       >
                         <Edit className="h-4 w-4 text-blue-500" />
                       </button>
                       <button
                         onClick={() => handleDelete(income.transaction_id)}
-                        className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="p-1.5 rounded-md transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-600"
                         title="Delete"
                       >
                         <Trash className="h-4 w-4 text-red-500" />
