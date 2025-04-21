@@ -579,3 +579,98 @@ async def get_upcoming_bills_user(user_id: int):
     upcoming_bills.sort(key=lambda x: x["next_payment_date"])
 
     return {"upcoming_bills": upcoming_bills}
+
+async def edit_expense(user_id: int, transaction_id: str, amount: float, description: str, category: str, recurring: bool = False, recurrence_duration: Optional[str] = None):
+    """Edits an existing expense transaction and updates the profile balance."""
+    
+    # Get the existing transaction
+    transaction = await transactions_collection.find_one({
+        "transaction_id": transaction_id,
+        "user_id": user_id,
+        "transaction_type": "expense"
+    })
+    
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Expense transaction not found")
+    
+    # Get the active profile
+    profile = await get_active_profile(user_id)
+    
+    # Calculate the difference in amount
+    old_amount = transaction["transaction_amount"]
+    amount_diff = amount - old_amount
+    
+    # Update the transaction
+    update_data = {
+        "transaction_amount": amount,
+        "transaction_description": description,
+        "transaction_category": category,
+        "recurring": recurring
+    }
+    
+    if recurring and recurrence_duration:
+        update_data["recurrence_duration"] = recurrence_duration
+    elif not recurring:
+        update_data["recurrence_duration"] = None
+    
+    await transactions_collection.update_one(
+        {"transaction_id": transaction_id},
+        {"$set": update_data}
+    )
+    
+    # Update the profile totals - note that when expenses increase, balance decreases
+    new_expense = profile["profile_total_expense"] + amount_diff
+    new_balance = profile["profile_total_balance"] - amount_diff
+    
+    # Check if new balance would be negative
+    if new_balance < 0:
+        raise HTTPException(status_code=400, detail="Insufficient balance to update expense")
+    
+    await profiles_collection.update_one(
+        {"user_id": user_id, "profile_id": profile["profile_id"]},
+        {
+            "$set": {
+                "profile_total_expense": new_expense,
+                "profile_total_balance": new_balance
+            }
+        }
+    )
+    
+    return {"message": "Expense updated successfully"}
+
+async def delete_expense(user_id: int, transaction_id: str):
+    """Deletes an expense transaction and updates the profile balance."""
+    
+    # Get the existing transaction
+    transaction = await transactions_collection.find_one({
+        "transaction_id": transaction_id,
+        "user_id": user_id,
+        "transaction_type": "expense"
+    })
+    
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Expense transaction not found")
+    
+    # Get the active profile
+    profile = await get_active_profile(user_id)
+    
+    # Calculate new totals
+    amount = transaction["transaction_amount"]
+    new_expense = profile["profile_total_expense"] - amount
+    new_balance = profile["profile_total_balance"] + amount
+    
+    # Delete the transaction
+    await transactions_collection.delete_one({"transaction_id": transaction_id})
+    
+    # Update the profile totals
+    await profiles_collection.update_one(
+        {"user_id": user_id, "profile_id": profile["profile_id"]},
+        {
+            "$set": {
+                "profile_total_expense": new_expense,
+                "profile_total_balance": new_balance
+            }
+        }
+    )
+    
+    return {"message": "Expense deleted successfully"}

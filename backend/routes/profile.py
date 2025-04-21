@@ -1,14 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from core.config import get_current_user
 from services.profile_service import (
-    get_active_profile, add_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,get_transaction_trend,income_expense_table,get_all_profile_names,get_active_profile_info, edit_income, delete_income,get_upcoming_bills_user
+    get_active_profile, add_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,get_transaction_trend,income_expense_table,get_all_profile_names,get_active_profile_info, edit_income, delete_income,get_upcoming_bills_user, edit_expense, delete_expense
 )
 from pydantic import BaseModel
-from typing import List 
+from typing import List, Optional
 import sys
 import os
 from chatbot.chat import ConversationalChatbot
-from typing import Optional
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
@@ -159,6 +158,35 @@ class DeleteIncomeRequest(BaseModel):
 async def delete_income_endpoint(request: DeleteIncomeRequest, user: dict = Depends(get_current_user)):
     """Deletes an income transaction."""
     return await delete_income(user["user_id"], request.transaction_id)
+
+class EditExpenseRequest(BaseModel):
+    transaction_id: str
+    amount: float
+    description: str
+    category: str
+    recurring: bool = False
+    recurrence_duration: Optional[str] = None
+
+@router.put("/edit_expense")
+async def edit_expense_endpoint(request: EditExpenseRequest, user: dict = Depends(get_current_user)):
+    """Edits an existing expense transaction."""
+    return await edit_expense(
+        user["user_id"], 
+        request.transaction_id, 
+        request.amount, 
+        request.description, 
+        request.category,
+        request.recurring,
+        request.recurrence_duration
+    )
+
+class DeleteExpenseRequest(BaseModel):
+    transaction_id: str
+
+@router.delete("/delete_expense")
+async def delete_expense_endpoint(request: DeleteExpenseRequest, user: dict = Depends(get_current_user)):
+    """Deletes an expense transaction."""
+    return await delete_expense(user["user_id"], request.transaction_id)
 
 @router.get("/upcoming-bills")
 async def get_upcoming_bills(

@@ -91,60 +91,6 @@ const EditExpenseModal = ({
               />
             </div>
           </div>
-
-          <div>
-            <label
-              className={`block text-sm ${
-                darkMode ? "text-gray-300" : "text-gray-600"
-              } mb-1`}
-            >
-              Date*
-            </label>
-            <input
-              type="date"
-              value={currentExpense.date}
-              onChange={(e) => handleChange("date", e.target.value)}
-              className={`w-full p-2 border rounded-md ${
-                darkMode
-                  ? "bg-gray-700 border-gray-600 text-white"
-                  : "bg-white border-gray-300 text-black"
-              }`}
-              required
-            />
-          </div>
-
-          <div>
-            <label
-              className={`block text-sm ${
-                darkMode ? "text-gray-300" : "text-gray-600"
-              } mb-1`}
-            >
-              Payment Method*
-            </label>
-            <select
-              value={currentExpense.paymentMethod}
-              onChange={(e) => handleChange("paymentMethod", e.target.value)}
-              className={`w-full p-2 border rounded-md ${
-                darkMode
-                  ? "bg-gray-700 border-gray-600 text-white"
-                  : "bg-white border-gray-300 text-black"
-              }`}
-              required
-            >
-              <option value="">Select Method</option>
-              {[
-                "Credit Card",
-                "Debit Card",
-                "Cash",
-                "Bank Transfer",
-                "Mobile Payment",
-              ].map((method) => (
-                <option key={method} value={method}>
-                  {method}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
 
         <div className="mb-4">
@@ -173,8 +119,8 @@ const EditExpenseModal = ({
             <input
               type="checkbox"
               id="editIsRecurring"
-              checked={currentExpense.isRecurring}
-              onChange={(e) => handleChange("isRecurring", e.target.checked)}
+              checked={currentExpense.recurring || false}
+              onChange={(e) => handleChange("recurring", e.target.checked)}
               className="mr-2"
             />
             <label
@@ -187,7 +133,7 @@ const EditExpenseModal = ({
             </label>
           </div>
 
-          {currentExpense.isRecurring && (
+          {(currentExpense.recurring || false) && (
             <div className="mt-2">
               <label
                 className={`block text-sm ${
@@ -197,9 +143,9 @@ const EditExpenseModal = ({
                 Recurring Period
               </label>
               <select
-                value={currentExpense.recurringPeriod}
+                value={currentExpense.recurrence_duration || ""}
                 onChange={(e) =>
-                  handleChange("recurringPeriod", e.target.value)
+                  handleChange("recurrence_duration", e.target.value)
                 }
                 className={`w-full p-2 border rounded-md ${
                   darkMode
@@ -207,19 +153,10 @@ const EditExpenseModal = ({
                     : "bg-white border-gray-300 text-black"
                 }`}
               >
-                {[
-                  "1 day",
-                  "1 week",
-                  "1 month",
-                  "2 months",
-                  "3 months",
-                  "6 months",
-                  "1 year",
-                ].map((period) => (
-                  <option key={period} value={period}>
-                    {period.charAt(0).toUpperCase() + period.slice(1)}
-                  </option>
-                ))}
+                <option value="">Select Period</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
               </select>
             </div>
           )}

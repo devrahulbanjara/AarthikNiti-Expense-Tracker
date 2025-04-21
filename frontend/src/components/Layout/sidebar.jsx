@@ -6,7 +6,6 @@ import {
   Home,
   ArrowUp,
   ArrowDown,
-  User,
   ChevronDown,
   Settings,
   Plus,
@@ -23,7 +22,6 @@ const navItems = [
   { name: "Dashboard", icon: Home, href: "/dashboard" },
   { name: "Income", icon: ArrowUp, href: "/income" },
   { name: "Expenses", icon: ArrowDown, href: "/expenses" },
-  { name: "Profile", icon: User, href: "/profile" },
 ];
 
 const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
