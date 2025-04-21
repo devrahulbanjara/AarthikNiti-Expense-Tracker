@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { ChevronDown } from "lucide-react";
 import LoadingSpinner from "../UI/LoadingSpinner";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -13,6 +13,7 @@ const NetSavings = () => {
   const [timeRange, setTimeRange] = useState("Last 6 months");
   const [loading, setLoading] = useState(true);
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
+  const [dataMinMax, setDataMinMax] = useState({ min: 0, max: 0 });
   const chartRef = useRef(null);
 
   useEffect(() => {
@@ -52,6 +53,12 @@ const NetSavings = () => {
         );
         
         console.log("Formatted Savings Data:", formattedData);
+        
+        // Calculate min and max for better chart rendering
+        const values = formattedData.map(item => item.value);
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        setDataMinMax({ min, max });
 
         setSavingsData(formattedData);
       } catch (error) {
@@ -68,7 +75,10 @@ const NetSavings = () => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const value = payload[0].value;
-      const color = darkMode ? "#4ade80" : "#0a6e47";
+      const isPositive = value >= 0;
+      const color = isPositive 
+        ? (darkMode ? "#4ade80" : "#0a6e47") 
+        : (darkMode ? "#ef4444" : "#dc2626");
       
       return (
         <div
@@ -78,7 +88,7 @@ const NetSavings = () => {
           <p className="font-semibold text-md mb-1">{label}</p>
           <p className="text-sm flex items-center">
             <span className={`font-medium mr-1`}>Net Savings:</span>
-            <span className={`font-bold`} style={{ color: color }}>
+            <span className={`font-bold`} style={{ color }}>
               ${value.toLocaleString()}
             </span>
           </p>
@@ -87,6 +97,40 @@ const NetSavings = () => {
     }
     return null;
   };
+
+  // Split data into positive and negative sets
+  const splitData = () => {
+    if (!savingsData.length) return { positive: [], negative: [] };
+    
+    const positive = savingsData.map(item => ({
+      ...item,
+      positiveValue: item.value >= 0 ? item.value : null
+    }));
+    
+    const negative = savingsData.map(item => ({
+      ...item,
+      negativeValue: item.value < 0 ? item.value : null
+    }));
+    
+    return { positive, negative };
+  };
+
+  // Calculate the appropriate domain based on data
+  const calculateYDomain = () => {
+    if (savingsData.length === 0) return [0, 0];
+    
+    const { min, max } = dataMinMax;
+    const padding = Math.max(Math.abs(max), Math.abs(min)) * 0.1;
+    
+    // If all values are positive
+    if (min >= 0) return [0, max + padding];
+    // If all values are negative
+    if (max <= 0) return [min - padding, 0];
+    // If there are both positive and negative values
+    return [min - padding, max + padding];
+  };
+
+  const { positive, negative } = splitData();
 
   return (
     <div
@@ -154,7 +198,7 @@ const NetSavings = () => {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={savingsData}
-              margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+              margin={{ top: 20, right: 10, left: 10, bottom: 20 }}
             >
               <XAxis 
                 dataKey="month" 
@@ -166,33 +210,65 @@ const NetSavings = () => {
               <YAxis 
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(value) => `$${Math.abs(value/1000).toFixed(0)}k`}
+                tickFormatter={(value) => `$${Math.abs(value/1000).toFixed(1)}k`}
                 tick={{ fontSize: 12, fill: darkMode ? "#9ca3af" : "#6b7280" }}
                 dx={-10}
-                domain={['auto', 'auto']}
-                allowDataOverflow={false}
+                domain={calculateYDomain()}
               />
               <Tooltip content={<CustomTooltip />} cursor={{ stroke: darkMode ? '#4a5568' : '#d1d5db', strokeWidth: 1, strokeDasharray: '3 3' }} />
+              <ReferenceLine y={0} stroke={darkMode ? "#6b7280" : "#9ca3af"} strokeDasharray="3 3" />
+              
+              {/* Positive Area */}
               <Area 
                 type="monotone" 
-                dataKey="value" 
+                dataKey="value"
                 stroke={darkMode ? "#4ade80" : "#0a6e47"}
                 fill={darkMode ? "#4ade80" : "#0a6e47"}
-                fillOpacity={0.3}
-                strokeWidth={2} 
-                dot={{ 
-                  r: 4, 
-                  strokeWidth: 1,
-                  fill: darkMode ? "#4ade80" : "#0a6e47",
-                  stroke: darkMode ? "#1f2937" : "#ffffff" 
-                }}
+                fillOpacity={0.6}
+                strokeWidth={2}
                 activeDot={{ 
                   r: 6, 
                   strokeWidth: 2,
                   fill: darkMode ? "#4ade80" : "#0a6e47",
                   stroke: darkMode ? "#1f2937" : "#ffffff" 
                 }}
+                dot={{ 
+                  r: 4, 
+                  strokeWidth: 1,
+                  fill: darkMode ? "#4ade80" : "#0a6e47",
+                  stroke: darkMode ? "#1f2937" : "#ffffff",
+                  display: (props) => (props.payload.value >= 0 ? 'flex' : 'none')
+                }}
                 isAnimationActive={true}
+                connectNulls={true}
+                baseValue={0}
+              />
+              
+              {/* Negative Area */}
+              <Area 
+                type="monotone" 
+                dataKey="value"
+                stroke={darkMode ? "#ef4444" : "#dc2626"}
+                fill={darkMode ? "#ef4444" : "#dc2626"}
+                fillOpacity={0.6}
+                strokeWidth={2}
+                activeDot={{ 
+                  r: 6, 
+                  strokeWidth: 2,
+                  fill: darkMode ? "#ef4444" : "#dc2626",
+                  stroke: darkMode ? "#1f2937" : "#ffffff",
+                  display: (props) => (props.payload.value < 0 ? 'flex' : 'none')
+                }}
+                dot={{ 
+                  r: 4, 
+                  strokeWidth: 1,
+                  fill: darkMode ? "#ef4444" : "#dc2626",
+                  stroke: darkMode ? "#1f2937" : "#ffffff",
+                  display: (props) => (props.payload.value < 0 ? 'flex' : 'none')
+                }}
+                isAnimationActive={true}
+                connectNulls={true}
+                baseValue={0}
               />
             </AreaChart>
           </ResponsiveContainer>

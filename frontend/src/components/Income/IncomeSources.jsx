@@ -8,13 +8,14 @@ import {
   ChevronDown,
   ChevronUp,
   Calendar,
+  Loader,
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { incomeSources } from "../../pages/Dashboard/incomeSources";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
+const IncomeSources = ({ onEdit, onDelete, formatDate, refreshKey, loading: parentLoading }) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,6 +26,8 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
   const [incomeList, setIncomeList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hoveredRow, setHoveredRow] = useState(null);
+
+  const isLoading = parentLoading || loading;
 
   const handleLoadIncomeList = async () => {
     setLoading(true);
@@ -85,7 +88,7 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
 
   useEffect(() => {
     handleLoadIncomeList();
-  }, [getToken, formatDate]);
+  }, [getToken, formatDate, refreshKey]);
 
   const handleSort = (key) => {
     const direction =
@@ -119,8 +122,19 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
     <div
       className={`p-4 lg:p-6 rounded-lg border transition-all duration-300 ${
         darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-      } hover:shadow-md h-full`}
+      } hover:shadow-md h-full relative`}
     >
+      {isLoading && (
+        <div className="absolute inset-0 bg-black bg-opacity-10 flex items-center justify-center z-10 rounded-lg">
+          <div className="flex flex-col items-center">
+            <Loader className="animate-spin h-8 w-8 text-primary-500 mb-2" />
+            <span className={`text-sm ${darkMode ? "text-gray-200" : "text-gray-700"}`}>
+              Loading income data...
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-semibold mb-1">Income Sources</h2>
@@ -143,6 +157,7 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
                 ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500" 
                 : "bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-green-500 focus:border-green-500"}
               focus:outline-none focus:ring-2`}
+            disabled={isLoading}
           />
           <Search
             className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${
@@ -196,7 +211,7 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
             </tr>
           </thead>
           <tbody>
-            {sortedIncomes.length === 0 ? (
+            {sortedIncomes.length === 0 && !isLoading ? (
               <tr>
                 <td colSpan="6" className="px-4 py-4 text-center">
                   No income sources found. Add your first income!
@@ -247,7 +262,7 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
                     {income.description}
                     {income.recurring && (
                       <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                        {income.recurrence_duration}
+                        {income.recurrence_duration ? income.recurrence_duration.charAt(0).toUpperCase() + income.recurrence_duration.slice(1) : "Recurring"}
                       </span>
                     )}
                   </td>
@@ -257,15 +272,17 @@ const IncomeSources = ({ onEdit, onDelete, formatDate }) => {
                         onClick={() => onEdit(income)}
                         className="p-1.5 rounded-md transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-600"
                         title="Edit"
+                        disabled={isLoading}
                       >
-                        <Edit className="h-4 w-4 text-blue-500" />
+                        <Edit className={`h-4 w-4 ${isLoading ? 'text-gray-400' : 'text-blue-500'}`} />
                       </button>
                       <button
-                        onClick={() => handleDelete(income.transaction_id)}
+                        onClick={() => onDelete(income.transaction_id)}
                         className="p-1.5 rounded-md transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-600"
                         title="Delete"
+                        disabled={isLoading}
                       >
-                        <Trash className="h-4 w-4 text-red-500" />
+                        <Trash className={`h-4 w-4 ${isLoading ? 'text-gray-400' : 'text-red-500'}`} />
                       </button>
                     </div>
                   </td>

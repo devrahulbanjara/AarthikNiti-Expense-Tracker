@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import Sidebar from "../../components/Layout/sidebar";
@@ -36,58 +36,73 @@ const Income = () => {
   const [timeRange, setTimeRange] = useState("7");
   const [totalIncome, setTotalIncome] = useState(0);
   const [incomes, setIncomes] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  // Centralized data refresh function
+  const refreshData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = getToken();
+      
+      // Fetch dashboard data for total income
+      const dashboardResponse = await fetch(
+        `${BACKEND_URL}/profile/dashboard`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!dashboardResponse.ok)
+        throw new Error("Failed to fetch dashboard data");
+
+      const dashboardData = await dashboardResponse.json();
+      setTotalIncome(dashboardData.profile_total_income);
+
+      // Fetch income table data
+      const incomeResponse = await fetch(
+        `${BACKEND_URL}/profile/income_expense_table?transaction_type=income&days=30`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!incomeResponse.ok) throw new Error("Failed to fetch incomes");
+
+      const incomeData = await incomeResponse.json();
+      console.log("Income data from API:", incomeData);
+
+      // Transform the data
+      const formattedIncomes = incomeData.map((income, index) => ({
+        id: index + 1,
+        source: income.category,
+        amount: income.amount,
+        date: income.date,
+        description: income.description,
+        recurring: income.recurring,
+        recurrence_duration: income.recurrence_duration || null,
+        transaction_id: income.transaction_id,
+      }));
+
+      setIncomes(formattedIncomes);
+      
+      // Increment the refresh key to trigger re-renders in child components
+      setRefreshKey(prev => prev + 1);
+    } catch (error) {
+      console.error("Error refreshing income data:", error);
+      toast.error("Failed to refresh data");
+    } finally {
+      setLoading(false);
+    }
+  }, [getToken]);
 
   useEffect(() => {
-    const fetchIncomeData = async () => {
-      try {
-        const token = getToken();
-        const dashboardResponse = await fetch(
-          `${BACKEND_URL}/profile/dashboard`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!dashboardResponse.ok)
-          throw new Error("Failed to fetch dashboard data");
-
-        const dashboardData = await dashboardResponse.json();
-        setTotalIncome(dashboardData.profile_total_income);
-
-        const incomeResponse = await fetch(
-          `${BACKEND_URL}/profile/income_expense_table?transaction_type=income&days=30`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!incomeResponse.ok) throw new Error("Failed to fetch incomes");
-
-        const incomeData = await incomeResponse.json();
-        console.log("Income data from API:", incomeData);
-
-        const formattedIncomes = incomeData.map((income, index) => ({
-          id: index + 1,
-          source: income.category,
-          amount: income.amount,
-          date: income.date,
-          description: income.description,
-          recurring: income.recurring,
-          recurrence_duration: income.recurrence_duration || null,
-        }));
-
-        setIncomes(formattedIncomes);
-      } catch (error) {
-        console.error("Error fetching income data:", error);
-      }
-    };
-
-    fetchIncomeData();
-  }, []);
+    refreshData();
+  }, [refreshData]);
 
   useEffect(() => {
     const validateToken = async () => {
@@ -124,6 +139,7 @@ const Income = () => {
 
   const handleSubmit = async (incomeData, isEditing) => {
     try {
+      setLoading(true);
       const token = getToken();
       const incomeToAdd = {
         category: incomeData.category || incomeData.source,
@@ -148,6 +164,8 @@ const Income = () => {
         if (!response.ok) {
           throw new Error("Failed to update income");
         }
+        
+        toast.success("Income updated successfully");
       } else {
         // Add new income
         const response = await fetch(`${BACKEND_URL}/profile/add_income`, {
@@ -162,63 +180,21 @@ const Income = () => {
         if (!response.ok) {
           throw new Error("Failed to add income");
         }
+        
+        toast.success("Income added successfully");
       }
 
-      // Refresh all data without reloading the page
-      const fetchIncomeData = async () => {
-        try {
-          const dashboardResponse = await fetch(
-            `${BACKEND_URL}/profile/dashboard`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (!dashboardResponse.ok)
-            throw new Error("Failed to fetch dashboard data");
-
-          const dashboardData = await dashboardResponse.json();
-          setTotalIncome(dashboardData.profile_total_income);
-
-          const incomeResponse = await fetch(
-            `${BACKEND_URL}/profile/income_expense_table?transaction_type=income&days=30`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (!incomeResponse.ok) throw new Error("Failed to fetch incomes");
-
-          const incomeData = await incomeResponse.json();
-          const formattedIncomes = incomeData.map((income, index) => ({
-            id: index + 1,
-            source: income.category,
-            amount: income.amount,
-            date: income.date,
-            description: income.description,
-            recurring: income.recurring,
-            recurrence_duration: income.recurrence_duration || null,
-          }));
-
-          setIncomes(formattedIncomes);
-        } catch (error) {
-          console.error("Error fetching income data:", error);
-        }
-      };
-
-      await fetchIncomeData();
+      // Refresh the data
+      await refreshData();
+      
+      // Close modal and reset editing state
       setIsAddModalOpen(false);
       setEditingIncome(null);
-      toast.success(
-        isEditing ? "Income updated successfully" : "Income added successfully"
-      );
     } catch (error) {
       console.error("Error saving income:", error);
       toast.error("Failed to save income. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -227,15 +203,35 @@ const Income = () => {
     setEditingIncome(null);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (transactionId) => {
     if (window.confirm("Are you sure you want to delete this income?")) {
-      setIncomes((prev) => prev.filter((income) => income.id !== id));
-    }
-  };
+      try {
+        setLoading(true);
+        const token = getToken();
+        const response = await fetch(`${BACKEND_URL}/profile/delete_income`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ transaction_id: transactionId }),
+        });
 
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    navigate("/");
+        if (!response.ok) {
+          throw new Error("Failed to delete income");
+        }
+        
+        toast.success("Income deleted successfully");
+        
+        // Refresh data
+        await refreshData();
+      } catch (error) {
+        console.error("Error deleting income:", error);
+        toast.error("Failed to delete income");
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   const formatDate = (dateString) => {
@@ -285,6 +281,7 @@ const Income = () => {
             <button
               onClick={() => setIsAddModalOpen(true)}
               className="flex items-center gap-2 bg-[#065336] hover:bg-[#054328] text-white px-4 py-2 rounded-lg transition-colors"
+              disabled={loading}
             >
               <Plus className="h-4 w-5" />
               Add Income
@@ -297,7 +294,11 @@ const Income = () => {
               darkMode ? "border-gray-800" : "border-gray-200"
             } rounded-xl overflow-hidden shadow-md mb-6`}
           >
-            <IncomeOverview timeRange={timeRange} setTimeRange={setTimeRange} />
+            <IncomeOverview 
+              timeRange={timeRange} 
+              setTimeRange={setTimeRange} 
+              refreshKey={refreshKey}
+            />
           </div>
 
           {/* Income Sources Component */}
@@ -306,6 +307,8 @@ const Income = () => {
             onEdit={handleEdit}
             onDelete={handleDelete}
             formatDate={formatDate}
+            refreshKey={refreshKey}
+            loading={loading}
           />
         </div>
       </div>
@@ -317,6 +320,7 @@ const Income = () => {
         onSubmit={handleSubmit}
         editingIncome={editingIncome}
         incomeSources={incomeSources}
+        loading={loading}
       />
 
       {/* Chatbot Component */}

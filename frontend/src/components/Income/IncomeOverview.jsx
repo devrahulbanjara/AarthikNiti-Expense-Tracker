@@ -14,7 +14,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const IncomeOverview = ({ timeRange, setTimeRange }) => {
+const IncomeOverview = ({ timeRange, setTimeRange, refreshKey }) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
   const [chartData, setChartData] = useState([]);
@@ -60,7 +60,7 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
     };
 
     fetchIncomeData();
-  }, [timeRange, getToken]);
+  }, [timeRange, getToken, refreshKey]);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {

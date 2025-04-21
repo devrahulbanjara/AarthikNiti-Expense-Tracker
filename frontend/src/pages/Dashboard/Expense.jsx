@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Layout/sidebar";
 import AddExpenseButton from "../../components/Expense/AddExpenseButton";
@@ -23,43 +23,8 @@ const Expense = () => {
   const [scrolled, setScrolled] = useState(false);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
-    const fetchExpenses = async () => {
-      try {
-        const token = getToken();
-        const response = await fetch(
-          `${BACKEND_URL}/profile/income_expense_table?transaction_type=expense&days=30`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch expenses");
-        }
-
-        const data = await response.json();
-        const formattedExpenses = data.map((expense, index) => ({
-          id: index + 1,
-          category: expense.category,
-          amount: expense.amount,
-          date: expense.date,
-          description: expense.description,
-          isRecurring: expense.recurring,
-          recurringPeriod: expense.recurrence_duration || null,
-        }));
-
-        setExpenses(formattedExpenses);
-      } catch (error) {
-        console.error("Error fetching expenses:", error);
-      }
-    };
-
-    fetchExpenses();
-  }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentExpense, setCurrentExpense] = useState(null);
@@ -81,6 +46,73 @@ const Expense = () => {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
+  const [totalSpending, setTotalSpending] = useState(0);
+
+  // Centralized data refresh function
+  const refreshData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = getToken();
+      
+      // Fetch dashboard data for total spending
+      const dashboardResponse = await fetch(
+        `${BACKEND_URL}/profile/dashboard`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!dashboardResponse.ok)
+        throw new Error("Failed to fetch dashboard data");
+
+      const dashboardData = await dashboardResponse.json();
+      setTotalSpending(dashboardData.profile_total_expense || 0);
+
+      // Fetch expense table data
+      const expenseResponse = await fetch(
+        `${BACKEND_URL}/profile/income_expense_table?transaction_type=expense&days=${timeRange}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!expenseResponse.ok) {
+        throw new Error("Failed to fetch expenses");
+      }
+
+      const data = await expenseResponse.json();
+      const formattedExpenses = data.map((expense, index) => ({
+        id: index + 1,
+        category: expense.category,
+        amount: expense.amount,
+        date: expense.date,
+        description: expense.description,
+        isRecurring: expense.recurring,
+        recurringPeriod: expense.recurrence_duration || null,
+        transaction_id: expense.transaction_id,
+        recurring: expense.recurring,
+        recurrence_duration: expense.recurrence_duration,
+      }));
+
+      setExpenses(formattedExpenses);
+      
+      // Increment refresh key to trigger re-renders in child components
+      setRefreshKey(prev => prev + 1);
+    } catch (error) {
+      console.error("Error refreshing expense data:", error);
+      toast.error("Failed to refresh data");
+    } finally {
+      setLoading(false);
+    }
+  }, [getToken, timeRange]);
+
+  useEffect(() => {
+    refreshData();
+  }, [refreshData, timeRange]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -118,8 +150,6 @@ const Expense = () => {
         throw new Error("Failed to add expense");
       }
 
-      await response.json();
-      
       // Show success toast
       toast.success("Expense added successfully");
       
@@ -133,8 +163,8 @@ const Expense = () => {
         recurrence_duration: "",
       });
       
-      // Refresh expense list
-      fetchExpenses();
+      // Refresh expense data
+      await refreshData();
     } catch (error) {
       console.error("Error adding expense:", error);
       toast.error("Failed to add expense");
@@ -143,53 +173,11 @@ const Expense = () => {
     }
   };
 
-  const fetchExpenses = async () => {
-    try {
-      setLoading(true);
-      const token = getToken();
-      const response = await fetch(
-        `${BACKEND_URL}/profile/income_expense_table?transaction_type=expense&days=${timeRange}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch expenses");
-      }
-
-      const data = await response.json();
-      const formattedExpenses = data.map((expense, index) => ({
-        id: index + 1,
-        category: expense.category,
-        amount: expense.amount,
-        date: expense.date,
-        description: expense.description,
-        isRecurring: expense.recurring,
-        recurringPeriod: expense.recurrence_duration || null,
-        transaction_id: expense.transaction_id,
-        recurring: expense.recurring,
-        recurrence_duration: expense.recurrence_duration,
-      }));
-
-      setExpenses(formattedExpenses);
-    } catch (error) {
-      console.error("Error fetching expenses:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchExpenses();
-  }, [timeRange]);
-
   const handleEditExpense = async () => {
     if (!currentExpense) return;
 
     try {
+      setLoading(true);
       const token = getToken();
       const response = await fetch(`${BACKEND_URL}/profile/edit_expense`, {
         method: "PUT",
@@ -211,19 +199,20 @@ const Expense = () => {
         throw new Error("Failed to update expense");
       }
 
-      // Show success message first
+      // Show success message
       toast.success("Expense updated successfully");
       
       // Close the modal
       setShowEditModal(false);
       setCurrentExpense(null);
 
-      // Refresh expense list
-      fetchExpenses();
-      
+      // Refresh expense data
+      await refreshData();
     } catch (error) {
       console.error("Error updating expense:", error);
       toast.error("Failed to update expense");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -251,9 +240,8 @@ const Expense = () => {
       setShowDeleteModal(false);
       setExpenseToDelete(null);
 
-      // Refresh expense list
-      fetchExpenses();
-      
+      // Refresh expense data
+      await refreshData();
     } catch (error) {
       console.error("Error deleting expense:", error);
       toast.error("Failed to delete expense");
@@ -267,10 +255,6 @@ const Expense = () => {
       sortConfig.key === key && sortConfig.direction === "asc" ? "desc" : "asc";
     setSortConfig({ key, direction });
   };
-
-  const totalSpending = expenses
-    .reduce((sum, expense) => sum + expense.amount, 0)
-    .toFixed(2);
 
   useEffect(() => {
     if (typeof localStorage !== "undefined") {
@@ -306,7 +290,7 @@ const Expense = () => {
                 />
               </p>
             </div>
-            <AddExpenseButton setShowAddModal={setShowAddModal} />
+            <AddExpenseButton setShowAddModal={setShowAddModal} disabled={loading} />
           </div>
 
           <div
@@ -317,6 +301,7 @@ const Expense = () => {
             <ExpenseOverview
               activeTab={activeTab}
               setActiveTab={setActiveTab}
+              refreshKey={refreshKey}
             />
           </div>
           <ExpenseList
@@ -333,7 +318,7 @@ const Expense = () => {
             timeRange={timeRange}
             loading={loading}
             expenseList={expenses}
-            refreshExpenses={fetchExpenses}
+            refreshKey={refreshKey}
           />
         </div>
         <AddExpenseModal
@@ -342,6 +327,7 @@ const Expense = () => {
           newExpense={newExpense}
           setNewExpense={setNewExpense}
           handleAddExpense={handleAddExpense}
+          loading={loading}
         />
         <EditExpenseModal
           showEditModal={showEditModal}
@@ -349,6 +335,7 @@ const Expense = () => {
           currentExpense={currentExpense}
           setCurrentExpense={setCurrentExpense}
           handleEditExpense={handleEditExpense}
+          loading={loading}
         />
         <DeleteConfirmationModal
           isOpen={showDeleteModal}
@@ -358,6 +345,7 @@ const Expense = () => {
           }}
           onConfirm={() => handleDeleteExpense(expenseToDelete)}
           itemName="expense"
+          loading={loading}
         />
       </div>
       <ChatAssistant darkMode={darkMode} />

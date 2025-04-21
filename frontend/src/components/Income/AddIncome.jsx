@@ -1,6 +1,6 @@
 // AddIncome.js
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Loader } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 
 const AddIncome = ({
@@ -9,6 +9,7 @@ const AddIncome = ({
   onSubmit,
   editingIncome,
   incomeSources,
+  loading
 }) => {
   const { darkMode } = useTheme();
   const [formData, setFormData] = useState({
@@ -77,7 +78,7 @@ const AddIncome = ({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
+    if (!validateForm() || loading) {
       return;
     }
 
@@ -99,7 +100,7 @@ const AddIncome = ({
           darkMode
             ? "bg-gray-800 text-white bg-opacity-95"
             : "bg-white text-gray-800 bg-opacity-95"
-        } rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden`}
+        } rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden relative`}
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold">
@@ -110,6 +111,7 @@ const AddIncome = ({
             className={`${
               darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
             } p-2 rounded-full transition-colors`}
+            disabled={loading}
           >
             <X className="h-5 w-5" />
           </button>
@@ -126,11 +128,14 @@ const AddIncome = ({
                 value={formData.source}
                 onChange={handleChange}
                 required
+                disabled={loading}
                 className={`w-full p-3 rounded-lg border ${
                   darkMode
                     ? "bg-gray-700 border-gray-600"
                     : "bg-white border-gray-300"
-                } focus:ring-2 focus:ring-[#065336] focus:border-[#065336] transition-colors`}
+                } focus:ring-2 focus:ring-[#065336] focus:border-[#065336] transition-colors ${
+                  loading ? "opacity-70 cursor-not-allowed" : ""
+                }`}
               >
                 <option value="">Select a source</option>
                 {incomeSources.map((source) => (
@@ -151,11 +156,14 @@ const AddIncome = ({
                 required
                 min="0"
                 step="0.01"
+                disabled={loading}
                 className={`w-full p-3 rounded-lg border ${
                   darkMode
                     ? "bg-gray-700 border-gray-600"
                     : "bg-white border-gray-300"
-                } focus:ring-2 focus:ring-[#065336] focus:border-[#065336] transition-colors`}
+                } focus:ring-2 focus:ring-[#065336] focus:border-[#065336] transition-colors ${
+                  loading ? "opacity-70 cursor-not-allowed" : ""
+                }`}
                 placeholder="0.00"
               />
             </div>
@@ -169,11 +177,14 @@ const AddIncome = ({
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
+                disabled={loading}
                 className={`w-full p-3 rounded-lg border ${
                   darkMode
                     ? "bg-gray-700 border-gray-600"
                     : "bg-white border-gray-300"
-                } focus:ring-2 focus:ring-[#065336] focus:border-[#065336] transition-colors`}
+                } focus:ring-2 focus:ring-[#065336] focus:border-[#065336] transition-colors ${
+                  loading ? "opacity-70 cursor-not-allowed" : ""
+                }`}
                 placeholder="Brief description"
               />
             </div>
@@ -183,18 +194,23 @@ const AddIncome = ({
             <button
               type="button"
               onClick={onClose}
+              disabled={loading}
               className={`px-4 py-2 rounded-lg ${
                 darkMode
                   ? "bg-gray-700 hover:bg-gray-600 text-white"
                   : "bg-gray-200 hover:bg-gray-300 text-gray-800"
-              } transition-colors`}
+              } transition-colors ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-[#065336] hover:bg-[#054328] text-white rounded-lg transition-colors"
+              disabled={loading}
+              className={`px-4 py-2 bg-[#065336] hover:bg-[#054328] text-white rounded-lg transition-colors flex items-center ${
+                loading ? "opacity-70 cursor-not-allowed" : ""
+              }`}
             >
+              {loading && <Loader className="w-4 h-4 mr-2 animate-spin" />}
               {editingIncome ? "Update" : "Add"}
             </button>
           </div>

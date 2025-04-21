@@ -7,10 +7,13 @@ import { useAuth } from "../../context/AuthContext";
 import { useEffect, useState } from "react";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const ExpenseOverview = ({ activeTab, setActiveTab }) => {
+const ExpenseOverview = ({ activeTab, setActiveTab, refreshKey }) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [expenseData, setExpenseData] = useState([]);
+  const [timeRange, setTimeRange] = useState(7);
 
   const fetchTopUIData = async () => {
     try {
@@ -31,14 +34,6 @@ const ExpenseOverview = ({ activeTab, setActiveTab }) => {
       console.error("Error fetching dashboard data:", error);
     }
   };
-
-  useEffect(() => {
-    fetchTopUIData();
-  }, []);
-
-  const [loading, setLoading] = useState(false);
-  const [expenseData, setExpenseData] = useState([]);
-  const [timeRange, setTimeRange] = useState(7);
 
   const handleLoadExpense = async (timeRange) => {
     setLoading(true);
@@ -61,6 +56,7 @@ const ExpenseOverview = ({ activeTab, setActiveTab }) => {
       if (!response.ok) throw new Error("Failed to fetch expense data");
 
       const data = await response.json();
+      console.log("Expense trend data:", data);
       setExpenseData(data);
     } catch (error) {
       console.error("Error fetching expense data:", error);
@@ -69,9 +65,11 @@ const ExpenseOverview = ({ activeTab, setActiveTab }) => {
     }
   };
 
+  // Fetch data when timeRange changes or refreshKey changes
   useEffect(() => {
-    handleLoadExpense(7);
-  }, []);
+    fetchTopUIData();
+    handleLoadExpense(timeRange);
+  }, [timeRange, refreshKey]);
 
   return (
     <div
@@ -86,7 +84,6 @@ const ExpenseOverview = ({ activeTab, setActiveTab }) => {
           onChange={(e) => {
             const selectedValue = parseInt(e.target.value, 10);
             setTimeRange(selectedValue);
-            handleLoadExpense(selectedValue);
           }}
           className={`border rounded-md px-3 py-1 cursor-pointer ${
             darkMode
@@ -134,14 +131,12 @@ const ExpenseOverview = ({ activeTab, setActiveTab }) => {
       <div className="h-[400px]">
         {loading ? (
           <div className="flex justify-center items-center h-full">
-            <p className="text-lg font-medium">
-              {darkMode ? "Loading..." : "Loading..."}
-            </p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
           </div>
         ) : activeTab === "Daily Expenses" ? (
           <DailyExpensesChart data={expenseData} />
         ) : (
-          <ExpensesBreakdown totalExpenses={totalExpenses} />
+          <ExpensesBreakdown totalExpenses={totalExpenses} refreshKey={refreshKey} />
         )}
       </div>
     </div>
