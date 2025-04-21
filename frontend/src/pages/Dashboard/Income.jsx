@@ -12,6 +12,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-hot-toast";
 import Header from "../../components/Layout/Header";
+import AnimatedCounter from "../../components/UI/AnimatedCounter";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -274,10 +275,11 @@ const Income = () => {
                 } text-sm`}
               >
                 Total earnings:{" "}
-                {new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency: "USD",
-                }).format(totalIncome)}
+                $<AnimatedCounter 
+                  value={parseFloat(totalIncome)} 
+                  decimals={2}
+                  duration={2000}
+                />
               </p>
             </div>
             <button

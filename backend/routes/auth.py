@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, HTTPException, Depends, Request, UploadFile, File
 from starlette.responses import RedirectResponse
 from database import users_collection
 from models.user import SignupRequest, LoginRequest, UserResponse
@@ -10,6 +10,7 @@ from authlib.integrations.starlette_client import OAuth
 from dotenv import load_dotenv
 import os
 import jwt
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -120,8 +121,72 @@ async def login(user: LoginRequest):
 
 @router.get("/me", response_model=UserResponse)
 async def get_user_data(user: dict = Depends(get_current_user)):
-    """Fetches the logged-in user’s data."""
+    """Fetches the logged-in user's data."""
     db_user = await users_collection.find_one({"user_id": user["user_id"]}, {"_id": 0, "password": 0})
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+@router.post("/change-password")
+async def change_password(request: PasswordChangeRequest, user: dict = Depends(get_current_user)):
+    """Changes the user's password after verifying the current password."""
+    # Get user with password
+    db_user = await users_collection.find_one({"user_id": user["user_id"]})
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify current password
+    if not verify_password(request.current_password, db_user["password"]):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    # Hash the new password
+    hashed_password = hash_password(request.new_password)
+    
+    # Update the user's password
+    await users_collection.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"password": hashed_password}}
+    )
+    
+    return {"message": "Password changed successfully"}
+
+@router.post("/upload-profile-picture")
+async def upload_profile_picture(
+    profile_picture: UploadFile = File(...),
+    user: dict = Depends(get_current_user)
+):
+    """Uploads and sets a new profile picture for the user."""
+    try:
+        # Read the file content
+        contents = await profile_picture.read()
+        
+        # In a real production app, you would:
+        # 1. Validate the file (type, size, etc.)
+        # 2. Process the image (resize, compress, etc.)
+        # 3. Store it properly (e.g., in a cloud storage like S3)
+        
+        # For this example, we'll assume the file is stored somewhere and 
+        # we get back a URL (in reality, you would implement proper file storage)
+        
+        # This is a dummy URL for demonstration - in a real app, you'd get this from your storage service
+        profile_picture_url = f"https://example.com/profile-pictures/{user['user_id']}.jpg"
+        
+        # Update the user's profile picture in the database
+        await users_collection.update_one(
+            {"user_id": user["user_id"]},
+            {"$set": {"profile_picture": profile_picture_url}}
+        )
+        
+        # Return the updated user data
+        updated_user = await users_collection.find_one(
+            {"user_id": user["user_id"]},
+            {"_id": 0, "password": 0}
+        )
+        
+        return updated_user
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload profile picture: {str(e)}")

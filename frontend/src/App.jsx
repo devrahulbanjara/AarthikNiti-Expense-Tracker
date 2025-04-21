@@ -11,6 +11,7 @@ import ForgotPassword from "./pages/Auth/Forgotpassword";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
 import Reports from "./pages/Dashboard/Reports";
 import Budgeting from "./pages/Dashboard/Budgeting";
+import ProfilePage from "./pages/Profile/ProfilePage";
 import Layout from "./components/Layout/Layout";
 import IncomeVsExpensesChart from "./components/Dashboard/income-expenses-chart";
 import {
@@ -77,6 +78,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <Expense />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
                   </ProtectedRoute>
                 }
               />

@@ -130,8 +130,8 @@ const IncomeOverview = ({ timeRange, setTimeRange }) => {
                 axisLine={false}
               />
               <YAxis
-                tickFormatter={(value) => `$${value}`}
-                tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }}
+                tickFormatter={(value) => `$${(value/1000).toFixed(0)}k`}
+                tick={{ fill: darkMode ? "#9ca3af" : "#6b7280", fontSize: 12 }}
                 tickLine={false}
                 axisLine={false}
               />
