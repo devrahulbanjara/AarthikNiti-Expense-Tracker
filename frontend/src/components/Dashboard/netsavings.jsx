@@ -77,8 +77,8 @@ const NetSavings = () => {
       const value = payload[0].value;
       const isPositive = value >= 0;
       const color = isPositive 
-        ? (darkMode ? "#4ade80" : "#0a6e47") 
-        : (darkMode ? "#ef4444" : "#dc2626");
+        ? (darkMode ? "#4ade80" : "#15803d") 
+        : (darkMode ? "#86efac" : "#22c55e");
       
       return (
         <div
@@ -222,20 +222,20 @@ const NetSavings = () => {
               <Area 
                 type="monotone" 
                 dataKey="value"
-                stroke={darkMode ? "#4ade80" : "#0a6e47"}
-                fill={darkMode ? "#4ade80" : "#0a6e47"}
+                stroke={darkMode ? "#4ade80" : "#15803d"}
+                fill={darkMode ? "#4ade80" : "#15803d"}
                 fillOpacity={0.6}
                 strokeWidth={2}
                 activeDot={{ 
                   r: 6, 
                   strokeWidth: 2,
-                  fill: darkMode ? "#4ade80" : "#0a6e47",
+                  fill: darkMode ? "#4ade80" : "#15803d",
                   stroke: darkMode ? "#1f2937" : "#ffffff" 
                 }}
                 dot={{ 
                   r: 4, 
                   strokeWidth: 1,
-                  fill: darkMode ? "#4ade80" : "#0a6e47",
+                  fill: darkMode ? "#4ade80" : "#15803d",
                   stroke: darkMode ? "#1f2937" : "#ffffff",
                   display: (props) => (props.payload.value >= 0 ? 'flex' : 'none')
                 }}
@@ -248,21 +248,21 @@ const NetSavings = () => {
               <Area 
                 type="monotone" 
                 dataKey="value"
-                stroke={darkMode ? "#ef4444" : "#dc2626"}
-                fill={darkMode ? "#ef4444" : "#dc2626"}
-                fillOpacity={0.6}
+                stroke={darkMode ? "#86efac" : "#22c55e"}
+                fill={darkMode ? "#86efac" : "#22c55e"}
+                fillOpacity={0.5}
                 strokeWidth={2}
                 activeDot={{ 
                   r: 6, 
                   strokeWidth: 2,
-                  fill: darkMode ? "#ef4444" : "#dc2626",
+                  fill: darkMode ? "#86efac" : "#22c55e",
                   stroke: darkMode ? "#1f2937" : "#ffffff",
                   display: (props) => (props.payload.value < 0 ? 'flex' : 'none')
                 }}
                 dot={{ 
                   r: 4, 
                   strokeWidth: 1,
-                  fill: darkMode ? "#ef4444" : "#dc2626",
+                  fill: darkMode ? "#86efac" : "#22c55e",
                   stroke: darkMode ? "#1f2937" : "#ffffff",
                   display: (props) => (props.payload.value < 0 ? 'flex' : 'none')
                 }}

@@ -105,14 +105,14 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       toast.success(`Switched to ${profileName} successfully!`);
 
       setTimeout(() => {
-        window.location.reload();
+        navigate("/");
       }, 1000);
     } catch (err) {
       console.error("Error switching profile:", err);
       toast.error("Failed to switch profile!");
 
       setTimeout(() => {
-        window.location.reload();
+        navigate("/");
       }, 1000);
     }
   };
@@ -155,12 +155,10 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       const newAccount = await response.json();
       setAccounts([...accounts, newAccount]);
 
-      await switchProfile(newAccount.profile_id, newAccount.profile_name);
-
-      toast.success(`Switched to ${newAccount.profile_name} successfully!`);
-
       setShowAddAccountModal(false);
       setError("");
+      
+      await switchProfile(newAccount.profile_id, newAccount.profile_name);
     } catch (err) {
       setError(err.message);
     }
