@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, ArrowUp, ArrowDown, Trash } from "lucide-react";
+import { Search, ArrowUp, ArrowDown } from "lucide-react";
 import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
@@ -49,27 +49,6 @@ const RecentTransactions = ({ onTransactionsChange }) => {
       console.error("Error fetching transactions:", error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      const token = getToken();
-      const response = await fetch(`${BACKEND_URL}/profile/transaction/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete transaction");
-      }
-
-      setTransactions(transactions.filter((t) => t.id !== id));
-      onTransactionsChange(); // Re-fetch dashboard data after deletion
-    } catch (error) {
-      console.error("Error deleting transaction:", error);
     }
   };
 
@@ -173,7 +152,7 @@ const RecentTransactions = ({ onTransactionsChange }) => {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-end mt-2 sm:mt-0">
+              <div className="flex items-center w-full sm:w-auto justify-end mt-2 sm:mt-0">
                 <div
                   className={`text-sm font-semibold whitespace-nowrap 
                     ${transaction.type === "income"
@@ -183,16 +162,6 @@ const RecentTransactions = ({ onTransactionsChange }) => {
                   {transaction.type === "income" ? "+" : "-"} $
                   {transaction.amount.toFixed(2)}
                 </div>
-                <button
-                  onClick={() => handleDelete(transaction.id)}
-                  className={`p-1.5 rounded-full transition-colors duration-200 
-                    ${darkMode 
-                      ? "text-gray-400 hover:bg-red-900/50 hover:text-red-400" 
-                      : "text-gray-500 hover:bg-red-100 hover:text-red-600"}`}
-                  aria-label="Delete transaction"
-                >
-                  <Trash className="h-4 w-4" />
-                </button>
               </div>
             </li>
           ))}
