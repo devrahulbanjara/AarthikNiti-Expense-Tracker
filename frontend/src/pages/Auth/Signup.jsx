@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Check, X } from "lucide-react";
+import { Eye, EyeOff, Check, X, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import aarthiknitiImg from "../../assets/Logo/aarthikniti.png";
@@ -100,7 +100,7 @@ function Signup() {
       if (response.data) {
         toast.success("Signup successful! Please login to continue.");
         setTimeout(() => {
-          navigate("/");
+          navigate("/login");
         }, 2000);
       }
     } catch (error) {
@@ -118,12 +118,25 @@ function Signup() {
     }
   };
 
+  const handleBackToLanding = () => {
+    navigate("/");
+  };
+
   return (
     <div
       className={`min-h-screen flex flex-col md:flex-row transition-all duration-500 ${
         darkMode ? "bg-gray-900" : "bg-gray-50"
       }`}
     >
+      {/* Back Button */}
+      <button 
+        onClick={handleBackToLanding}
+        className="absolute top-4 left-4 z-50 flex items-center p-2 text-white bg-[#065336]/80 hover:bg-[#065336] rounded-full transition-all duration-300"
+        aria-label="Back to Landing Page"
+      >
+        <ArrowLeft size={20} />
+      </button>
+
       {/* Left side - Image */}
       <div className="w-full md:w-1/2 h-48 md:h-screen relative bg-[#065336] transition-all duration-500">
         <div className="absolute inset-0 flex items-center justify-center">
@@ -338,7 +351,7 @@ function Signup() {
           <p className="mt-6 text-center text-sm text-gray-600">
             Already have an account?{" "}
             <Link
-              to="/"
+              to="/login"
               className="text-[#0a6e47] hover:text-[#054328] font-medium transition-colors duration-200"
             >
               Log in

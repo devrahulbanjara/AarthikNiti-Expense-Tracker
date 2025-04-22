@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -13,6 +13,7 @@ import Reports from "./pages/Dashboard/Reports";
 import Budgeting from "./pages/Dashboard/Budgeting";
 import ProfilePage from "./pages/Profile/ProfilePage";
 import Layout from "./components/Layout/Layout";
+import LandingPage from "./pages/Landing/LandingPage";
 import IncomeVsExpensesChart from "./components/Dashboard/income-expenses-chart";
 import {
   ProtectedRoute,
@@ -21,6 +22,102 @@ import {
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import { ReloadProvider } from "./context/ReloadContext";
+
+// Main App Router Content
+const AppRoutes = () => {
+  return (
+    <Routes>
+      {/* Root Route with Authentication Check */}
+      <Route path="/" element={<RootRoute />} />
+        
+      {/* Auth Routes - With Layout */}
+      <Route element={<Layout />}>
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute>
+              <Signup />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/income"
+          element={
+            <ProtectedRoute>
+              <Income />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/expenses"
+          element={
+            <ProtectedRoute>
+              <Expense />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/income-vs-expenses"
+          element={
+            <ProtectedRoute>
+              <IncomeVsExpensesChart />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/forgotpw" element={<ForgotPassword />} />
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/budgeting"
+          element={
+            <ProtectedRoute>
+              <Budgeting />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+    </Routes>
+  );
+};
+
+// The RootRoute also uses the PublicRoute to redirect based on auth status
+const RootRoute = () => {
+  return (
+    <PublicRoute>
+      <LandingPage />
+    </PublicRoute>
+  );
+};
 
 const App = () => {
   return (
@@ -41,83 +138,7 @@ const App = () => {
               theme="light"
               transition={Bounce}
             />
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                <Route
-                  index
-                  element={
-                    <PublicRoute>
-                      <Login />
-                    </PublicRoute>
-                  }
-                />
-                <Route
-                  path="/signup"
-                  element={
-                    <PublicRoute>
-                      <Signup />
-                    </PublicRoute>
-                  }
-                />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/income"
-                  element={
-                    <ProtectedRoute>
-                      <Income />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/expenses"
-                  element={
-                    <ProtectedRoute>
-                      <Expense />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <ProfilePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/income-vs-expenses"
-                  element={
-                    <ProtectedRoute>
-                      <IncomeVsExpensesChart />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/forgotpw" element={<ForgotPassword />} />
-              </Route>
-              <Route
-                path="/reports"
-                element={
-                  <ProtectedRoute>
-                    <Reports />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/budgeting"
-                element={
-                  <ProtectedRoute>
-                    <Budgeting />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
+            <AppRoutes />
           </ReloadProvider>
         </AuthProvider>
       </Router>
