@@ -36,6 +36,7 @@ async def send_otp_email(email: str):
     try:
         # Generate OTP
         otp = generate_otp()
+        print(f"Generated OTP: {otp}")  # For debugging purposes
         
         # Store OTP in database
         await store_otp(email, otp)
