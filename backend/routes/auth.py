@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import os
 import jwt
 from pydantic import BaseModel
+from services.email_service import send_otp_email, verify_otp
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -190,3 +191,63 @@ async def upload_profile_picture(
         return updated_user
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload profile picture: {str(e)}")
+    
+
+
+class PasswordResetRequest(BaseModel):
+    email: str
+
+class VerifyOTPRequest(BaseModel):
+    email: str
+    otp: str
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    otp: str
+    new_password: str
+
+@router.post("/forgot-password")
+async def forgot_password(request: PasswordResetRequest):
+    """Send OTP to user's email for password reset."""
+    user = await users_collection.find_one({"email": request.email})
+    if not user:
+        raise HTTPException(status_code=404, detail="Email not found")
+    
+    success = await send_otp_email(request.email)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send OTP")
+    
+    return {"message": "OTP sent successfully"}
+
+@router.post("/verify-otp")
+async def verify_otp_endpoint(request: VerifyOTPRequest):
+    """Verify the OTP provided by the user."""
+    is_valid = await verify_otp(request.email, request.otp)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+    
+    return {"message": "OTP verified successfully"}
+
+@router.post("/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    """Reset user's password after OTP verification."""
+    # Verify OTP first
+    is_valid = await verify_otp(request.email, request.otp)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+    
+    # Get user
+    user = await users_collection.find_one({"email": request.email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Hash new password
+    hashed_password = hash_password(request.new_password)
+    
+    # Update password
+    await users_collection.update_one(
+        {"email": request.email},
+        {"$set": {"password": hashed_password}}
+    )
+    
+    return {"message": "Password reset successfully"} 
