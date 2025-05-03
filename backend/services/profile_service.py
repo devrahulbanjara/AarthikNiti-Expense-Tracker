@@ -640,28 +640,28 @@ async def edit_expense(user_id: int, transaction_id: str, amount: float, descrip
 
 async def delete_expense(user_id: int, transaction_id: str):
     """Deletes an expense transaction and updates the profile balance."""
-    
+     
     # Get the existing transaction
     transaction = await transactions_collection.find_one({
         "transaction_id": transaction_id,
         "user_id": user_id,
         "transaction_type": "expense"
     })
-    
+     
     if not transaction:
         raise HTTPException(status_code=404, detail="Expense transaction not found")
-    
+      
     # Get the active profile
     profile = await get_active_profile(user_id)
-    
+      
     # Calculate new totals
     amount = transaction["transaction_amount"]
     new_expense = profile["profile_total_expense"] - amount
     new_balance = profile["profile_total_balance"] + amount
-    
+     
     # Delete the transaction
     await transactions_collection.delete_one({"transaction_id": transaction_id})
-    
+     
     # Update the profile totals
     await profiles_collection.update_one(
         {"user_id": user_id, "profile_id": profile["profile_id"]},
@@ -672,5 +672,78 @@ async def delete_expense(user_id: int, transaction_id: str):
             }
         }
     )
-    
+      
     return {"message": "Expense deleted successfully"}
+
+async def get_transaction_report_data(user_id: int, transaction_type: str, months: int):
+    """
+    Fetches transaction data for the requested period to be sent to the report generator.
+    
+    Args:
+        user_id (int): The user's ID.
+        transaction_type (str): The type of transactions to include ("income", "expense", or "all").
+        months (int): The number of months to include in the report.
+        
+    Returns:
+        dict: A dictionary containing formatted transaction data and metadata.
+    """
+    # Validate transaction type
+    if transaction_type not in ["income", "expense", "all"]:
+        raise HTTPException(status_code=400, detail="Invalid transaction type. Must be 'income', 'expense', or 'all'.")
+    
+    # Get active profile
+    profile = await get_active_profile(user_id)
+    
+    # Calculate date range
+    end_date = datetime.utcnow()
+    start_date = end_date - relativedelta(months=months)
+    
+    # Create query filter
+    query = {
+        "user_id": user_id,
+        "profile_id": profile["profile_id"],
+        "timestamp": {"$gte": start_date, "$lte": end_date}
+    }
+    
+    # Add transaction type filter if not "all"
+    if transaction_type != "all":
+        query["transaction_type"] = transaction_type
+    
+    # Fetch transactions
+    transactions = await transactions_collection.find(query).sort("timestamp", -1).to_list(length=None)
+    
+    if not transactions:
+        return {"transactions": [], "message": "No transactions found for the selected period."}
+    
+    # Format transaction data for the report
+    formatted_transactions = []
+    for transaction in transactions:
+        transaction_data = {
+            "date": transaction["timestamp"].strftime("%Y-%m-%d"),
+            "type": transaction["transaction_type"],
+            "category": transaction["transaction_category"],
+            "description": transaction["transaction_description"],
+            "amount": transaction["transaction_amount"]
+        }
+        
+        # Add recurring information for expenses
+        if transaction["transaction_type"] == "expense" and transaction.get("recurring", False):
+            transaction_data["recurring"] = True
+            transaction_data["recurrence_duration"] = transaction.get("recurrence_duration", "monthly")
+        
+        formatted_transactions.append(transaction_data)
+    
+    # Create transaction data string for the chatbot
+    transaction_data_str = "\n".join([
+        f"Date: {t['date']}, Type: {t['type']}, Category: {t['category']}, " 
+        f"Description: {t['description']}, Amount: {t['amount']}"
+        for t in formatted_transactions
+    ])
+    
+    return {
+        "transactions": formatted_transactions,
+        "transaction_data_str": transaction_data_str,
+        "profile_name": profile["profile_name"],
+        "time_period": f"last {months} months",
+        "transaction_type": transaction_type
+    }

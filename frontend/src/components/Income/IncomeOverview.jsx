@@ -102,8 +102,13 @@ const IncomeOverview = ({ timeRange, setTimeRange, refreshKey }) => {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-80">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+        <div className="flex flex-col justify-center items-center h-80">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-green-500"></div>
+          <span
+            className={`mt-4 ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+          >
+            Loading income data...
+          </span>
         </div>
       ) : chartData.length === 0 ? (
         <div className="flex justify-center items-center h-80">
@@ -130,7 +135,7 @@ const IncomeOverview = ({ timeRange, setTimeRange, refreshKey }) => {
                 axisLine={false}
               />
               <YAxis
-                tickFormatter={(value) => `$${(value/1000).toFixed(0)}k`}
+                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                 tick={{ fill: darkMode ? "#9ca3af" : "#6b7280", fontSize: 12 }}
                 tickLine={false}
                 axisLine={false}

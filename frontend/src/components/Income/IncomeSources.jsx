@@ -15,7 +15,13 @@ import { useAuth } from "../../context/AuthContext";
 import { incomeSources } from "../../pages/Dashboard/incomeSources";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const IncomeSources = ({ onEdit, onDelete, formatDate, refreshKey, loading: parentLoading }) => {
+const IncomeSources = ({
+  onEdit,
+  onDelete,
+  formatDate,
+  refreshKey,
+  loading: parentLoading,
+}) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
@@ -125,10 +131,18 @@ const IncomeSources = ({ onEdit, onDelete, formatDate, refreshKey, loading: pare
       } hover:shadow-md h-full relative`}
     >
       {isLoading && (
-        <div className="absolute inset-0 bg-black bg-opacity-10 flex items-center justify-center z-10 rounded-lg">
+        <div
+          className={`absolute inset-0 ${
+            darkMode ? "bg-gray-800/50" : "bg-white/90"
+          } flex items-center justify-center z-10 rounded-lg backdrop-blur-sm`}
+        >
           <div className="flex flex-col items-center">
-            <Loader className="animate-spin h-8 w-8 text-primary-500 mb-2" />
-            <span className={`text-sm ${darkMode ? "text-gray-200" : "text-gray-700"}`}>
+            <Loader className="animate-spin h-10 w-10 text-primary-500 mb-2" />
+            <span
+              className={`text-sm font-medium ${
+                darkMode ? "text-gray-200" : "text-gray-700"
+              }`}
+            >
               Loading income data...
             </span>
           </div>
@@ -153,9 +167,11 @@ const IncomeSources = ({ onEdit, onDelete, formatDate, refreshKey, loading: pare
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={`w-full pl-10 pr-4 py-2 border rounded-lg text-sm transition-colors duration-200 
-              ${darkMode 
-                ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500" 
-                : "bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-green-500 focus:border-green-500"}
+              ${
+                darkMode
+                  ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500"
+                  : "bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-green-500 focus:border-green-500"
+              }
               focus:outline-none focus:ring-2`}
             disabled={isLoading}
           />
@@ -170,7 +186,11 @@ const IncomeSources = ({ onEdit, onDelete, formatDate, refreshKey, loading: pare
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className={`${darkMode ? "bg-gray-700/50" : "bg-gray-50"} rounded-t-lg`}>
+            <tr
+              className={`${
+                darkMode ? "bg-gray-700/50" : "bg-gray-50"
+              } rounded-t-lg`}
+            >
               {["source", "amount", "date"].map((header) => (
                 <th
                   key={header}
@@ -225,7 +245,9 @@ const IncomeSources = ({ onEdit, onDelete, formatDate, refreshKey, loading: pare
                     darkMode
                       ? "border-gray-700 hover:bg-gray-700/50"
                       : "border-gray-200 hover:bg-gray-50"
-                  } ${index === sortedIncomes.length - 1 ? "last:border-0" : ""}`}
+                  } ${
+                    index === sortedIncomes.length - 1 ? "last:border-0" : ""
+                  }`}
                   onMouseEnter={() => setHoveredRow(income.transaction_id)}
                   onMouseLeave={() => setHoveredRow(null)}
                 >
@@ -262,7 +284,10 @@ const IncomeSources = ({ onEdit, onDelete, formatDate, refreshKey, loading: pare
                     {income.description}
                     {income.recurring && (
                       <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                        {income.recurrence_duration ? income.recurrence_duration.charAt(0).toUpperCase() + income.recurrence_duration.slice(1) : "Recurring"}
+                        {income.recurrence_duration
+                          ? income.recurrence_duration.charAt(0).toUpperCase() +
+                            income.recurrence_duration.slice(1)
+                          : "Recurring"}
                       </span>
                     )}
                   </td>
@@ -274,7 +299,11 @@ const IncomeSources = ({ onEdit, onDelete, formatDate, refreshKey, loading: pare
                         title="Edit"
                         disabled={isLoading}
                       >
-                        <Edit className={`h-4 w-4 ${isLoading ? 'text-gray-400' : 'text-blue-500'}`} />
+                        <Edit
+                          className={`h-4 w-4 ${
+                            isLoading ? "text-gray-400" : "text-blue-500"
+                          }`}
+                        />
                       </button>
                       <button
                         onClick={() => onDelete(income.transaction_id)}
@@ -282,7 +311,11 @@ const IncomeSources = ({ onEdit, onDelete, formatDate, refreshKey, loading: pare
                         title="Delete"
                         disabled={isLoading}
                       >
-                        <Trash className={`h-4 w-4 ${isLoading ? 'text-gray-400' : 'text-red-500'}`} />
+                        <Trash
+                          className={`h-4 w-4 ${
+                            isLoading ? "text-gray-400" : "text-red-500"
+                          }`}
+                        />
                       </button>
                     </div>
                   </td>

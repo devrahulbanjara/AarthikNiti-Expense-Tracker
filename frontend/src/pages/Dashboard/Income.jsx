@@ -44,7 +44,7 @@ const Income = () => {
     setLoading(true);
     try {
       const token = getToken();
-      
+
       // Fetch dashboard data for total income
       const dashboardResponse = await fetch(
         `${BACKEND_URL}/profile/dashboard`,
@@ -89,9 +89,9 @@ const Income = () => {
       }));
 
       setIncomes(formattedIncomes);
-      
+
       // Increment the refresh key to trigger re-renders in child components
-      setRefreshKey(prev => prev + 1);
+      setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error("Error refreshing income data:", error);
       toast.error("Failed to refresh data");
@@ -164,7 +164,7 @@ const Income = () => {
         if (!response.ok) {
           throw new Error("Failed to update income");
         }
-        
+
         toast.success("Income updated successfully");
       } else {
         // Add new income
@@ -180,13 +180,13 @@ const Income = () => {
         if (!response.ok) {
           throw new Error("Failed to add income");
         }
-        
+
         toast.success("Income added successfully");
       }
 
       // Refresh the data
       await refreshData();
-      
+
       // Close modal and reset editing state
       setIsAddModalOpen(false);
       setEditingIncome(null);
@@ -220,9 +220,9 @@ const Income = () => {
         if (!response.ok) {
           throw new Error("Failed to delete income");
         }
-        
+
         toast.success("Income deleted successfully");
-        
+
         // Refresh data
         await refreshData();
       } catch (error) {
@@ -251,15 +251,19 @@ const Income = () => {
   };
 
   return (
-    <div className={`${darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"} min-h-screen flex flex-col md:flex-row`}>
+    <div
+      className={`${
+        darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"
+      } min-h-screen flex flex-col md:flex-row`}
+    >
       <Sidebar active="income" />
-      
+
       <div className="w-full md:w-4/5 md:ml-[20%] p-4 min-h-screen pb-20">
-        <Header 
-          title="Income" 
-          subtitle="Manage your income sources and track your earnings." 
+        <Header
+          title="Income"
+          subtitle="Manage your income sources and track your earnings."
         />
-        
+
         <div className="pt-28 md:pt-28">
           {/* Income Actions Section */}
           <div className="mb-6 flex justify-between items-center">
@@ -270,9 +274,9 @@ const Income = () => {
                   darkMode ? "text-gray-400" : "text-gray-600"
                 } text-sm`}
               >
-                Total earnings:{" "}
-                $<AnimatedCounter 
-                  value={parseFloat(totalIncome)} 
+                Total earnings: $
+                <AnimatedCounter
+                  value={parseFloat(totalIncome)}
                   decimals={2}
                   duration={2000}
                 />
@@ -294,9 +298,9 @@ const Income = () => {
               darkMode ? "border-gray-800" : "border-gray-200"
             } rounded-xl overflow-hidden shadow-md mb-6`}
           >
-            <IncomeOverview 
-              timeRange={timeRange} 
-              setTimeRange={setTimeRange} 
+            <IncomeOverview
+              timeRange={timeRange}
+              setTimeRange={setTimeRange}
               refreshKey={refreshKey}
             />
           </div>
