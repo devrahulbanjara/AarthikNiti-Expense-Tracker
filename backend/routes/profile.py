@@ -10,6 +10,10 @@ import os
 from chatbot.chat import ConversationalChatbot
 from chatbot.report_generator import ReportGenerator
 from fastapi.responses import PlainTextResponse
+from fastapi import File, UploadFile
+import tempfile
+import json
+from receipt_information_extractor.extractor import extract_receipt_info
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
@@ -236,3 +240,58 @@ async def generate_transaction_report(
     )
     
     return csv_content
+
+@router.post("/extract-receipt")
+async def extract_receipt_information(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user)
+):
+    """
+    Extracts information from a receipt image.
+    
+    Parameters:
+    - file: The uploaded receipt image file
+    
+    Returns:
+    - JSON containing the extracted receipt information
+    """
+    # Check if the file is an image
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    # Create a temporary file to store the uploaded image
+    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as temp_file:
+        # Write the uploaded file content to the temporary file
+        temp_file.write(await file.read())
+        temp_file_path = temp_file.name
+    
+    try:
+        # Process the image using the receipt information extractor
+        result = extract_receipt_info(temp_file_path)
+        
+        # Ensure we have a valid dictionary response
+        if not isinstance(result, dict):
+            result = {
+                "Expense Type": "Other",
+                "Description": "Receipt processing failed to return proper format",
+                "Total Amount": ""
+            }
+        
+        # Ensure all required fields exist in the response
+        required_fields = ["Expense Type", "Description", "Total Amount"]
+        for field in required_fields:
+            if field not in result:
+                result[field] = ""
+        
+        print("Returning receipt extraction result:", result)
+        
+        # Return the extracted information as JSON
+        return result
+    except Exception as e:
+        error_msg = f"Error processing receipt: {str(e)}"
+        print(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
+    finally:
+        # Clean up the temporary file
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
