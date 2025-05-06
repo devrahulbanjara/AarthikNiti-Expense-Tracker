@@ -201,27 +201,24 @@ async def create_profile(user_id: int, profile_name: str):
     return {"message": "Profile created successfully", "profile_id": new_profile_id}
 
 
-async def get_recent_transactions(user_id: int, limit: int = 5):
-    """Fetches the latest transactions (income & expenses) for the active profile."""
-    
-    user = await users_collection.find_one({"user_id": user_id})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
 
-    active_profile_id = user.get("active_profile_id")
-    if not active_profile_id:
-        raise HTTPException(status_code=404, detail="No active profile found")
+async def get_recent_transactions(user_id: int):
+        """Fetches all transactions (income & expenses) for the active profile."""
+        
+        user = await users_collection.find_one({"user_id": user_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
 
-    transactions = await transactions_collection.find(
-        {"user_id": user_id, "profile_id": active_profile_id}
-    ).sort("timestamp", -1).limit(limit).to_list(length=limit)
+        active_profile_id = user.get("active_profile_id")
+        transactions = await transactions_collection.find(
+            {"user_id": user_id, "profile_id": active_profile_id}
+        ).sort("timestamp", -1).to_list(length=None)
 
-    # Convert `_id` to string for JSON compatibility
-    for transaction in transactions:
-        transaction["_id"] = str(transaction["_id"])
+        # Convert `_id` to string for JSON compatibility
+        for transaction in transactions:
+            transaction["_id"] = str(transaction["_id"])
 
-    return transactions
-
+        return transactions
 async def calculate_savings_trend(user_id: int, profile_id: int, n: int):
     """Calculates savings trend for the last n months."""
     

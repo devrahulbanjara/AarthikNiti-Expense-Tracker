@@ -71,10 +71,11 @@ async def switch_profile_endpoint(request: ProfileSwitchRequest, user: dict = De
     """Switches to another profile."""
     return await switch_profile(user["user_id"], request.profile_id)
 
+
 @router.get("/recent_transactions")
 async def recent_transactions(user: dict = Depends(get_current_user)):
-    """Fetches the top 10 recent transactions for the active profile."""
-    return await get_recent_transactions(user["user_id"])
+        """Fetches the top 10 recent transactions for the active profile."""
+        return await get_recent_transactions(user["user_id"])
 
 @router.get("/expense-breakdown")
 async def expense_breakdown(user: dict = Depends(get_current_user)):
