@@ -1,9 +1,17 @@
 "use client";
 
 import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
-import { X, Upload } from "lucide-react";
+import {
+  X,
+  Upload,
+  Camera,
+  Paperclip,
+  Receipt,
+  Check,
+  FileType,
+} from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import axios from "axios";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import { useAuth } from "../../context/AuthContext";
@@ -19,6 +27,10 @@ const AddExpenseModal = ({
   const { getToken } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef(null);
+  const [processingProgress, setProcessingProgress] = useState(0);
 
   if (!showAddModal) return null;
 
@@ -26,13 +38,59 @@ const AddExpenseModal = ({
     setNewExpense({ ...newExpense, [field]: e.target.value });
   };
 
-  // Handle receipt upload and information extraction
-  const handleReceiptUpload = async (e) => {
-    const file = e.target.files[0];
+  // Drag and drop handlers
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleButtonClick = () => {
+    fileInputRef.current.click();
+  };
+
+  // Simulate receipt processing progress
+  const simulateProgress = () => {
+    setProcessingProgress(0);
+    const interval = setInterval(() => {
+      setProcessingProgress((prev) => {
+        const newProgress = prev + Math.random() * 15;
+        if (newProgress >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return newProgress;
+      });
+    }, 300);
+
+    return () => clearInterval(interval);
+  };
+
+  // Handle file upload
+  const handleFileUpload = async (file) => {
     if (!file) return;
 
+    // Reset states
+    setUploadSuccess(false);
+    setUploadError("");
+
     if (!file.type.startsWith("image/")) {
-      setUploadError("Please upload an image file");
+      setUploadError("Please upload an image file (JPG, PNG)");
       return;
     }
 
@@ -40,7 +98,9 @@ const AddExpenseModal = ({
     formData.append("file", file);
 
     setIsUploading(true);
-    setUploadError("");
+
+    // Start progress simulation
+    const stopProgressSimulation = simulateProgress();
 
     try {
       // Get the authentication token using the AuthContext
@@ -199,15 +259,191 @@ const AddExpenseModal = ({
       // Force a re-render by creating a new object reference
       setNewExpense({ ...updatedExpense });
 
-      // Add a success message
-      setUploadError("✅ Receipt processed successfully!");
-      setTimeout(() => setUploadError(""), 3000);
+      // Set success state
+      setUploadSuccess(true);
+      setProcessingProgress(100);
+
+      // Clear success message after a few seconds
+      setTimeout(() => {
+        setUploadSuccess(false);
+      }, 5000);
     } catch (error) {
       console.error("Error extracting receipt information:", error);
       setUploadError("Failed to extract information from receipt");
+      setProcessingProgress(0);
     } finally {
       setIsUploading(false);
+      // Clear progress simulation if it's still running
+      if (stopProgressSimulation) stopProgressSimulation();
     }
+  };
+
+  // Handle receipt upload and information extraction
+  const handleReceiptUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  // Render the upload area
+  const renderUploadArea = () => {
+    return (
+      <div className="pt-6 px-6">
+        <div
+          className={`w-full relative overflow-hidden transition-all duration-300 ease-in-out ${
+            dragActive ? "scale-[1.02]" : ""
+          }`}
+          onDragEnter={handleDrag}
+        >
+          <div
+            className={`
+              flex flex-col items-center justify-center w-full py-6 px-4 
+              border-2 ${
+                dragActive
+                  ? "border-[#065336]"
+                  : darkMode
+                  ? "border-gray-600"
+                  : "border-gray-300"
+              } 
+              ${
+                dragActive
+                  ? "bg-[#06533610]"
+                  : darkMode
+                  ? "hover:bg-gray-700"
+                  : "hover:bg-gray-50"
+              }
+              border-dashed rounded-lg cursor-pointer transition-all duration-300
+              ${isUploading ? "opacity-75" : "opacity-100"}
+              hover:shadow-md hover:scale-[1.01] hover:border-[#065336]
+              group
+            `}
+            onClick={handleButtonClick}
+            onDragOver={handleDrag}
+            onDragLeave={handleDrag}
+            onDrop={handleDrop}
+          >
+            {isUploading ? (
+              // Loading state
+              <div className="flex flex-col items-center py-2 space-y-3">
+                <div className="relative h-16 w-16 flex items-center justify-center">
+                  <Receipt className="h-12 w-12 text-gray-400 animate-pulse" />
+                  <div className="absolute inset-0 rounded-full">
+                    <svg className="w-full h-full" viewBox="0 0 100 100">
+                      <circle
+                        className="text-gray-300 stroke-current"
+                        strokeWidth="6"
+                        fill="transparent"
+                        r="45"
+                        cx="50"
+                        cy="50"
+                      />
+                      <circle
+                        className="text-[#065336] progress-ring stroke-current"
+                        strokeWidth="6"
+                        strokeLinecap="round"
+                        fill="transparent"
+                        r="45"
+                        cx="50"
+                        cy="50"
+                        style={{
+                          strokeDasharray: `${2 * Math.PI * 45}`,
+                          strokeDashoffset: `${
+                            2 * Math.PI * 45 * (1 - processingProgress / 100)
+                          }`,
+                          transformOrigin: "50% 50%",
+                          transform: "rotate(-90deg)",
+                        }}
+                      />
+                    </svg>
+                  </div>
+                  <div className="absolute text-sm font-semibold">
+                    {Math.round(processingProgress)}%
+                  </div>
+                </div>
+                <p className="text-md font-medium">Processing Receipt...</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center max-w-[240px]">
+                  Reading data and extracting expense details
+                </p>
+              </div>
+            ) : uploadSuccess ? (
+              // Success state
+              <div className="flex flex-col items-center py-2 space-y-2">
+                <div className="h-14 w-14 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center mb-1 shadow-inner">
+                  <Check className="h-8 w-8 text-green-600 dark:text-green-300" />
+                </div>
+                <p className="text-md font-medium text-green-600 dark:text-green-300">
+                  Receipt Scanned Successfully!
+                </p>
+                <div className="flex flex-wrap justify-center gap-2 mt-1">
+                  {newExpense.amount ? (
+                    <div className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-800 rounded-lg text-sm font-medium text-blue-700 dark:text-blue-200 shadow-sm">
+                      <span className="text-blue-500 dark:text-blue-300 mr-1">
+                        Amount:
+                      </span>
+                      ${newExpense.amount.toFixed(2)}
+                    </div>
+                  ) : null}
+                  {newExpense.category ? (
+                    <div className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900 border border-emerald-200 dark:border-emerald-800 rounded-lg text-sm font-medium text-emerald-700 dark:text-emerald-200 shadow-sm">
+                      <span className="text-emerald-500 dark:text-emerald-300 mr-1">
+                        Category:
+                      </span>
+                      {newExpense.category}
+                    </div>
+                  ) : null}
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 max-w-[280px] text-center">
+                  Form fields have been pre-filled with the extracted
+                  information
+                </p>
+              </div>
+            ) : (
+              // Default upload state
+              <div className="flex flex-col items-center py-4">
+                <div className="flex gap-3 mb-3">
+                  <Receipt className="h-8 w-8 text-[#065336] group-hover:scale-110 transition-transform group-hover:text-[#074328]" />
+                  <Camera className="h-8 w-8 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
+                  <Paperclip className="h-8 w-8 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
+                </div>
+                <p className="text-md font-medium mb-1 group-hover:text-[#065336] transition-colors">
+                  Upload Receipt for Auto-Fill
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center max-w-[240px]">
+                  Drag and drop an image here or click to browse
+                </p>
+                <div className="flex items-center justify-center gap-1 mt-3">
+                  <FileType className="h-4 w-4 text-gray-400" />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Accepts JPG, PNG images
+                  </p>
+                </div>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              id="receipt-upload"
+              type="file"
+              className="hidden"
+              accept="image/jpeg, image/png"
+              onChange={handleReceiptUpload}
+              disabled={isUploading}
+            />
+          </div>
+          {uploadError && (
+            <div className="mt-2 px-4 py-3 bg-red-100 dark:bg-red-900/50 border border-red-300 dark:border-red-800 rounded-md shadow-sm">
+              <p className="text-red-800 dark:text-red-200 text-sm flex items-center font-medium">
+                <X className="h-4 w-4 mr-2 flex-shrink-0 text-red-600 dark:text-red-300" />
+                {uploadError}
+              </p>
+              <p className="text-red-600 dark:text-red-300 text-xs mt-1">
+                Please try again with a clearer image or enter details manually.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -231,42 +467,8 @@ const AddExpenseModal = ({
           </button>
         </div>
 
-        {/* Receipt Upload Button */}
-        <div className="pt-6 px-6">
-          <div className="w-full">
-            <label
-              htmlFor="receipt-upload"
-              className={`flex items-center justify-center w-full p-3 border-2 border-dashed rounded-lg cursor-pointer ${
-                darkMode
-                  ? "border-gray-600 hover:bg-gray-700"
-                  : "border-gray-300 hover:bg-gray-50"
-              } transition-colors`}
-            >
-              <div className="flex flex-col items-center justify-center py-2">
-                <Upload className="h-6 w-6 mb-2" />
-                <p className="text-sm font-medium">
-                  {isUploading
-                    ? "Processing..."
-                    : "Upload Receipt for Auto-Fill"}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Click to upload an image of your receipt
-                </p>
-              </div>
-              <input
-                id="receipt-upload"
-                type="file"
-                className="hidden"
-                accept="image/*"
-                onChange={handleReceiptUpload}
-                disabled={isUploading}
-              />
-            </label>
-            {uploadError && (
-              <p className="text-red-500 text-xs mt-1">{uploadError}</p>
-            )}
-          </div>
-        </div>
+        {/* Enhanced Receipt Upload Area */}
+        {renderUploadArea()}
 
         <form
           onSubmit={(e) => {
