@@ -5,7 +5,7 @@ import { X, Upload } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useState } from "react";
 import axios from "axios";
-import { API_BASE_URL } from "../../config";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import { useAuth } from "../../context/AuthContext";
 
 const AddExpenseModal = ({
@@ -55,7 +55,7 @@ const AddExpenseModal = ({
       console.log("Sending receipt to API for processing...");
 
       const response = await axios.post(
-        `${API_BASE_URL}/profile/extract-receipt`,
+        `${BACKEND_URL}/profile/extract-receipt`,
         formData,
         {
           headers: {
