@@ -11,39 +11,21 @@ import DownloadReport from "../../components/Reports/download-report";
 const Reports = () => {
   const { darkMode } = useTheme();
 
-  const handleDownload = async () => {
-    try {
-      const response = await fetch("/api/generate-report", {
-        method: "POST",
-        body: JSON.stringify({
-          transaction_type: "all",
-          months: 3,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to fetch CSV data");
-      }
-  
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-  
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "report.csv";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-  
-      // Clean up
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error downloading CSV:", error);
-    }
-  };  
+  // sample dataa 
+  const sampleCSV = `Date,Amount
+2023-08-01,1000
+2023-08-02,1500
+2023-08-03,2000`;
+
+  const handleDownload = () => {
+    const blob = new Blob([sampleCSV], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "report.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className={`flex ${darkMode ? "bg-gray-900 text-white" : "bg-white text-black"} min-h-screen`}>
@@ -52,7 +34,7 @@ const Reports = () => {
       <main className="flex-grow p-6 md:ml-[20%] min-h-screen pt-16">
         <Header title="Reports" subtitle="Explore your income and expenses trends over time." />
 
-        {/* Download Button */}
+        {/* Download Button*/}
         <div className="flex justify-end mt-12 mb-4">
           <DownloadReport onClick={handleDownload} />
         </div>
