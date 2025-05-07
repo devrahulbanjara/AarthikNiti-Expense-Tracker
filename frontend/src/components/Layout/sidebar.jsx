@@ -22,6 +22,7 @@ const navItems = [
   { name: "Dashboard", icon: Home, href: "/dashboard" },
   { name: "Income", icon: ArrowUp, href: "/income" },
   { name: "Expenses", icon: ArrowDown, href: "/expenses" },
+  { name: "Reports", icon: ChevronDown, href: "/reports" },
 ];
 
 const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
@@ -190,7 +191,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
             <button
               className={`md:hidden p-2 rounded-full ${
                 darkMode ? "bg-gray-700" : "bg-[#054328]"
-              } text-white`}
+              } text-white cursor-pointer`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               <X className="h-5 w-5" />
@@ -274,7 +275,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                 <li key={item.name}>
                   <button
                     onClick={() => handleNavigation(item.href)}
-                    className={`w-full flex items-center py-2 px-4 rounded-md mb-1 ${
+                    className={`w-full flex items-center py-2 px-4 rounded-md mb-1 cursor-pointer ${
                       isActive
                         ? darkMode
                           ? "bg-gray-700 text-gray-100"
@@ -302,7 +303,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
               <li>
                 <button
                   onClick={() => handleNavigation("/settings")}
-                  className={`w-full flex items-center py-2 px-4 rounded-md mb-1 ${
+                  className={`w-full flex items-center py-2 px-4 rounded-md mb-1 cursor-pointer ${
                     location.pathname === "/settings"
                       ? darkMode
                         ? "bg-gray-700 text-gray-100"
