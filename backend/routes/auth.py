@@ -11,7 +11,8 @@ from dotenv import load_dotenv
 import os
 import jwt
 from pydantic import BaseModel
-from services.email_service import send_otp_email, verify_otp
+from services.email_service import send_otp_email, verify_otp, send_signup_otp, verify_signup_otp
+from pydantic import BaseModel, EmailStr
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -251,3 +252,27 @@ async def reset_password(request: ResetPasswordRequest):
     )
     
     return {"message": "Password reset successfully"} 
+
+# Request model for sending signup OTP
+class SignupEmailRequest(BaseModel):
+    email: EmailStr
+
+# Request model for verifying signup OTP
+class VerifySignupOTPRequest(BaseModel):
+    email: EmailStr
+    otp: str
+
+
+@router.post("/send-signup-otp")
+async def send_signup_otp_endpoint(request: SignupEmailRequest):
+    success = await send_signup_otp(request.email)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send OTP")
+    return {"message": "Signup OTP sent successfully"}
+
+@router.post("/verify-signup-otp")
+async def verify_signup_otp_endpoint(request: VerifySignupOTPRequest):
+    is_valid = await verify_signup_otp(request.email, request.otp)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+    return {"message": "Signup OTP verified successfully"}
