@@ -10,6 +10,7 @@ import IncomeSources from "../../components/Income/IncomeSources";
 import Chatbot from "../../components/Chatbot/chat-assistant";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 import { toast } from "react-hot-toast";
 import Header from "../../components/Layout/Header";
 import AnimatedCounter from "../../components/UI/AnimatedCounter";
@@ -29,6 +30,7 @@ const Income = () => {
   const navigate = useNavigate();
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
+  const { currency, convertAmount, formatCurrency } = useCurrency();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState(null);
@@ -107,7 +109,7 @@ const Income = () => {
 
   useEffect(() => {
     refreshData();
-  }, [refreshData]);
+  }, [refreshData, currency]);
 
   useEffect(() => {
     const validateToken = async () => {
@@ -156,7 +158,13 @@ const Income = () => {
   }, []);
 
   const handleEdit = async (income) => {
-    setEditingIncome(income);
+    // Convert the income amount back to NPR for editing
+    // This ensures we're editing the original value
+    const originalIncome = {
+      ...income,
+      amount: income.originalAmount || income.amount,
+    };
+    setEditingIncome(originalIncome);
     setIsAddModalOpen(true);
   };
 
@@ -268,46 +276,48 @@ const Income = () => {
     >
       <Sidebar active="income" scrolled={scrolled} />
 
-      <div
-        className={`flex-grow p-6 md:ml-[20%] min-h-screen relative transition-opacity duration-500 ease-out ${
-          isPageLoaded ? "opacity-100" : "opacity-0"
-        }`}
-      >
+      <div className="w-full md:w-4/5 md:ml-[20%] p-4 min-h-screen pb-20">
         <Header
           title="Income"
           subtitle="Manage your income sources and transactions"
         />
 
-        <div className="pt-24">
-          {/* Add Income Button */}
-          <div
-            className={`flex justify-end transition-all duration-300 ease-out ${
-              isPageLoaded
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-4"
-            }`}
-          >
-            <button
-              onClick={() => {
-                setEditingIncome(null);
-                setIsAddModalOpen(true);
-              }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md 
-                bg-[#065336] hover:bg-[#054328] text-white
-              transition-all duration-300 transform hover:scale-105 active:scale-95`}
-            >
-              <Plus size={16} />
-              <span>Add Income</span>
-            </button>
+        <div className="pt-28 md:pt-28">
+          {/* Income Actions Section */}
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold">Financial Summary</h2>
+              <p
+                className={`${
+                  darkMode ? "text-gray-400" : "text-gray-600"
+                } text-sm`}
+              >
+                Total earnings:{" "}
+                <span className="text-green-500 font-semibold">
+                  {formatCurrency(convertAmount(totalIncome, "NPR", currency))}
+                </span>
+              </p>
+            </div>
+            <div>
+              <button
+                onClick={() => {
+                  setEditingIncome(null);
+                  setIsAddModalOpen(true);
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md 
+                  bg-[#065336] hover:bg-[#054328] text-white
+                transition-all duration-300 transform hover:scale-105 active:scale-95`}
+              >
+                <Plus size={16} />
+                <span>Add Income</span>
+              </button>
+            </div>
           </div>
 
-          {/* Overview Cards */}
           <div
-            className={`mt-6 transition-all duration-500 delay-200 ease-out ${
-              showOverview
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
-            }`}
+            className={`border ${
+              darkMode ? "border-gray-800" : "border-gray-200"
+            } rounded-xl overflow-hidden shadow-md mb-6`}
           >
             <IncomeOverview
               totalIncome={totalIncome}
@@ -316,27 +326,19 @@ const Income = () => {
               darkMode={darkMode}
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
-              key={refreshKey}
+              key={`${refreshKey}-${currency}`}
             />
           </div>
 
           {/* Income Table */}
-          <div
-            className={`mt-8 transition-all duration-700 delay-400 ease-out ${
-              showTable
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
-            }`}
-          >
-            <IncomeSources
-              incomes={incomes}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              formatDate={formatDate}
-              darkMode={darkMode}
-              key={refreshKey}
-            />
-          </div>
+          <IncomeSources
+            incomes={incomes}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            formatDate={formatDate}
+            darkMode={darkMode}
+            key={`${refreshKey}-${currency}`}
+          />
         </div>
 
         {/* Add/Edit Income Modal */}

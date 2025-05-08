@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Check, X, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
@@ -6,12 +6,14 @@ import axios from "axios";
 import aarthiknitiImg from "../../assets/Logo/aarthikniti.png";
 import girlImg from "../../assets/ExtraImg/girl.jpg";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function Signup() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { getSupportedCurrencies } = useCurrency();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,17 +35,31 @@ function Signup() {
     special: false,
   });
 
-  const currencies = [
-    { code: "USD", name: "US Dollar ($)" },
-    { code: "EUR", name: "Euro (€)" },
-    { code: "GBP", name: "British Pound (£)" },
-    { code: "JPY", name: "Japanese Yen (¥)" },
-    { code: "INR", name: "Indian Rupee (₹)" },
-    { code: "NPR", name: "Nepali Rupee (₨)" },
-    { code: "CAD", name: "Canadian Dollar (C$)" },
-    { code: "AUD", name: "Australian Dollar (A$)" },
-    { code: "CNY", name: "Chinese Yuan (¥)" },
-  ];
+  // Get currencies from CurrencyContext to ensure consistency
+  const availableCurrencies = useMemo(() => {
+    try {
+      // Try to get currencies from the context first
+      const supportedCurrencies = getSupportedCurrencies?.();
+      if (
+        supportedCurrencies &&
+        Array.isArray(supportedCurrencies) &&
+        supportedCurrencies.length > 0
+      ) {
+        return supportedCurrencies;
+      }
+    } catch (error) {
+      console.error("Error getting supported currencies:", error);
+    }
+
+    // Fallback to default currencies if the above fails
+    return [
+      { code: "USD", name: "US Dollar" },
+      { code: "EUR", name: "Euro" },
+      { code: "GBP", name: "British Pound" },
+      { code: "NPR", name: "Nepali Rupee" },
+      { code: "INR", name: "Indian Rupee" },
+    ];
+  }, [getSupportedCurrencies]);
 
   const validateEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -181,22 +197,20 @@ function Signup() {
         <ArrowLeft size={20} />
       </button>
 
-      {/* Left side - Image */}
-      <div className="w-full md:w-1/2 h-48 md:h-screen relative bg-[#065336] transition-all duration-500">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-white p-4 transform transition-transform duration-500 hover:scale-105">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2 animate-fade-in">
-              AarthikNiti
-            </h1>
-            <p className="text-lg md:text-xl animate-fade-in-delay">
-              Your Personal Finance Manager
-            </p>
-          </div>
+      {/* Left side - Fixed Image */}
+      <div className="w-full md:w-1/2 h-48 md:fixed md:left-0 md:top-0 md:bottom-0 bg-[#065336] md:h-screen flex items-center justify-center">
+        <div className="text-center text-white p-4 transform transition-transform duration-500 hover:scale-105">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 animate-fade-in">
+            AarthikNiti
+          </h1>
+          <p className="text-lg md:text-xl animate-fade-in-delay">
+            Your Personal Finance Manager
+          </p>
         </div>
       </div>
 
-      {/* Right side - Signup Form */}
-      <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-4 md:p-8 lg:p-16 transition-all duration-500">
+      {/* Right side - Scrollable Signup Form */}
+      <div className="w-full md:w-1/2 md:ml-[50%] flex flex-col items-center justify-center p-4 md:p-8 lg:p-16 transition-all duration-500 min-h-screen">
         <div className="w-full max-w-md transform transition-all duration-500 hover:scale-[1.01]">
           <h2 className="text-2xl md:text-3xl mb-2 font-semibold text-gray-800 animate-fade-in">
             {step === 1 ? "Create an account" : "Verify your email"}
@@ -351,7 +365,7 @@ function Signup() {
                   onChange={(e) => setCurrency(e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-lg transition-all duration-200 focus:border-[#0a6e47] focus:ring-2 focus:ring-[#0a6e47]/20 outline-none"
                 >
-                  {currencies.map((curr) => (
+                  {availableCurrencies.map((curr) => (
                     <option key={curr.code} value={curr.code}>
                       {curr.name}
                     </option>

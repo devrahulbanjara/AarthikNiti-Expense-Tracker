@@ -10,6 +10,7 @@ import DeleteConfirmationModal from "../../components/Expense/DeleteConfirmation
 import ChatAssistant from "../../components/Chatbot/chat-assistant";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 import { toast } from "react-toastify";
 import Header from "../../components/Layout/Header";
 import AnimatedCounter from "../../components/UI/AnimatedCounter";
@@ -20,6 +21,7 @@ const Expense = () => {
   const navigate = useNavigate();
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
+  const { currency, formatCurrency, convertAmount } = useCurrency();
   const [scrolled, setScrolled] = useState(false);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -53,7 +55,7 @@ const Expense = () => {
     setLoading(true);
     try {
       const token = getToken();
-      
+
       // Fetch dashboard data for total spending
       const dashboardResponse = await fetch(
         `${BACKEND_URL}/profile/dashboard`,
@@ -89,6 +91,7 @@ const Expense = () => {
         id: index + 1,
         category: expense.category,
         amount: expense.amount,
+        originalAmount: expense.amount, // Store original amount in NPR
         date: expense.date,
         description: expense.description,
         isRecurring: expense.recurring,
@@ -99,9 +102,9 @@ const Expense = () => {
       }));
 
       setExpenses(formattedExpenses);
-      
+
       // Increment refresh key to trigger re-renders in child components
-      setRefreshKey(prev => prev + 1);
+      setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error("Error refreshing expense data:", error);
       toast.error("Failed to refresh data");
@@ -112,7 +115,7 @@ const Expense = () => {
 
   useEffect(() => {
     refreshData();
-  }, [refreshData, timeRange]);
+  }, [refreshData, timeRange, currency]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -134,6 +137,20 @@ const Expense = () => {
       recurrence_duration: newExpense.recurrence_duration,
     };
 
+    // Validate amount
+    if (isNaN(expenseToAdd.amount) || expenseToAdd.amount <= 0) {
+      toast.error("Please enter a valid positive amount for the expense.");
+      return;
+    }
+    if (!expenseToAdd.description) {
+      toast.error("Please enter a description for the expense.");
+      return;
+    }
+    if (!expenseToAdd.category) {
+      toast.error("Please select a category for the expense.");
+      return;
+    }
+
     try {
       setLoading(true);
       const token = getToken();
@@ -147,12 +164,13 @@ const Expense = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to add expense");
+        const errorData = await response.json(); // Try to parse error response from backend
+        throw { status: response.status, data: errorData }; // Throw an object with status and data
       }
 
       // Show success toast
       toast.success("Expense added successfully");
-      
+
       // Reset form and close modal
       setShowAddModal(false);
       setNewExpense({
@@ -162,12 +180,18 @@ const Expense = () => {
         recurring: false,
         recurrence_duration: "",
       });
-      
+
       // Refresh expense data
       await refreshData();
     } catch (error) {
       console.error("Error adding expense:", error);
-      toast.error("Failed to add expense");
+      if (error.data && error.data.detail) {
+        // If backend provides a specific detail message, show it
+        toast.error(error.data.detail);
+      } else {
+        // Fallback to a generic error message
+        toast.error("Failed to add expense. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -191,7 +215,9 @@ const Expense = () => {
           description: currentExpense.description,
           category: currentExpense.category,
           recurring: currentExpense.recurring || false,
-          recurrence_duration: currentExpense.recurring ? currentExpense.recurrence_duration : null
+          recurrence_duration: currentExpense.recurring
+            ? currentExpense.recurrence_duration
+            : null,
         }),
       });
 
@@ -201,7 +227,7 @@ const Expense = () => {
 
       // Show success message
       toast.success("Expense updated successfully");
-      
+
       // Close the modal
       setShowEditModal(false);
       setCurrentExpense(null);
@@ -235,7 +261,7 @@ const Expense = () => {
 
       // Show success toast
       toast.success("Expense deleted successfully");
-      
+
       // Close modal
       setShowDeleteModal(false);
       setExpenseToDelete(null);
@@ -262,16 +288,23 @@ const Expense = () => {
     }
   }, [activeTab]);
 
+  // Convert totalSpending to selected currency
+  const convertedTotalSpending = convertAmount(totalSpending, "NPR", currency);
+
   return (
-    <div className={`${darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"} min-h-screen flex flex-col md:flex-row`}>
+    <div
+      className={`${
+        darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"
+      } min-h-screen flex flex-col md:flex-row`}
+    >
       <Sidebar active="expenses" />
-      
+
       <div className="w-full md:w-4/5 md:ml-[20%] p-4 min-h-screen pb-20">
-        <Header 
-          title="Expenses" 
-          subtitle="Manage your expenses and track your spending." 
+        <Header
+          title="Expenses"
+          subtitle="Manage your expenses and track your spending."
         />
-        
+
         <div className="pt-28 md:pt-28">
           {/* Expense Actions Section */}
           <div className="mb-6 flex justify-between items-center">
@@ -283,14 +316,15 @@ const Expense = () => {
                 } text-sm`}
               >
                 Total spending:{" "}
-                $<AnimatedCounter 
-                  value={parseFloat(totalSpending)} 
-                  decimals={2}
-                  duration={2000}
-                />
+                <span className="text-red-500 font-semibold">
+                  {formatCurrency(convertedTotalSpending)}
+                </span>
               </p>
             </div>
-            <AddExpenseButton setShowAddModal={setShowAddModal} disabled={loading} />
+            <AddExpenseButton
+              setShowAddModal={setShowAddModal}
+              disabled={loading}
+            />
           </div>
 
           <div
@@ -301,7 +335,7 @@ const Expense = () => {
             <ExpenseOverview
               activeTab={activeTab}
               setActiveTab={setActiveTab}
-              refreshKey={refreshKey}
+              refreshKey={`${refreshKey}-${currency}`}
             />
           </div>
           <ExpenseList
@@ -318,7 +352,7 @@ const Expense = () => {
             timeRange={timeRange}
             loading={loading}
             expenseList={expenses}
-            refreshKey={refreshKey}
+            refreshKey={`${refreshKey}-${currency}`}
           />
         </div>
         <AddExpenseModal

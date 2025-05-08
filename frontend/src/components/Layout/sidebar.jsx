@@ -10,6 +10,7 @@ import {
   Settings,
   Plus,
   X,
+  BarChart2,
 } from "lucide-react";
 import AddAccountModal from "./AddAccountModal";
 import { useTheme } from "../../context/ThemeContext";
@@ -22,7 +23,7 @@ const navItems = [
   { name: "Dashboard", icon: Home, href: "/dashboard" },
   { name: "Income", icon: ArrowUp, href: "/income" },
   { name: "Expenses", icon: ArrowDown, href: "/expenses" },
-  { name: "Reports", icon: ChevronDown, href: "/reports" },
+  { name: "Reports", icon: BarChart2, href: "/reports" },
 ];
 
 const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
@@ -158,7 +159,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 
       setShowAddAccountModal(false);
       setError("");
-      
+
       await switchProfile(newAccount.profile_id, newAccount.profile_name);
     } catch (err) {
       setError(err.message);

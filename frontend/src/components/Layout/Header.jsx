@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Moon, Sun, User, Settings, LogOut, ChevronDown } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import CompactCurrencyDropdown from "./CompactCurrencyDropdown";
 
 const Header = ({ title, subtitle }) => {
   const { darkMode, toggleDarkMode } = useTheme();
@@ -15,14 +16,17 @@ const Header = ({ title, subtitle }) => {
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
-    
+
     const handleClickOutside = (event) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target)
+      ) {
         setShowProfileMenu(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
       document.removeEventListener("mousedown", handleClickOutside);
@@ -50,21 +54,32 @@ const Header = ({ title, subtitle }) => {
     >
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold font-poppins">{title}</h1>
-          <p className={`text-sm md:text-base ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+          <h1 className="text-xl md:text-2xl font-bold font-poppins">
+            {title}
+          </h1>
+          <p
+            className={`text-sm md:text-base ${
+              darkMode ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
             {subtitle}
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-4">
+          {/* Currency Dropdown */}
+          <CompactCurrencyDropdown />
+
           <button
             onClick={toggleDarkMode}
             className={`p-2 rounded-full transition-colors ${
-              darkMode 
-                ? "hover:bg-gray-700 text-gray-300" 
+              darkMode
+                ? "hover:bg-gray-700 text-gray-300"
                 : "hover:bg-gray-100 text-gray-700"
             }`}
-            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label={
+              darkMode ? "Switch to light mode" : "Switch to dark mode"
+            }
           >
             {darkMode ? (
               <Sun size={20} className="text-amber-300" />
@@ -72,30 +87,40 @@ const Header = ({ title, subtitle }) => {
               <Moon size={20} className="text-indigo-600" />
             )}
           </button>
-          
+
           <div className="relative" ref={profileMenuRef}>
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
               className={`flex items-center space-x-2 p-2 rounded-full transition-colors ${
-                darkMode 
-                  ? "hover:bg-gray-700" 
-                  : "hover:bg-gray-100"
+                darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
               }`}
               aria-expanded={showProfileMenu}
               aria-haspopup="true"
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                darkMode ? "bg-gray-700" : "bg-gray-200"
-              }`}>
-                <User size={16} className={darkMode ? "text-gray-300" : "text-gray-700"} />
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  darkMode ? "bg-gray-700" : "bg-gray-200"
+                }`}
+              >
+                <User
+                  size={16}
+                  className={darkMode ? "text-gray-300" : "text-gray-700"}
+                />
               </div>
-              <ChevronDown size={16} className={`transition-transform duration-200 ${showProfileMenu ? "rotate-180" : ""}`} />
+              <ChevronDown
+                size={16}
+                className={`transition-transform duration-200 ${
+                  showProfileMenu ? "rotate-180" : ""
+                }`}
+              />
             </button>
-            
+
             {showProfileMenu && (
-              <div 
+              <div
                 className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 ${
-                  darkMode ? "bg-gray-800 border border-gray-700" : "bg-white border border-gray-200"
+                  darkMode
+                    ? "bg-gray-800 border border-gray-700"
+                    : "bg-white border border-gray-200"
                 } transform origin-top-right transition-all duration-200 animate-fadeIn`}
               >
                 <button
@@ -104,8 +129,8 @@ const Header = ({ title, subtitle }) => {
                     navigate("/profile");
                   }}
                   className={`flex items-center w-full px-4 py-2 text-sm ${
-                    darkMode 
-                      ? "hover:bg-gray-700 text-gray-300" 
+                    darkMode
+                      ? "hover:bg-gray-700 text-gray-300"
                       : "hover:bg-gray-100 text-gray-700"
                   }`}
                 >
@@ -118,20 +143,24 @@ const Header = ({ title, subtitle }) => {
                     navigate("/settings");
                   }}
                   className={`flex items-center w-full px-4 py-2 text-sm ${
-                    darkMode 
-                      ? "hover:bg-gray-700 text-gray-300" 
+                    darkMode
+                      ? "hover:bg-gray-700 text-gray-300"
                       : "hover:bg-gray-100 text-gray-700"
                   }`}
                 >
                   <Settings size={16} className="mr-2" />
                   Settings
                 </button>
-                <hr className={darkMode ? "border-gray-700 my-1" : "border-gray-200 my-1"} />
+                <hr
+                  className={
+                    darkMode ? "border-gray-700 my-1" : "border-gray-200 my-1"
+                  }
+                />
                 <button
                   onClick={handleLogout}
                   className={`flex items-center w-full px-4 py-2 text-sm ${
-                    darkMode 
-                      ? "hover:bg-gray-700 text-red-400" 
+                    darkMode
+                      ? "hover:bg-gray-700 text-red-400"
                       : "hover:bg-gray-100 text-red-600"
                   }`}
                 >
@@ -147,4 +176,4 @@ const Header = ({ title, subtitle }) => {
   );
 };
 
-export default Header; 
+export default Header;

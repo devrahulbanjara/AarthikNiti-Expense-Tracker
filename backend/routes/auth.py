@@ -11,8 +11,10 @@ from dotenv import load_dotenv
 import os
 import jwt
 from pydantic import BaseModel
-from services.email_service import send_otp_email, verify_otp, send_signup_otp, verify_signup_otp, send_signup_success_email
+from services.email_service import send_otp_email, verify_otp, send_signup_otp, verify_signup_otp, send_signup_success_email, send_two_factor_code
 from pydantic import BaseModel, EmailStr
+import random
+import string
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -145,16 +147,135 @@ async def complete_signup(request: CompleteSignupRequest):
     
     return UserResponse(**new_user)
 
+# Security Settings Models
+class SecuritySettingsResponse(BaseModel):
+    two_factor_enabled: bool
+
+class TwoFactorToggleRequest(BaseModel):
+    enabled: bool
+
+class VerifyTwoFactorRequest(BaseModel):
+    email: str
+    code: str
+    password: str
+
+# Two-Factor Authentication OTP Storage (in-memory for demo)
+# In production, store this in Redis or another appropriate storage
+two_factor_codes = {}
+
+# Generate a random verification code
+def generate_verification_code(length=6):
+    return ''.join(random.choices(string.digits, k=length))
+
+@router.get("/security-settings", response_model=SecuritySettingsResponse)
+async def get_security_settings(user: dict = Depends(get_current_user)):
+    """Get the user's security settings"""
+    two_factor_enabled = user.get("two_factor_enabled", False)
+    return {"two_factor_enabled": two_factor_enabled}
+
+@router.post("/toggle-two-factor", response_model=SecuritySettingsResponse)
+async def toggle_two_factor(request: TwoFactorToggleRequest, user: dict = Depends(get_current_user)):
+    """Enable or disable two-factor authentication for the user"""
+    print(f"Toggling two-factor for user {user['email']} to: {request.enabled}")
+    
+    result = await users_collection.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"two_factor_enabled": request.enabled}}
+    )
+    
+    if result.matched_count == 0:
+        # If no user document was found to update.
+        raise HTTPException(status_code=404, detail="User not found, failed to update two-factor settings.")
+    
+    # If matched_count is 1, the user was found.
+    # modified_count will be 0 if the value was already what request.enabled specified. This is a successful state.
+    # modified_count will be 1 if the value was changed. This is also a successful state.
+    print(f"Successfully ensured two-factor for user {user['email']} is: {request.enabled} (matched: {result.matched_count}, modified: {result.modified_count})")
+    return {"two_factor_enabled": request.enabled}
+
 @router.post("/login")
-async def login(user: LoginRequest):
-    """Logs in a user and generates a JWT token."""
-    db_user = await users_collection.find_one({"email": user.email})
-    if not db_user or not verify_password(user.password, db_user["password"]):
+async def login(request: LoginRequest):
+    """Log in a user."""
+    user = await users_collection.find_one({"email": request.email})
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not verify_password(request.password, user["password"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    # Check if two-factor authentication is enabled
+    if user.get("two_factor_enabled", False):
+        # Generate and send verification code
+        verification_code = generate_verification_code()
+        # Store the code with an expiration time (15 minutes)
+        two_factor_codes[request.email] = {
+            "code": verification_code,
+            "expires_at": datetime.utcnow() + timedelta(minutes=15)
+        }
+        
+        # Send code via email
+        await send_two_factor_code(request.email, verification_code)
+        
+        return {
+            "message": "Two-factor authentication required",
+            "requires_two_factor": True,
+            "email": request.email
+        }
+
+    # Normal login flow without 2FA
+    token_data = {
+        "user_id": user["user_id"],
+        "email": user["email"]
+    }
+    jwt_token = create_jwt_token(token_data, expires_delta=timedelta(hours=24))
+    
+    return {
+        "token": jwt_token,
+        "token_type": "bearer",
+        "user_id": user["user_id"]
+    }
+
+@router.post("/verify-two-factor")
+async def verify_two_factor(request: VerifyTwoFactorRequest):
+    """Verify two-factor authentication code and complete login."""
+    user = await users_collection.find_one({"email": request.email})
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    # Verify password again for security
+    if not verify_password(request.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    token = create_jwt_token({"user_id": db_user["user_id"], "email": db_user["email"]}, expires_delta=timedelta(hours=1))
+    # Check if there is a valid code for this user
+    stored_data = two_factor_codes.get(request.email)
+    if not stored_data:
+        raise HTTPException(status_code=400, detail="No verification code found or code expired")
     
-    return {"access_token": token, "token_type": "bearer"}
+    # Check if code has expired
+    if datetime.utcnow() > stored_data["expires_at"]:
+        # Clean up expired code
+        del two_factor_codes[request.email]
+        raise HTTPException(status_code=400, detail="Verification code expired")
+    
+    # Verify the code
+    if request.code != stored_data["code"]:
+        raise HTTPException(status_code=400, detail="Invalid verification code")
+    
+    # Clean up used code
+    del two_factor_codes[request.email]
+    
+    # Generate JWT token
+    token_data = {
+        "user_id": user["user_id"],
+        "email": user["email"]
+    }
+    jwt_token = create_jwt_token(token_data, expires_delta=timedelta(hours=24))
+    
+    return {
+        "token": jwt_token,
+        "token_type": "bearer",
+        "user_id": user["user_id"]
+    }
 
 @router.get("/me", response_model=UserResponse)
 async def get_user_data(user: dict = Depends(get_current_user)):

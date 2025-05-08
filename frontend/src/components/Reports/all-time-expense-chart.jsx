@@ -17,7 +17,11 @@ import LoadingSpinner from "../UI/LoadingSpinner";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const AllTimeExpenseChart = () => {
+const AllTimeExpenseChart = ({
+  currency = "NPR",
+  formatCurrency,
+  convertAmount,
+}) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
   const [expenseData, setExpenseData] = useState([]);
@@ -53,10 +57,16 @@ const AllTimeExpenseChart = () => {
             day: "numeric",
           });
 
+          // Convert amount from NPR to selected currency
+          const convertedAmount = convertAmount
+            ? convertAmount(item.amount, "NPR", currency)
+            : item.amount;
+
           return {
             fullDate: item.date,
             formattedDate,
-            amount: item.amount,
+            amount: convertedAmount,
+            originalAmount: item.amount, // Keep original amount for reference
             // Store full date for tooltip
             tooltipDate: date.toLocaleDateString("en-US", {
               month: "short",
@@ -89,7 +99,7 @@ const AllTimeExpenseChart = () => {
     };
 
     fetchAllExpenseData();
-  }, [getToken]);
+  }, [getToken, currency, convertAmount]);
 
   // Left to right animation effect for the chart data
   useEffect(() => {
@@ -159,7 +169,9 @@ const AllTimeExpenseChart = () => {
               darkMode ? "text-red-400" : "text-red-600"
             }`}
           >
-            ${payload[0].value.toLocaleString()}
+            {formatCurrency
+              ? formatCurrency(payload[0].value)
+              : `${currency} ${payload[0].value.toLocaleString()}`}
           </p>
         </div>
       );
@@ -235,7 +247,11 @@ const AllTimeExpenseChart = () => {
               <YAxis
                 stroke={textColor}
                 tickFormatter={(value) =>
-                  `$${value >= 1000 ? (value / 1000).toFixed(1) + "k" : value}`
+                  value >= 1000
+                    ? `${currency.substring(0, 3)} ${(value / 1000).toFixed(
+                        1
+                      )}k`
+                    : `${currency.substring(0, 3)} ${value}`
                 }
                 tick={{ fill: textColor, fontSize: 12 }}
                 domain={calculateYDomain()}

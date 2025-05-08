@@ -11,9 +11,9 @@ import UpcomingBills from "../../components/Dashboard/upcomingbills";
 import NetSavings from "../../components/Dashboard/netsavings";
 import IncomeVsExpensesChart from "../../components/Dashboard/income-expenses-chart";
 import ChatAssistant from "../../components/Chatbot/chat-assistant";
-import CurrencyDropdown from "../../components/Dashboard/currency-dropdown";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -21,6 +21,7 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const { darkMode } = useTheme();
   const { logout, getToken } = useAuth();
+  const { currency, formatCurrency, convertAmount } = useCurrency();
   const [topUIData, setTopUIData] = useState({
     profile_total_income: 0,
     profile_total_expense: 0,
@@ -32,8 +33,6 @@ const DashboardPage = () => {
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [showCards, setShowCards] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
-
-  const [selectedCurrency, setSelectedCurrency] = useState("USD");
 
   const totalIncome = topUIData.profile_total_income;
   const totalExpenses = topUIData.profile_total_expense;
@@ -82,10 +81,6 @@ const DashboardPage = () => {
     logout();
   };
 
-  const handleCurrencyChange = (newCurrency) => {
-    setSelectedCurrency(newCurrency);
-  };
-
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
@@ -114,7 +109,7 @@ const DashboardPage = () => {
     fetchTopUIData();
     const intervalId = setInterval(fetchTopUIData, 300000);
     return () => clearInterval(intervalId);
-  }, []);
+  }, [currency]);
 
   if (isTopUILoading) {
     return (
@@ -152,20 +147,6 @@ const DashboardPage = () => {
         />
 
         <div className="pt-28 md:pt-28">
-          {/* Currency Dropdown with fade-in */}
-          <div
-            className={`transition-all duration-300 ease-out ${
-              isPageLoaded
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-4"
-            }`}
-          >
-            <CurrencyDropdown
-              selectedCurrency={selectedCurrency}
-              onCurrencyChange={handleCurrencyChange}
-            />
-          </div>
-
           {/* Dashboard Cards with fade-in */}
           <div
             className={`transition-all duration-500 delay-200 ease-out ${
@@ -241,22 +222,40 @@ const DashboardCards = ({
   isOverBudget,
 }) => {
   const { darkMode } = useTheme();
+  const { currency, formatCurrency, convertAmount } = useCurrency();
+
+  // Convert all amounts to the selected currency
+  const convertedBalance = convertAmount(totalBalance, "NPR");
+  const convertedIncome = convertAmount(totalIncome, "NPR");
+  const convertedExpenses = convertAmount(totalExpenses, "NPR");
+
+  // Log conversion details for debugging
+  console.log("Currency conversion:", {
+    currency,
+    original: { totalBalance, totalIncome, totalExpenses },
+    converted: { convertedBalance, convertedIncome, convertedExpenses },
+    formatted: {
+      balance: formatCurrency(convertedBalance),
+      income: formatCurrency(convertedIncome),
+      expenses: formatCurrency(convertedExpenses),
+    },
+  });
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-2">
       <Card
         title="Total Balance"
-        amount={`$${totalBalance.toFixed(2)}`}
+        amount={formatCurrency(convertedBalance)}
         icon={DollarSign}
       />
       <Card
         title="Total Income"
-        amount={`$${totalIncome.toFixed(2)}`}
+        amount={formatCurrency(convertedIncome)}
         icon={ArrowUp}
       />
       <Card
         title="Total Expenses"
-        amount={`$${totalExpenses.toFixed(2)}`}
+        amount={formatCurrency(convertedExpenses)}
         icon={ArrowDown}
       />
       <BudgetCard percentage={spentPercentage} isOverBudget={isOverBudget} />
@@ -267,9 +266,17 @@ const DashboardCards = ({
 const Card = ({ title, amount, icon: Icon }) => {
   const { darkMode } = useTheme();
   const [displayValue, setDisplayValue] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(true);
+  const { currency } = useCurrency();
+
+  // Extract the numeric part from the formatted amount
   const amountValue = parseFloat(amount.replace(/[^0-9.-]+/g, ""));
 
+  // Extract the currency symbol for animation purposes
+  const currencySymbol = amount.replace(/[0-9.,]+/g, "").trim();
+
   useEffect(() => {
+    setIsAnimating(true);
     const targetValue = amountValue;
     let startValue = 0;
     const duration = 1500;
@@ -282,13 +289,14 @@ const Card = ({ title, amount, icon: Icon }) => {
       if (currentValue >= targetValue) {
         clearInterval(timer);
         setDisplayValue(targetValue);
+        setIsAnimating(false);
       } else {
         setDisplayValue(currentValue);
       }
     }, frameRate);
 
     return () => clearInterval(timer);
-  }, [amountValue]);
+  }, [amountValue, currency]); // Add currency as dependency to re-animate when it changes
 
   const getValueColor = (title) => {
     if (darkMode) {
@@ -316,6 +324,12 @@ const Card = ({ title, amount, icon: Icon }) => {
   };
 
   const valueColor = getValueColor(title);
+
+  // Format the number according to locale and precision
+  const formattedDisplayValue = displayValue.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
   return (
     <div
@@ -346,13 +360,24 @@ const Card = ({ title, amount, icon: Icon }) => {
         className="text-2xl font-bold mt-2 flex justify-center items-baseline"
         style={{ color: valueColor }}
       >
-        <span className="text-sm mr-1">$</span>
-        <span className="tabular-nums transition-all">
-          {displayValue.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </span>
+        {isAnimating ? (
+          <>
+            <span className="text-sm mr-1">{currencySymbol}</span>
+            <span className="tabular-nums transition-all">
+              {formattedDisplayValue}
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="text-sm mr-0.5">{currencySymbol}</span>
+            <span className="tabular-nums">
+              {amountValue.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </>
+        )}
       </p>
     </div>
   );

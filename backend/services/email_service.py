@@ -17,8 +17,12 @@ SMTP_USERNAME = os.getenv("SMTP_USERNAME")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 SENDER_EMAIL = os.getenv("SENDER_EMAIL")
 
+# Store OTPs with expiration times
+otps = {}
+signup_otps = {}
+
 def generate_otp(length=6):
-    """Generate a random OTP of specified length."""
+    """Generate a random OTP."""
     return ''.join(random.choices(string.digits, k=length))
 
 async def store_otp(email: str, otp: str, purpose: str = "reset"):
@@ -41,82 +45,121 @@ async def send_email(email: str, subject: str, html_body: str):
         msg['Subject'] = subject
         msg.attach(MIMEText(html_body, 'html'))
 
+        print(f"Attempting to send email to: {email} with subject: {subject}")
+        print(f"SMTP Server: {SMTP_SERVER}, Port: {SMTP_PORT}, Username: {SMTP_USERNAME}")
+
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.set_debuglevel(1) # Enable SMTP debug output
             server.starttls()
             server.login(SMTP_USERNAME, SMTP_PASSWORD)
             server.send_message(msg)
-    except Exception as e:
-        print(f"Error sending email: {str(e)}")
-
-async def send_otp_email(email: str):
-    """Send OTP to user's email for password reset."""
-    try:
-        otp = generate_otp()
-        print(f"Generated OTP: {otp}")
-        await store_otp(email, otp, "reset")
-
-        body = f"""
-        <html>
-            <body>
-                <h2>Password Reset Request</h2>
-                <p>Your OTP for password reset is: <strong>{otp}</strong></p>
-                <p>This OTP is valid for 10 minutes.</p>
-                <p>If you didn't request this, please ignore this email.</p>
-                <br>
-                <p>Best regards,<br>AarthikNiti Team</p>
-            </body>
-        </html>
-        """
-        await send_email(email, "Password Reset OTP - AarthikNiti", body)
-        return True
-    except Exception as e:
-        print(f"Error sending reset OTP: {str(e)}")
+        print(f"Email successfully sent to {email}")
+        return True # Explicitly return True on success
+    except smtplib.SMTPAuthenticationError as e:
+        print(f"SMTP Authentication Error: {str(e)}. Check SMTP_USERNAME and SMTP_PASSWORD.")
         return False
+    except smtplib.SMTPServerDisconnected as e:
+        print(f"SMTP Server Disconnected: {str(e)}. Check SMTP_SERVER and SMTP_PORT.")
+        return False
+    except smtplib.SMTPRecipientsRefused as e:
+        print(f"SMTP Recipients Refused: {str(e)}. Check recipient email address.")
+        return False
+    except ConnectionRefusedError as e:
+        print(f"Connection Refused Error: {str(e)}. Check SMTP_SERVER, SMTP_PORT, and firewall settings.")
+        return False
+    except Exception as e:
+        print(f"An unexpected error occurred while sending email to {email}: {str(e)}")
+        import traceback
+        traceback.print_exc() # Print full traceback for unexpected errors
+        return False
+
+async def send_otp_email(email: str, otp: str = None):
+    """Send an OTP to the user's email for password reset."""
+    if not otp:
+        otp = generate_otp()
+    
+    # Store OTP with 10-minute expiration
+    otps[email] = {
+        'otp': otp,
+        'expires_at': datetime.now() + timedelta(minutes=10)
+    }
+    
+    subject = "Password Reset - Verification Code"
+    body = f"""
+    <html>
+    <body>
+    <h2>Password Reset Request</h2>
+    <p>You have requested to reset your password for AarthikNiti. Here is your verification code:</p>
+    <h1 style="font-size: 32px; letter-spacing: 5px; background-color: #f5f5f5; padding: 10px; text-align: center;">{otp}</h1>
+    <p>This code will expire in 10 minutes.</p>
+    <p>If you did not request this, please ignore this email.</p>
+    </body>
+    </html>
+    """
+    
+    return await send_email(email, subject, body)
 
 async def verify_otp(email: str, otp: str):
     """Verify if the provided OTP for reset is valid and not expired."""
-    stored_otp = await otp_collection.find_one({
-        "email": email,
-        "otp": otp,
-        "purpose": "reset",
-        "expires_at": {"$gt": datetime.utcnow()}
-    })
-    return stored_otp is not None
+    if email not in otps:
+        return False
+    
+    stored_otp = otps[email]
+    
+    if datetime.now() > stored_otp['expires_at']:
+        # OTP has expired, remove it
+        del otps[email]
+        return False
+    
+    if otp == stored_otp['otp']:
+        # OTP is valid, remove it so it can't be reused
+        del otps[email]
+        return True
+    
+    return False
 
 async def send_signup_otp(email: str):
     """Send OTP for account signup verification."""
-    try:
-        otp = generate_otp()
-        print(f"Generated Signup OTP: {otp}")
-        await store_otp(email, otp, "signup")
-
-        html_body = f"""
-        <html>
-            <body>
-                <h2>Account Verification</h2>
-                <p>Your OTP to verify your signup is: <strong>{otp}</strong></p>
-                <p>This OTP is valid for 10 minutes.</p>
-                <p>If you didn't try to register, please ignore this email.</p>
-                <br>
-                <p>Best regards,<br>AarthikNiti Team</p>
-            </body>
-        </html>
-        """
-        await send_email(email, "Signup Verification OTP - AarthikNiti", html_body)
-        return True
-    except Exception as e:
-        print(f"Error sending signup OTP: {str(e)}")
-        return False
+    otp = generate_otp()
+    
+    # Store OTP with 10-minute expiration
+    signup_otps[email] = {
+        'otp': otp,
+        'expires_at': datetime.now() + timedelta(minutes=10)
+    }
+    
+    subject = "Complete Your Registration - Verification Code"
+    body = f"""
+    <html>
+    <body>
+    <h2>Email Verification</h2>
+    <p>Thank you for registering with AarthikNiti. Please verify your email address with this code:</p>
+    <h1 style="font-size: 32px; letter-spacing: 5px; background-color: #f5f5f5; padding: 10px; text-align: center;">{otp}</h1>
+    <p>This code will expire in 10 minutes.</p>
+    </body>
+    </html>
+    """
+    
+    return await send_email(email, subject, body)
 
 async def verify_signup_otp(email: str, otp: str):
     """Verify if the provided signup OTP is valid and not expired."""
-    stored_otp = await otp_collection.find_one({
-        "email": email,
-        "otp": otp,
-        "purpose": "signup",
-        "expires_at": {"$gt": datetime.utcnow()}
-    })
-    return stored_otp is not None
+    if email not in signup_otps:
+        return False
+    
+    stored_otp = signup_otps[email]
+    
+    if datetime.now() > stored_otp['expires_at']:
+        # OTP has expired, remove it
+        del signup_otps[email]
+        return False
+    
+    if otp == stored_otp['otp']:
+        # OTP is valid, remove it so it can't be reused
+        del signup_otps[email]
+        return True
+    
+    return False
 
 async def send_signup_success_email(email: str, full_name: str):
     """Send a welcome email after successful signup."""
@@ -171,3 +214,20 @@ async def send_signup_success_email(email: str, full_name: str):
     except Exception as e:
         print(f"Error sending signup success email: {str(e)}")
         return False
+
+async def send_two_factor_code(email, code):
+    """Send a two-factor authentication code to the user's email."""
+    subject = "Two-Step Verification Code"
+    body = f"""
+    <html>
+    <body>
+    <h2>Two-Step Verification</h2>
+    <p>You're logging in to AarthikNiti. Here is your verification code:</p>
+    <h1 style="font-size: 32px; letter-spacing: 5px; background-color: #f5f5f5; padding: 10px; text-align: center;">{code}</h1>
+    <p>This code will expire in 15 minutes.</p>
+    <p>If you did not request this, please secure your account immediately.</p>
+    </body>
+    </html>
+    """
+    
+    return await send_email(email, subject, body)

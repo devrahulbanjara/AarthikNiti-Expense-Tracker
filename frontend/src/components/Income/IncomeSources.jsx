@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 import { incomeSources } from "../../pages/Dashboard/incomeSources";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -24,6 +25,7 @@ const IncomeSources = ({
 }) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
+  const { currency, formatCurrency, convertAmount } = useCurrency();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({
     key: "date",
@@ -53,12 +55,14 @@ const IncomeSources = ({
       if (!response.ok) throw new Error("Failed to fetch income data");
 
       const data = await response.json();
-      // Transform the data to match the expected format
+      // Transform the data to match the expected format and store original amount
       const transformedData = data.map((item) => ({
         ...item,
-        amount: parseFloat(item.amount),
+        originalAmount: parseFloat(item.amount), // Store original amount in NPR
+        amount: convertAmount(parseFloat(item.amount), "NPR", currency), // Convert to selected currency
         date: formatDate(item.date),
       }));
+
       setIncomeList(transformedData);
     } catch (error) {
       console.error("Error fetching income data:", error);
@@ -68,61 +72,45 @@ const IncomeSources = ({
     }
   };
 
-  const handleDelete = async (transactionId) => {
-    if (window.confirm("Are you sure you want to delete this income?")) {
-      try {
-        const token = getToken();
-        const response = await fetch(`${BACKEND_URL}/profile/delete_income`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ transaction_id: transactionId }),
-        });
-
-        if (!response.ok) throw new Error("Failed to delete income");
-
-        // Refresh the income list
-        handleLoadIncomeList();
-      } catch (error) {
-        console.error("Error deleting income:", error);
-        alert("Failed to delete income. Please try again.");
-      }
-    }
-  };
-
   useEffect(() => {
     handleLoadIncomeList();
-  }, [getToken, formatDate, refreshKey]);
+  }, [refreshKey, currency, convertAmount]);
 
   const handleSort = (key) => {
-    const direction =
-      sortConfig.key === key && sortConfig.direction === "asc" ? "desc" : "asc";
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
     setSortConfig({ key, direction });
   };
 
-  const filteredIncomes = incomeList.filter(
-    (income) =>
-      !searchTerm ||
-      income.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      income.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter and sort income data
+  const filteredAndSortedIncomes = incomeList
+    .filter((income) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        income.category.toLowerCase().includes(searchLower) ||
+        income.description.toLowerCase().includes(searchLower) ||
+        income.amount.toString().includes(searchTerm) ||
+        income.date.toLowerCase().includes(searchLower)
+      );
+    })
+    .sort((a, b) => {
+      if (sortConfig.key === "date") {
+        // Parse dates for proper comparison
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return sortConfig.direction === "asc" ? dateA - dateB : dateB - dateA;
+      }
 
-  const sortedIncomes = [...filteredIncomes].sort((a, b) => {
-    const { key, direction } = sortConfig;
-    if (key === "amount")
-      return direction === "asc" ? a.amount - b.amount : b.amount - a.amount;
-    if (key === "date")
-      return direction === "asc"
-        ? new Date(a.date) - new Date(b.date)
-        : new Date(b.date) - new Date(a.date);
-    if (key === "category")
-      return direction === "asc"
-        ? a.category.localeCompare(b.category)
-        : b.category.localeCompare(a.category);
-    return 0;
-  });
+      if (a[sortConfig.key] < b[sortConfig.key]) {
+        return sortConfig.direction === "asc" ? -1 : 1;
+      }
+      if (a[sortConfig.key] > b[sortConfig.key]) {
+        return sortConfig.direction === "asc" ? 1 : -1;
+      }
+      return 0;
+    });
 
   return (
     <div
@@ -231,14 +219,14 @@ const IncomeSources = ({
             </tr>
           </thead>
           <tbody>
-            {sortedIncomes.length === 0 && !isLoading ? (
+            {filteredAndSortedIncomes.length === 0 && !isLoading ? (
               <tr>
                 <td colSpan="6" className="px-4 py-4 text-center">
                   No income sources found. Add your first income!
                 </td>
               </tr>
             ) : (
-              sortedIncomes.map((income, index) => (
+              filteredAndSortedIncomes.map((income, index) => (
                 <tr
                   key={index}
                   className={`border-b transition-colors duration-200 ${
@@ -246,7 +234,9 @@ const IncomeSources = ({
                       ? "border-gray-700 hover:bg-gray-700/50"
                       : "border-gray-200 hover:bg-gray-50"
                   } ${
-                    index === sortedIncomes.length - 1 ? "last:border-0" : ""
+                    index === filteredAndSortedIncomes.length - 1
+                      ? "last:border-0"
+                      : ""
                   }`}
                   onMouseEnter={() => setHoveredRow(income.transaction_id)}
                   onMouseLeave={() => setHoveredRow(null)}
@@ -268,7 +258,7 @@ const IncomeSources = ({
                     </div>
                   </td>
                   <td className="px-4 py-4 text-green-600 font-medium">
-                    $ {income.amount.toFixed(2)}
+                    {formatCurrency(income.amount)}
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center">
@@ -277,7 +267,7 @@ const IncomeSources = ({
                           darkMode ? "text-gray-300" : "text-gray-700"
                         }`}
                       />
-                      {new Date(income.date).toLocaleDateString()}
+                      {income.date}
                     </div>
                   </td>
                   <td className="px-4 py-4">
@@ -291,31 +281,21 @@ const IncomeSources = ({
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-4 text-right">
-                    <div className="flex justify-end gap-2">
+                  <td className="px-4 py-4">
+                    <div className="flex items-center justify-end space-x-2">
                       <button
                         onClick={() => onEdit(income)}
-                        className="p-1.5 rounded-md transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-600"
-                        title="Edit"
-                        disabled={isLoading}
+                        className={`p-1 rounded-md hover:bg-green-100 text-green-600 transition-colors`}
+                        title="Edit income"
                       >
-                        <Edit
-                          className={`h-4 w-4 ${
-                            isLoading ? "text-gray-400" : "text-blue-500"
-                          }`}
-                        />
+                        <Edit className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => onDelete(income.transaction_id)}
-                        className="p-1.5 rounded-md transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-600"
-                        title="Delete"
-                        disabled={isLoading}
+                        className={`p-1 rounded-md hover:bg-red-100 text-red-500 transition-colors`}
+                        title="Delete income"
                       >
-                        <Trash
-                          className={`h-4 w-4 ${
-                            isLoading ? "text-gray-400" : "text-red-500"
-                          }`}
-                        />
+                        <Trash className="h-4 w-4" />
                       </button>
                     </div>
                   </td>

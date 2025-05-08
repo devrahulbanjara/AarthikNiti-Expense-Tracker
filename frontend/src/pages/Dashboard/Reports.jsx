@@ -8,9 +8,11 @@ import DownloadReport from "../../components/Reports/download-report";
 import AllTimeIncomeChart from "../../components/Reports/all-time-income-chart";
 import AllTimeExpenseChart from "../../components/Reports/all-time-expense-chart";
 import ChatAssistant from "../../components/Chatbot/chat-assistant";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const Reports = () => {
   const { darkMode } = useTheme();
+  const { currency, formatCurrency, convertAmount } = useCurrency();
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -82,7 +84,7 @@ const Reports = () => {
 
               {/* Download Button with animation */}
               <div
-                className={`mt-4 md:mt-0 transition-all duration-300 hover:scale-105 active:scale-95 ${
+                className={`relative z-20 mt-4 md:mt-0 transition-all duration-300 hover:shadow-md active:scale-95 ${
                   isPageLoaded
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-4"
@@ -101,7 +103,11 @@ const Reports = () => {
               }`}
             >
               <div className="w-full h-[400px]">
-                <AllTimeIncomeChart />
+                <AllTimeIncomeChart
+                  currency={currency}
+                  formatCurrency={formatCurrency}
+                  convertAmount={convertAmount}
+                />
               </div>
             </div>
 
@@ -113,7 +119,11 @@ const Reports = () => {
               }`}
             >
               <div className="w-full h-[400px]">
-                <AllTimeExpenseChart />
+                <AllTimeExpenseChart
+                  currency={currency}
+                  formatCurrency={formatCurrency}
+                  convertAmount={convertAmount}
+                />
               </div>
             </div>
           </div>

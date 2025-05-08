@@ -10,14 +10,17 @@ import {
   CartesianGrid,
 } from "recharts";
 import { useTheme } from "../../context/ThemeContext";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const DailyExpensesChart = ({ data }) => {
   const { darkMode } = useTheme();
+  const { currency, convertAmount, formatCurrency } = useCurrency();
 
   const chartData = Array.isArray(data)
     ? data.map((day) => ({
         date: day.date,
-        amount: day.expense,
+        amount: convertAmount(parseFloat(day.expense), "NPR", currency),
+        originalAmount: parseFloat(day.expense),
       }))
     : [];
 
@@ -31,7 +34,7 @@ const DailyExpensesChart = ({ data }) => {
         >
           <p className="font-medium">{label}</p>
           <p className="text-sm font-semibold">
-            ${payload[0].value.toFixed(2)}
+            {formatCurrency(payload[0].value)}
           </p>
         </div>
       );
@@ -57,7 +60,7 @@ const DailyExpensesChart = ({ data }) => {
           axisLine={false}
         />
         <YAxis
-          tickFormatter={(value) => `$${(value/1000).toFixed(0)}k`}
+          tickFormatter={(value) => formatCurrency(value, undefined, true)}
           tick={{ fill: darkMode ? "#9ca3af" : "#6b7280", fontSize: 12 }}
           tickLine={false}
           axisLine={false}
