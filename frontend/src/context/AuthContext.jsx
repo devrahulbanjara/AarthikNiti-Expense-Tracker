@@ -46,22 +46,32 @@ export const AuthProvider = ({ children }) => {
     return true;
   };
 
-  const loadUserData = async () => {
+  const updateUserData = async () => {
+    try {
+      const userData = await loadUserData(true); // Force reload from API
+      return userData;
+    } catch (error) {
+      console.error("Error updating user data:", error);
+      return null;
+    }
+  };
+
+  const loadUserData = async (forceReload = false) => {
     try {
       const token = getToken();
       if (!token) return null;
 
-      // First check if we have cached user data
+      // First check if we have cached user data and we're not forcing a reload
       const storage = getStorage();
       const cachedUserData = storage.getItem(USER_DATA_KEY);
 
-      if (cachedUserData) {
+      if (cachedUserData && !forceReload) {
         const userData = JSON.parse(cachedUserData);
         setUser(userData);
         return userData;
       }
 
-      // If no cached data, fetch from API
+      // If no cached data or we're forcing a reload, fetch from API
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/auth/me`,
         {
@@ -151,6 +161,7 @@ export const AuthProvider = ({ children }) => {
         getToken,
         user,
         loadUserData,
+        updateUserData,
       }}
     >
       {children}

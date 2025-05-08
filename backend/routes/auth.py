@@ -15,6 +15,7 @@ from services.email_service import send_otp_email, verify_otp, send_signup_otp, 
 from pydantic import BaseModel, EmailStr
 import random
 import string
+import uuid
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -322,16 +323,28 @@ async def upload_profile_picture(
         # Read the file content
         contents = await profile_picture.read()
         
-        # In a real production app, you would:
-        # 1. Validate the file (type, size, etc.)
-        # 2. Process the image (resize, compress, etc.)
-        # 3. Store it properly (e.g., in a cloud storage like S3)
+        # Validate file type
+        if not profile_picture.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
         
-        # For this example, we'll assume the file is stored somewhere and 
-        # we get back a URL (in reality, you would implement proper file storage)
+        # Generate a unique filename
+        file_extension = profile_picture.filename.split('.')[-1]
+        filename = f"{user['user_id']}_{uuid.uuid4()}.{file_extension}"
         
-        # This is a dummy URL for demonstration - in a real app, you'd get this from your storage service
-        profile_picture_url = f"https://example.com/profile-pictures/{user['user_id']}.jpg"
+        # Path to save file - in practice, you'd use cloud storage
+        # For this example, we'll save to a local directory
+        save_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'profile_pictures')
+        os.makedirs(save_dir, exist_ok=True)
+        
+        file_path = os.path.join(save_dir, filename)
+        
+        # Write file to disk
+        with open(file_path, "wb") as f:
+            f.write(contents)
+        
+        # Generate URL for the profile picture
+        # In production, this would be a CDN or cloud storage URL
+        profile_picture_url = f"/static/profile_pictures/{filename}"
         
         # Update the user's profile picture in the database
         await users_collection.update_one(
@@ -348,8 +361,41 @@ async def upload_profile_picture(
         return updated_user
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload profile picture: {str(e)}")
-    
 
+@router.delete("/delete-profile-picture")
+async def delete_profile_picture(user: dict = Depends(get_current_user)):
+    """Deletes the user's profile picture."""
+    try:
+        # Get current user data to find profile picture path
+        current_user = await users_collection.find_one({"user_id": user["user_id"]})
+        
+        # Check if user has a profile picture
+        if not current_user or not current_user.get("profile_picture"):
+            raise HTTPException(status_code=404, detail="No profile picture found")
+        
+        # In a production app, you'd delete the file from storage
+        # For this example with local storage:
+        profile_pic_path = current_user["profile_picture"]
+        if profile_pic_path.startswith("/static/"):
+            full_path = os.path.join(os.path.dirname(__file__), '..', profile_pic_path.lstrip('/'))
+            if os.path.exists(full_path):
+                os.remove(full_path)
+        
+        # Update user record to remove profile picture reference
+        await users_collection.update_one(
+            {"user_id": user["user_id"]},
+            {"$set": {"profile_picture": None}}
+        )
+        
+        # Return the updated user data
+        updated_user = await users_collection.find_one(
+            {"user_id": user["user_id"]},
+            {"_id": 0, "password": 0}
+        )
+        
+        return updated_user
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete profile picture: {str(e)}")
 
 class PasswordResetRequest(BaseModel):
     email: str

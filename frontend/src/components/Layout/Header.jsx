@@ -5,9 +5,11 @@ import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import CompactCurrencyDropdown from "./CompactCurrencyDropdown";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const Header = ({ title, subtitle }) => {
   const { darkMode, toggleDarkMode } = useTheme();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef(null);
@@ -98,14 +100,30 @@ const Header = ({ title, subtitle }) => {
               aria-haspopup="true"
             >
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center overflow-hidden ${
                   darkMode ? "bg-gray-700" : "bg-gray-200"
                 }`}
               >
-                <User
-                  size={16}
-                  className={darkMode ? "text-gray-300" : "text-gray-700"}
-                />
+                {user?.profile_picture ? (
+                  <img
+                    src={`${BACKEND_URL}${user.profile_picture}`}
+                    alt={user?.full_name || "User"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : user?.full_name ? (
+                  <div
+                    className={`text-sm font-semibold ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    {user.full_name.charAt(0).toUpperCase()}
+                  </div>
+                ) : (
+                  <User
+                    size={16}
+                    className={darkMode ? "text-gray-300" : "text-gray-700"}
+                  />
+                )}
               </div>
               <ChevronDown
                 size={16}

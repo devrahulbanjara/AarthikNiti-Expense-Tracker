@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, Check, X, Upload, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import {
+  Camera,
+  Check,
+  X,
+  Upload,
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  Trash,
+} from "lucide-react";
 import Sidebar from "../../components/Layout/sidebar";
 import Header from "../../components/Layout/Header";
 import { useTheme } from "../../context/ThemeContext";
@@ -12,7 +21,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { darkMode } = useTheme();
-  const { getToken } = useAuth();
+  const { getToken, updateUserData } = useAuth();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -32,6 +41,8 @@ const ProfilePage = () => {
   const [uploading, setUploading] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState(false);
+  const [isDeletingProfilePicture, setIsDeletingProfilePicture] =
+    useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -86,8 +97,6 @@ const ProfilePage = () => {
       const formData = new FormData();
       formData.append("profile_picture", previewImage.file);
 
-      // This endpoint doesn't exist yet in your backend
-      // You would need to implement it
       const response = await fetch(
         `${BACKEND_URL}/auth/upload-profile-picture`,
         {
@@ -107,6 +116,9 @@ const ProfilePage = () => {
       const updatedUserData = await response.json();
       setUserData(updatedUserData);
       setPreviewImage(null);
+
+      // Update user data in AuthContext
+      await updateUserData();
 
       toast.success("Profile picture updated successfully");
     } catch (error) {
@@ -252,6 +264,43 @@ const ProfilePage = () => {
     }
   };
 
+  const handleDeleteProfilePicture = async () => {
+    if (!userData?.profile_picture) return;
+
+    try {
+      setIsDeletingProfilePicture(true);
+      const token = getToken();
+
+      const response = await fetch(
+        `${BACKEND_URL}/auth/delete-profile-picture`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete profile picture");
+      }
+
+      // Update the user data after deletion
+      const updatedUserData = await response.json();
+      setUserData(updatedUserData);
+
+      // Update user data in AuthContext
+      await updateUserData();
+
+      toast.success("Profile picture removed successfully");
+    } catch (error) {
+      console.error("Error deleting profile picture:", error);
+      toast.error("Failed to delete profile picture");
+    } finally {
+      setIsDeletingProfilePicture(false);
+    }
+  };
+
   return (
     <div
       className={`${
@@ -298,7 +347,7 @@ const ProfilePage = () => {
                         />
                       ) : userData?.profile_picture ? (
                         <img
-                          src={userData.profile_picture}
+                          src={`${BACKEND_URL}${userData.profile_picture}`}
                           alt={userData.full_name}
                           className="w-full h-full object-cover"
                         />
@@ -314,22 +363,43 @@ const ProfilePage = () => {
                     </div>
 
                     {!previewImage && (
-                      <button
-                        onClick={() => fileInputRef.current.click()}
-                        className={`absolute bottom-0 right-0 p-2 rounded-full border ${
-                          darkMode
-                            ? "bg-gray-700 border-gray-600 hover:bg-gray-600"
-                            : "bg-white border-gray-300 hover:bg-gray-50"
-                        }`}
-                        aria-label="Change profile picture"
-                      >
-                        <Camera
-                          size={18}
-                          className={
-                            darkMode ? "text-gray-300" : "text-gray-700"
-                          }
-                        />
-                      </button>
+                      <div className="absolute bottom-0 right-0 flex">
+                        {userData?.profile_picture && (
+                          <button
+                            onClick={handleDeleteProfilePicture}
+                            disabled={isDeletingProfilePicture}
+                            className={`p-2 rounded-full border mr-1 ${
+                              darkMode
+                                ? "bg-gray-700 border-gray-600 hover:bg-red-900"
+                                : "bg-white border-gray-300 hover:bg-red-100"
+                            }`}
+                            aria-label="Delete profile picture"
+                          >
+                            <Trash
+                              size={18}
+                              className={
+                                darkMode ? "text-red-400" : "text-red-600"
+                              }
+                            />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => fileInputRef.current.click()}
+                          className={`p-2 rounded-full border ${
+                            darkMode
+                              ? "bg-gray-700 border-gray-600 hover:bg-gray-600"
+                              : "bg-white border-gray-300 hover:bg-gray-50"
+                          }`}
+                          aria-label="Change profile picture"
+                        >
+                          <Camera
+                            size={18}
+                            className={
+                              darkMode ? "text-gray-300" : "text-gray-700"
+                            }
+                          />
+                        </button>
+                      </div>
                     )}
 
                     <input
