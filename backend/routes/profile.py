@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from core.config import get_current_user
 from services.profile_service import (
-    get_active_profile, add_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,get_transaction_trend,income_expense_table,get_all_profile_names,get_active_profile_info, edit_income, delete_income,get_upcoming_bills_user, edit_expense, delete_expense, get_transaction_report_data
+    get_active_profile, add_income, add_expense, create_profile, switch_profile, get_recent_transactions, get_expense_breakdown, calculate_savings_trend, calculate_income_expense_trend,context_for_chatbot,get_transaction_trend,income_expense_table,get_all_profile_names,get_active_profile_info, edit_income, delete_income,get_upcoming_bills_user, edit_expense, delete_expense, get_transaction_report_data,
+    get_all_income_expense_transactions
 )
 from pydantic import BaseModel
 from typing import List, Optional
@@ -296,3 +297,19 @@ async def extract_receipt_information(
         # Clean up the temporary file
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
+
+@router.get("/all-transactions")
+async def get_all_transactions(
+    transaction_type: str,
+    user: dict = Depends(get_current_user)
+):
+    """
+    Returns all transactions of specified type (income or expense) for the active profile.
+    
+    Query Parameters:
+    - `transaction_type`: "income" or "expense"
+    """
+    if transaction_type not in ["income", "expense"]:
+        raise HTTPException(status_code=400, detail="Transaction type must be 'income' or 'expense'")
+    
+    return await get_all_income_expense_transactions(user["user_id"], transaction_type)

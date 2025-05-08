@@ -11,6 +11,7 @@ import UpcomingBills from "../../components/Dashboard/upcomingbills";
 import NetSavings from "../../components/Dashboard/netsavings";
 import IncomeVsExpensesChart from "../../components/Dashboard/income-expenses-chart";
 import ChatAssistant from "../../components/Chatbot/chat-assistant";
+import CurrencyDropdown from "../../components/Dashboard/currency-dropdown";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 
@@ -27,6 +28,12 @@ const DashboardPage = () => {
   });
   const [isTopUILoading, setIsTopUILoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
+  // Animation states
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
+  const [showCards, setShowCards] = useState(false);
+  const [showCharts, setShowCharts] = useState(false);
+
+  const [selectedCurrency, setSelectedCurrency] = useState("USD");
 
   const totalIncome = topUIData.profile_total_income;
   const totalExpenses = topUIData.profile_total_expense;
@@ -75,10 +82,32 @@ const DashboardPage = () => {
     logout();
   };
 
+  const handleCurrencyChange = (newCurrency) => {
+    setSelectedCurrency(newCurrency);
+  };
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    // Add staggered animations
+    setIsPageLoaded(true);
+
+    const cardsTimer = setTimeout(() => {
+      setShowCards(true);
+    }, 300);
+
+    const chartsTimer = setTimeout(() => {
+      setShowCharts(true);
+    }, 600);
+
+    return () => {
+      clearTimeout(cardsTimer);
+      clearTimeout(chartsTimer);
+    };
   }, []);
 
   useEffect(() => {
@@ -95,7 +124,7 @@ const DashboardPage = () => {
         }`}
       >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
           <p className={darkMode ? "text-gray-300" : "text-gray-600"}>
             Loading dashboard data...
           </p>
@@ -112,22 +141,56 @@ const DashboardPage = () => {
     >
       <Sidebar scrolled={scrolled} />
 
-      <div className="w-full md:w-4/5 md:ml-[20%] p-4 md:p-6 min-h-screen relative">
-        <Header 
-          title="Dashboard" 
-          subtitle="View your financial overview and recent activity." 
+      <div
+        className={`w-full md:w-4/5 md:ml-[20%] p-4 md:p-6 min-h-screen relative transition-opacity duration-500 ease-out ${
+          isPageLoaded ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <Header
+          title="Dashboard"
+          subtitle="View your financial overview and recent activity."
         />
 
         <div className="pt-28 md:pt-28">
-          <DashboardCards
-            totalBalance={totalBalance}
-            totalIncome={totalIncome}
-            totalExpenses={totalExpenses}
-            spentPercentage={spentPercentage}
-            isOverBudget={isOverBudget}
-          />
+          {/* Currency Dropdown with fade-in */}
+          <div
+            className={`transition-all duration-300 ease-out ${
+              isPageLoaded
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-4"
+            }`}
+          >
+            <CurrencyDropdown
+              selectedCurrency={selectedCurrency}
+              onCurrencyChange={handleCurrencyChange}
+            />
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-10 gap-4 md:gap-6 mt-4 md:mt-6">
+          {/* Dashboard Cards with fade-in */}
+          <div
+            className={`transition-all duration-500 delay-200 ease-out ${
+              showCards
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }`}
+          >
+            <DashboardCards
+              totalBalance={totalBalance}
+              totalIncome={totalIncome}
+              totalExpenses={totalExpenses}
+              spentPercentage={spentPercentage}
+              isOverBudget={isOverBudget}
+            />
+          </div>
+
+          {/* First row of charts with fade-in */}
+          <div
+            className={`grid grid-cols-1 md:grid-cols-10 gap-4 md:gap-6 mt-4 md:mt-6 transition-all duration-700 delay-300 ease-out ${
+              showCharts
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }`}
+          >
             <div className="md:col-span-7 h-full">
               <RecentTransactions onTransactionsChange={fetchTopUIData} />
             </div>
@@ -136,7 +199,14 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-10 gap-4 md:gap-6 mt-4 md:mt-6">
+          {/* Second row of charts with fade-in */}
+          <div
+            className={`grid grid-cols-1 md:grid-cols-10 gap-4 md:gap-6 mt-4 md:mt-6 transition-all duration-700 delay-500 ease-out ${
+              showCharts
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }`}
+          >
             <div className="md:col-span-4 h-full">
               <UpcomingBills />
             </div>
@@ -145,7 +215,14 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          <div className="mt-4 md:mt-6">
+          {/* Bottom chart with fade-in */}
+          <div
+            className={`mt-4 md:mt-6 transition-all duration-700 delay-700 ease-out ${
+              showCharts
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }`}
+          >
             <IncomeVsExpensesChart />
           </div>
         </div>
@@ -156,7 +233,6 @@ const DashboardPage = () => {
   );
 };
 
-// Dashboard Cards Component
 const DashboardCards = ({
   totalBalance,
   totalIncome,
@@ -188,21 +264,19 @@ const DashboardCards = ({
   );
 };
 
-// Card Component with animated counter
 const Card = ({ title, amount, icon: Icon }) => {
   const { darkMode } = useTheme();
   const [displayValue, setDisplayValue] = useState(0);
   const amountValue = parseFloat(amount.replace(/[^0-9.-]+/g, ""));
-  
+
   useEffect(() => {
-    // Extract the numeric value from the amount string
     const targetValue = amountValue;
     let startValue = 0;
-    const duration = 1500; // Animation duration in ms
-    const frameRate = 20; // Update every 20ms
+    const duration = 1500;
+    const frameRate = 20;
     const increment = targetValue / (duration / frameRate);
     let currentValue = 0;
-    
+
     const timer = setInterval(() => {
       currentValue += increment;
       if (currentValue >= targetValue) {
@@ -212,31 +286,29 @@ const Card = ({ title, amount, icon: Icon }) => {
         setDisplayValue(currentValue);
       }
     }, frameRate);
-    
+
     return () => clearInterval(timer);
   }, [amountValue]);
 
   const getValueColor = (title) => {
-    // Different colors for dark mode and light mode
     if (darkMode) {
       switch (title) {
         case "Total Balance":
-          return "#4ade80"; // Bright green for better contrast in dark mode
+          return "#4ade80";
         case "Total Income":
-          return "#34d399"; // Slightly different bright green for income
+          return "#34d399";
         case "Total Expenses":
-          return "#ef4444"; // Using the same red color as in recent transactions table
+          return "#ef4444";
         default:
           return "white";
       }
     } else {
-      // Light mode colors remain the same
       switch (title) {
         case "Total Balance":
         case "Total Income":
-          return "#0a6e47"; // Original green
+          return "#0a6e47";
         case "Total Expenses":
-          return "#ef4444"; // Original red
+          return "#ef4444";
         default:
           return "rgba(0, 0, 0, 0.6)";
       }
@@ -257,7 +329,7 @@ const Card = ({ title, amount, icon: Icon }) => {
         <h2
           className="text-md font-semibold"
           style={{
-            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)", // Original title color
+            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)",
           }}
         >
           {title}
@@ -266,16 +338,19 @@ const Card = ({ title, amount, icon: Icon }) => {
           className="h-5 w-5 transform transition-all duration-700 hover:rotate-12 hover:scale-110 animate-pulse"
           style={{
             color: valueColor,
-            animationDuration: "3s"
+            animationDuration: "3s",
           }}
         />
       </div>
-      <p className="text-2xl font-bold mt-2 flex justify-center items-baseline" style={{ color: valueColor }}>
+      <p
+        className="text-2xl font-bold mt-2 flex justify-center items-baseline"
+        style={{ color: valueColor }}
+      >
         <span className="text-sm mr-1">$</span>
         <span className="tabular-nums transition-all">
           {displayValue.toLocaleString(undefined, {
             minimumFractionDigits: 2,
-            maximumFractionDigits: 2
+            maximumFractionDigits: 2,
           })}
         </span>
       </p>
@@ -283,52 +358,45 @@ const Card = ({ title, amount, icon: Icon }) => {
   );
 };
 
-// Budget Card Component with animated progress bar
 const BudgetCard = ({ percentage, isOverBudget }) => {
   const { darkMode } = useTheme();
   const [animatedPercentage, setAnimatedPercentage] = useState(0);
   const [progressWidth, setProgressWidth] = useState(0);
-  
-  // Get color based on percentage with dark mode awareness
+
   const getPercentColor = () => {
     if (darkMode) {
-      // Dark mode colors with better contrast
-      if (percentage > 80) return "#ef4444"; // Match red color used in recent transactions
-      if (percentage > 60) return "#fbbf24"; // Brighter yellow for dark mode
-      return "#4ade80"; // Brighter green for dark mode
+      if (percentage > 80) return "#ef4444";
+      if (percentage > 60) return "#fbbf24";
+      return "#4ade80";
     } else {
-      // Light mode colors remain the same
-      if (percentage > 80) return "#ef4444"; // Original red
-      if (percentage > 60) return "#f59e0b"; // Original yellow/amber
-      return "#0a6e47"; // Original green
+      if (percentage > 80) return "#ef4444";
+      if (percentage > 60) return "#f59e0b";
+      return "#0a6e47";
     }
   };
-  
+
   useEffect(() => {
-    // Animate percentage counter
-    const duration = 1500; // Animation duration in ms
-    const frameRate = 20; // Update every 20ms
+    const duration = 1500;
+    const frameRate = 20;
     const increment = percentage / (duration / frameRate);
     let currentValue = 0;
-    
-    // Start with progress bar at 0%
+
     setProgressWidth(0);
-    
+
     const timer = setInterval(() => {
       currentValue += increment;
       if (currentValue >= percentage) {
         clearInterval(timer);
         setAnimatedPercentage(percentage);
-        // Set final progress bar width after counter finishes
         setTimeout(() => setProgressWidth(percentage), 50);
       } else {
         setAnimatedPercentage(Math.round(currentValue));
       }
     }, frameRate);
-    
+
     return () => clearInterval(timer);
   }, [percentage]);
-  
+
   const percentColor = getPercentColor();
 
   return (
@@ -343,7 +411,7 @@ const BudgetCard = ({ percentage, isOverBudget }) => {
         <h2
           className="text-md font-semibold"
           style={{
-            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)", // Same as other card titles
+            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)",
           }}
         >
           Spent
@@ -352,26 +420,26 @@ const BudgetCard = ({ percentage, isOverBudget }) => {
           className="h-5 w-5 transform transition-all duration-700 hover:rotate-12 hover:scale-110 animate-pulse"
           style={{
             color: percentColor,
-            animationDuration: "3s"
+            animationDuration: "3s",
           }}
         />
       </div>
-      <p 
-        className="text-2xl font-bold mt-2 relative" 
+      <p
+        className="text-2xl font-bold mt-2 relative"
         style={{ color: percentColor }}
       >
         <span className="inline-block tabular-nums transition-all">
           {animatedPercentage}
         </span>
         <span className="ml-1">%</span>
-        {isOverBudget && 
-          <span 
-            className="absolute -top-1 -right-1 text-xs px-1 animate-pulse rounded-full" 
-            style={{backgroundColor: percentColor, color: 'white'}}
+        {isOverBudget && (
+          <span
+            className="absolute -top-1 -right-1 text-xs px-1 animate-pulse rounded-full"
+            style={{ backgroundColor: percentColor, color: "white" }}
           >
             !
           </span>
-        }
+        )}
       </p>
       <div
         className={`w-full ${
@@ -380,13 +448,13 @@ const BudgetCard = ({ percentage, isOverBudget }) => {
       >
         <div
           className="h-2 rounded-full absolute left-0 top-0 transition-none"
-          style={{ 
+          style={{
             width: `${progressWidth}%`,
             backgroundColor: percentColor,
-            boxShadow: isOverBudget ? `0 0 10px ${percentColor}` : 'none',
-            transitionProperty: 'width',
-            transitionDuration: '1.5s',
-            transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+            boxShadow: isOverBudget ? `0 0 10px ${percentColor}` : "none",
+            transitionProperty: "width",
+            transitionDuration: "1.5s",
+            transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
           }}
         ></div>
       </div>

@@ -39,6 +39,11 @@ const Income = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  // Animation states
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
+  const [showOverview, setShowOverview] = useState(false);
+  const [showTable, setShowTable] = useState(false);
+
   // Centralized data refresh function
   const refreshData = useCallback(async () => {
     setLoading(true);
@@ -132,6 +137,24 @@ const Income = () => {
     };
   }, []);
 
+  useEffect(() => {
+    // Add staggered animations
+    setIsPageLoaded(true);
+
+    const overviewTimer = setTimeout(() => {
+      setShowOverview(true);
+    }, 300);
+
+    const tableTimer = setTimeout(() => {
+      setShowTable(true);
+    }, 600);
+
+    return () => {
+      clearTimeout(overviewTimer);
+      clearTimeout(tableTimer);
+    };
+  }, []);
+
   const handleEdit = async (income) => {
     setEditingIncome(income);
     setIsAddModalOpen(true);
@@ -198,136 +221,141 @@ const Income = () => {
     }
   };
 
-  const handleCloseModal = () => {
-    setIsAddModalOpen(false);
-    setEditingIncome(null);
-  };
-
   const handleDelete = async (transactionId) => {
-    if (window.confirm("Are you sure you want to delete this income?")) {
-      try {
-        setLoading(true);
-        const token = getToken();
-        const response = await fetch(`${BACKEND_URL}/profile/delete_income`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ transaction_id: transactionId }),
-        });
+    try {
+      setLoading(true);
+      const token = getToken();
+      const response = await fetch(`${BACKEND_URL}/profile/delete_income`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ transaction_id: transactionId }),
+      });
 
-        if (!response.ok) {
-          throw new Error("Failed to delete income");
-        }
-
-        toast.success("Income deleted successfully");
-
-        // Refresh data
-        await refreshData();
-      } catch (error) {
-        console.error("Error deleting income:", error);
-        toast.error("Failed to delete income");
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error("Failed to delete income");
       }
+
+      // Show success toast
+      toast.success("Income deleted successfully");
+
+      // Refresh data
+      await refreshData();
+    } catch (error) {
+      console.error("Error deleting income:", error);
+      toast.error("Failed to delete income");
+    } finally {
+      setLoading(false);
     }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return "Invalid date";
-      }
-      const options = { year: "numeric", month: "2-digit", day: "2-digit" };
-      return date.toLocaleDateString("en-US", options);
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "Invalid date";
-    }
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   return (
     <div
-      className={`${
-        darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"
-      } min-h-screen flex flex-col md:flex-row`}
+      className={`flex ${
+        darkMode ? "bg-gray-900 text-white" : "bg-white"
+      } min-h-screen`}
     >
-      <Sidebar active="income" />
+      <Sidebar active="income" scrolled={scrolled} />
 
-      <div className="w-full md:w-4/5 md:ml-[20%] p-4 min-h-screen pb-20">
+      <div
+        className={`flex-grow p-6 md:ml-[20%] min-h-screen relative transition-opacity duration-500 ease-out ${
+          isPageLoaded ? "opacity-100" : "opacity-0"
+        }`}
+      >
         <Header
           title="Income"
-          subtitle="Manage your income sources and track your earnings."
+          subtitle="Manage your income sources and transactions"
         />
 
-        <div className="pt-28 md:pt-28">
-          {/* Income Actions Section */}
-          <div className="mb-6 flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-semibold">Financial Summary</h2>
-              <p
-                className={`${
-                  darkMode ? "text-gray-400" : "text-gray-600"
-                } text-sm`}
-              >
-                Total earnings: $
-                <AnimatedCounter
-                  value={parseFloat(totalIncome)}
-                  decimals={2}
-                  duration={2000}
-                />
-              </p>
-            </div>
+        <div className="pt-24">
+          {/* Add Income Button */}
+          <div
+            className={`flex justify-end transition-all duration-300 ease-out ${
+              isPageLoaded
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-4"
+            }`}
+          >
             <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center gap-2 bg-[#065336] hover:bg-[#054328] text-white px-4 py-2 rounded-lg transition-colors"
-              disabled={loading}
+              onClick={() => {
+                setEditingIncome(null);
+                setIsAddModalOpen(true);
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md 
+                bg-[#065336] hover:bg-[#054328] text-white
+              transition-all duration-300 transform hover:scale-105 active:scale-95`}
             >
-              <Plus className="h-4 w-5" />
-              Add Income
+              <Plus size={16} />
+              <span>Add Income</span>
             </button>
           </div>
 
-          {/* Income Overview Component with explicit border */}
+          {/* Overview Cards */}
           <div
-            className={`border ${
-              darkMode ? "border-gray-800" : "border-gray-200"
-            } rounded-xl overflow-hidden shadow-md mb-6`}
+            className={`mt-6 transition-all duration-500 delay-200 ease-out ${
+              showOverview
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }`}
           >
             <IncomeOverview
+              totalIncome={totalIncome}
+              incomeSources={incomeSources}
+              incomes={incomes}
+              darkMode={darkMode}
               timeRange={timeRange}
-              setTimeRange={setTimeRange}
-              refreshKey={refreshKey}
+              onTimeRangeChange={setTimeRange}
+              key={refreshKey}
             />
           </div>
 
-          {/* Income Sources Component */}
-          <IncomeSources
-            incomeSources={incomeSources}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            formatDate={formatDate}
-            refreshKey={refreshKey}
-            loading={loading}
-          />
+          {/* Income Table */}
+          <div
+            className={`mt-8 transition-all duration-700 delay-400 ease-out ${
+              showTable
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }`}
+          >
+            <IncomeSources
+              incomes={incomes}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              formatDate={formatDate}
+              darkMode={darkMode}
+              key={refreshKey}
+            />
+          </div>
         </div>
+
+        {/* Add/Edit Income Modal */}
+        {isAddModalOpen && (
+          <AddIncome
+            isOpen={isAddModalOpen}
+            onClose={() => {
+              setIsAddModalOpen(false);
+              setEditingIncome(null);
+            }}
+            onSubmit={handleSubmit}
+            editingIncome={editingIncome}
+            darkMode={darkMode}
+            incomeSources={incomeSources}
+          />
+        )}
       </div>
 
-      {/* Add Income Modal Component */}
-      <AddIncome
-        isOpen={isAddModalOpen}
-        onClose={handleCloseModal}
-        onSubmit={handleSubmit}
-        editingIncome={editingIncome}
-        incomeSources={incomeSources}
-        loading={loading}
-      />
-
-      {/* Chatbot Component */}
+      {/* Chatbot */}
       <Chatbot darkMode={darkMode} />
     </div>
   );

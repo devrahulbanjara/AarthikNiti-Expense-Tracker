@@ -66,9 +66,7 @@ const RecentTransactions = ({ onTransactionsChange }) => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const displayTransactions = showAllTransactions
-    ? filteredTransactions
-    : filteredTransactions.slice(0, 5);
+  const displayTransactions = searchTerm ? filteredTransactions : filteredTransactions.slice(0, 5);
 
   return (
     <div
@@ -166,20 +164,6 @@ const RecentTransactions = ({ onTransactionsChange }) => {
             </li>
           ))}
         </ul>
-      )}
-
-      {filteredTransactions.length > 5 && (
-        <div className="mt-4 pt-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}">
-          <button
-            className={`w-full text-center py-2 px-4 text-sm rounded-lg transition-colors duration-200 
-              ${darkMode 
-                ? "bg-gray-700 hover:bg-gray-600 text-blue-400" 
-                : "bg-gray-100 hover:bg-gray-200 text-blue-600"}`}
-            onClick={() => setShowAllTransactions(!showAllTransactions)}
-          >
-            {showAllTransactions ? "Show Less" : "View All Transactions"}
-          </button>
-        </div>
       )}
     </div>
   );

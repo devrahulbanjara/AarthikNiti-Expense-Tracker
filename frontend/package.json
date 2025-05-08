@@ -14,6 +14,7 @@
     "aos": "^2.3.4",
     "axios": "^1.8.4",
     "emoji-picker-react": "^4.12.2",
+    "file-saver": "^2.0.5",
     "lucide-react": "^0.482.0",
     "moment": "^2.30.1",
     "react": "^19.0.0",
