@@ -5,11 +5,13 @@ import { Search, ArrowUp, ArrowDown } from "lucide-react";
 import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const RecentTransactions = ({ onTransactionsChange }) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
+  const { formatCurrency, convertAmount, currency } = useCurrency();
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,7 +46,11 @@ const RecentTransactions = ({ onTransactionsChange }) => {
         date: new Date(transaction.timestamp).toISOString().split("T")[0],
       }));
 
-      setTransactions(formattedTransactions.sort((a, b) => new Date(b.date) - new Date(a.date)));
+      setTransactions(
+        formattedTransactions.sort(
+          (a, b) => new Date(b.date) - new Date(a.date)
+        )
+      );
     } catch (error) {
       console.error("Error fetching transactions:", error);
     } finally {
@@ -66,7 +72,9 @@ const RecentTransactions = ({ onTransactionsChange }) => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const displayTransactions = searchTerm ? filteredTransactions : filteredTransactions.slice(0, 5);
+  const displayTransactions = searchTerm
+    ? filteredTransactions
+    : filteredTransactions.slice(0, 5);
 
   return (
     <div
@@ -77,7 +85,11 @@ const RecentTransactions = ({ onTransactionsChange }) => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
         <div>
           <h2 className="text-xl font-semibold mb-1">Recent Transactions</h2>
-          <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+          <p
+            className={`text-sm ${
+              darkMode ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
             Your latest financial activity
           </p>
         </div>
@@ -91,9 +103,11 @@ const RecentTransactions = ({ onTransactionsChange }) => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={`w-full pl-10 pr-4 py-2 border rounded-lg text-sm transition-colors duration-200 
-              ${darkMode 
-                ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500" 
-                : "bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-green-500 focus:border-green-500"}
+              ${
+                darkMode
+                  ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500"
+                  : "bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-green-500 focus:border-green-500"
+              }
               focus:outline-none focus:ring-2`}
           />
           <Search
@@ -106,63 +120,107 @@ const RecentTransactions = ({ onTransactionsChange }) => {
       {isLoading ? (
         <div className="flex flex-col justify-center items-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <span className={`mt-3 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading transactions...</span>
+          <span
+            className={`mt-3 text-sm ${
+              darkMode ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
+            Loading transactions...
+          </span>
         </div>
       ) : displayTransactions.length === 0 ? (
         <div className="text-center py-12">
-          <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+          <p
+            className={`text-sm ${
+              darkMode ? "text-gray-400" : "text-gray-500"
+            }`}
+          >
             No transactions found matching your criteria.
           </p>
         </div>
       ) : (
         <ul className="space-y-3">
-          {displayTransactions.map((transaction) => (
-            <li
-              key={transaction.id}
-              className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 rounded-lg transition-all duration-200 
-              ${darkMode ? "hover:bg-gray-700/50" : "hover:bg-gray-50"}`}
-            >
-              <div className="flex items-center mb-2 sm:mb-0 flex-grow">
-                <div
-                  className={`flex items-center justify-center w-9 h-9 rounded-full mr-3 flex-shrink-0 
-                    ${transaction.type === "income"
-                      ? (darkMode ? "bg-green-900/50" : "bg-green-100")
-                      : (darkMode ? "bg-red-900/50" : "bg-red-100")}`}
-                >
-                  {transaction.type === "income" ? (
-                    <ArrowUp className={`h-5 w-5 ${darkMode ? "text-green-400" : "text-green-600"}`} />
-                  ) : (
-                    <ArrowDown className={`h-5 w-5 ${darkMode ? "text-red-400" : "text-red-600"}`} />
-                  )}
-                </div>
-                <div className="flex-grow">
-                  <div className="font-medium text-sm break-words">{transaction.description}</div>
-                  <div className="flex items-center mt-1 flex-wrap">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full mr-2 whitespace-nowrap 
-                        ${darkMode ? "bg-gray-600" : "bg-gray-200"}`}
-                    >
-                      {transaction.category}
-                    </span>
-                    <span className={`text-xs whitespace-nowrap ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                      {new Date(transaction.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                    </span>
+          {displayTransactions.map((transaction) => {
+            const convertedAmount = convertAmount(transaction.amount, "NPR");
+            const formattedAmount = formatCurrency(convertedAmount);
+
+            return (
+              <li
+                key={transaction.id}
+                className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 rounded-lg transition-all duration-200 
+                ${darkMode ? "hover:bg-gray-700/50" : "hover:bg-gray-50"}`}
+              >
+                <div className="flex items-center mb-2 sm:mb-0 flex-grow">
+                  <div
+                    className={`flex items-center justify-center w-9 h-9 rounded-full mr-3 flex-shrink-0 
+                      ${
+                        transaction.type === "income"
+                          ? darkMode
+                            ? "bg-green-900/50"
+                            : "bg-green-100"
+                          : darkMode
+                          ? "bg-red-900/50"
+                          : "bg-red-100"
+                      }`}
+                  >
+                    {transaction.type === "income" ? (
+                      <ArrowUp
+                        className={`h-5 w-5 ${
+                          darkMode ? "text-green-400" : "text-green-600"
+                        }`}
+                      />
+                    ) : (
+                      <ArrowDown
+                        className={`h-5 w-5 ${
+                          darkMode ? "text-red-400" : "text-red-600"
+                        }`}
+                      />
+                    )}
+                  </div>
+                  <div className="flex-grow">
+                    <div className="font-medium text-sm break-words">
+                      {transaction.description}
+                    </div>
+                    <div className="flex items-center mt-1 flex-wrap">
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full mr-2 whitespace-nowrap 
+                          ${darkMode ? "bg-gray-600" : "bg-gray-200"}`}
+                      >
+                        {transaction.category}
+                      </span>
+                      <span
+                        className={`text-xs whitespace-nowrap ${
+                          darkMode ? "text-gray-400" : "text-gray-500"
+                        }`}
+                      >
+                        {new Date(transaction.date).toLocaleDateString(
+                          "en-US",
+                          { year: "numeric", month: "short", day: "numeric" }
+                        )}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center w-full sm:w-auto justify-end mt-2 sm:mt-0">
-                <div
-                  className={`text-sm font-semibold whitespace-nowrap 
-                    ${transaction.type === "income"
-                      ? (darkMode ? "text-green-400" : "text-green-600")
-                      : (darkMode ? "text-red-400" : "text-red-600")}`}
-                >
-                  {transaction.type === "income" ? "+" : "-"} $
-                  {transaction.amount.toFixed(2)}
+                <div className="flex items-center w-full sm:w-auto justify-end mt-2 sm:mt-0">
+                  <div
+                    className={`text-sm font-semibold whitespace-nowrap 
+                      ${
+                        transaction.type === "income"
+                          ? darkMode
+                            ? "text-green-400"
+                            : "text-green-600"
+                          : darkMode
+                          ? "text-red-400"
+                          : "text-red-600"
+                      }`}
+                  >
+                    {transaction.type === "income" ? "+" : "-"}{" "}
+                    {formattedAmount}
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

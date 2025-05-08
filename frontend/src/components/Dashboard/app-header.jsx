@@ -3,6 +3,7 @@
 import { Moon, Sun, User, Settings, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import CompactCurrencyDropdown from "../Layout/CompactCurrencyDropdown";
 
 const AppHeader = ({
   title,
@@ -51,7 +52,10 @@ const AppHeader = ({
             {subtitle}
           </p>
         </div>
-        <div className="flex space-x-4">
+        <div className="flex space-x-4 items-center">
+          {/* Currency Dropdown */}
+          <CompactCurrencyDropdown />
+
           <button
             className={`p-2 rounded-full ${
               darkMode

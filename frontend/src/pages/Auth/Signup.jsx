@@ -6,12 +6,14 @@ import axios from "axios";
 import aarthiknitiImg from "../../assets/Logo/aarthikniti.png";
 import girlImg from "../../assets/ExtraImg/girl.jpg";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function Signup() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { getSupportedCurrencies, exchangeRates } = useCurrency();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,17 +35,11 @@ function Signup() {
     special: false,
   });
 
-  const currencies = [
-    { code: "NPR", name: "Nepalese Rupee (₨)" },
-    { code: "INR", name: "Indian Rupee (₹)" },
-    { code: "USD", name: "US Dollar ($)" },
-    { code: "EUR", name: "Euro (€)" },
-    { code: "GBP", name: "British Pound (£)" },
-    { code: "JPY", name: "Japanese Yen (¥)" },
-    { code: "CAD", name: "Canadian Dollar (C$)" },
-    { code: "AUD", name: "Australian Dollar (A$)" },
-    { code: "CNY", name: "Chinese Yuan (¥)" },
-  ];
+  // Get currencies from CurrencyContext to ensure consistency
+  const currencies = Object.values(exchangeRates).map((currencyOption) => ({
+    code: currencyOption.code,
+    name: `${currencyOption.name} (${currencyOption.code})`,
+  }));
 
   const validateEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;

@@ -14,6 +14,7 @@ import {
 import { expenseCategories } from "../../pages/Dashboard/expenseCategories";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const ExpenseList = ({
@@ -31,6 +32,7 @@ const ExpenseList = ({
 }) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
+  const { currency, formatCurrency, convertAmount } = useCurrency();
   const [hoveredRow, setHoveredRow] = useState(null);
 
   // Use props for loading and expenseList when provided
@@ -70,6 +72,7 @@ const ExpenseList = ({
       const transformedData = data.map((expense) => ({
         ...expense,
         amount: parseFloat(expense.amount),
+        originalAmount: parseFloat(expense.amount), // Store original amount for editing
         isRecurring: expense.recurring || false,
         recurringPeriod: expense.recurrence_duration || null,
       }));
@@ -89,9 +92,19 @@ const ExpenseList = ({
     if (!expenseList) {
       handleLoadExpenseList();
     }
-  }, [getToken, expenseList]);
+  }, [getToken, expenseList, currency]);
 
-  const filteredExpenses = expenses.filter(
+  // Convert all expense amounts to the selected currency
+  const convertedExpenses = expenses.map((expense) => ({
+    ...expense,
+    amount: convertAmount(
+      expense.originalAmount || expense.amount,
+      "NPR",
+      currency
+    ),
+  }));
+
+  const filteredExpenses = convertedExpenses.filter(
     (expense) =>
       !searchTerm ||
       expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -137,9 +150,11 @@ const ExpenseList = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={`w-full pl-10 pr-4 py-2 border rounded-lg text-sm transition-colors duration-200 
-              ${darkMode 
-                ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500" 
-                : "bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-green-500 focus:border-green-500"}
+              ${
+                darkMode
+                  ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500"
+                  : "bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-green-500 focus:border-green-500"
+              }
               focus:outline-none focus:ring-2`}
           />
           <Search
@@ -159,7 +174,11 @@ const ExpenseList = ({
         ) : (
           <table className="w-full">
             <thead>
-              <tr className={`${darkMode ? "bg-gray-700/50" : "bg-gray-50"} rounded-t-lg`}>
+              <tr
+                className={`${
+                  darkMode ? "bg-gray-700/50" : "bg-gray-50"
+                } rounded-t-lg`}
+              >
                 {["category", "amount", "date"].map((header) => (
                   <th
                     key={header}
@@ -214,7 +233,9 @@ const ExpenseList = ({
                       darkMode
                         ? "border-gray-700 hover:bg-gray-700/50"
                         : "border-gray-200 hover:bg-gray-50"
-                    } ${index === sortedExpenses.length - 1 ? "last:border-0" : ""}`}
+                    } ${
+                      index === sortedExpenses.length - 1 ? "last:border-0" : ""
+                    }`}
                     onMouseEnter={() => setHoveredRow(expense.id)}
                     onMouseLeave={() => setHoveredRow(null)}
                   >
@@ -235,7 +256,7 @@ const ExpenseList = ({
                       </div>
                     </td>
                     <td className="px-4 py-4 text-red-500 font-medium">
-                      $ {expense.amount.toFixed(2)}
+                      {formatCurrency(expense.amount)}
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center">
@@ -251,7 +272,12 @@ const ExpenseList = ({
                       {expense.description}
                       {expense.recurring && (
                         <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                          {expense.recurrence_duration ? expense.recurrence_duration.charAt(0).toUpperCase() + expense.recurrence_duration.slice(1) : "Recurring"}
+                          {expense.recurrence_duration
+                            ? expense.recurrence_duration
+                                .charAt(0)
+                                .toUpperCase() +
+                              expense.recurrence_duration.slice(1)
+                            : "Recurring"}
                         </span>
                       )}
                     </td>
@@ -259,7 +285,12 @@ const ExpenseList = ({
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => {
-                            setCurrentExpense(expense);
+                            // When editing, use the original amount in NPR
+                            const originalExpense = {
+                              ...expense,
+                              amount: expense.originalAmount || expense.amount,
+                            };
+                            setCurrentExpense(originalExpense);
                             setShowEditModal(true);
                           }}
                           className="p-1.5 rounded-md transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-600"

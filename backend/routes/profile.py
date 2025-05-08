@@ -15,6 +15,7 @@ from fastapi import File, UploadFile
 import tempfile
 import json
 from receipt_information_extractor.extractor import extract_receipt_info
+from database import users_collection
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
@@ -313,3 +314,33 @@ async def get_all_transactions(
         raise HTTPException(status_code=400, detail="Transaction type must be 'income' or 'expense'")
     
     return await get_all_income_expense_transactions(user["user_id"], transaction_type)
+
+class UpdateUserRequest(BaseModel):
+    currency_preference: Optional[str] = None
+
+@router.put("/update")
+async def update_user_preferences(request: UpdateUserRequest, user: dict = Depends(get_current_user)):
+    """Updates user preferences including currency preference."""
+    update_data = {}
+    
+    if request.currency_preference:
+        update_data["currency_preference"] = request.currency_preference
+    
+    if not update_data:
+        return {"message": "No data to update"}
+    
+    result = await users_collection.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found or no changes made")
+    
+    # Return updated user data
+    updated_user = await users_collection.find_one(
+        {"user_id": user["user_id"]},
+        {"_id": 0, "password": 0}
+    )
+    
+    return updated_user

@@ -12,11 +12,13 @@ import {
 } from "recharts";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const IncomeOverview = ({ timeRange, setTimeRange, refreshKey }) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
+  const { currency, formatCurrency, convertAmount } = useCurrency();
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,6 +49,8 @@ const IncomeOverview = ({ timeRange, setTimeRange, refreshKey }) => {
         const transformedData = data.map((item) => ({
           date: item.date,
           income: parseFloat(item.income),
+          // Store the original income amount
+          originalIncome: parseFloat(item.income),
         }));
 
         console.log("Transformed data:", transformedData);
@@ -60,7 +64,13 @@ const IncomeOverview = ({ timeRange, setTimeRange, refreshKey }) => {
     };
 
     fetchIncomeData();
-  }, [timeRange, getToken, refreshKey]);
+  }, [timeRange, getToken, refreshKey, currency]);
+
+  // Convert all income values to the selected currency
+  const convertedChartData = chartData.map((item) => ({
+    ...item,
+    income: convertAmount(item.originalIncome, "NPR", currency),
+  }));
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -72,7 +82,7 @@ const IncomeOverview = ({ timeRange, setTimeRange, refreshKey }) => {
         >
           <p className="font-medium">{label}</p>
           <p className="text-sm font-semibold">
-            ${payload[0].value.toFixed(2)}
+            {formatCurrency(payload[0].value)}
           </p>
         </div>
       );
@@ -120,7 +130,7 @@ const IncomeOverview = ({ timeRange, setTimeRange, refreshKey }) => {
         <div className="h-[470px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={chartData}
+              data={convertedChartData}
               margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
             >
               <CartesianGrid
@@ -135,7 +145,9 @@ const IncomeOverview = ({ timeRange, setTimeRange, refreshKey }) => {
                 axisLine={false}
               />
               <YAxis
-                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                tickFormatter={(value) =>
+                  formatCurrency(value, undefined, true)
+                }
                 tick={{ fill: darkMode ? "#9ca3af" : "#6b7280", fontSize: 12 }}
                 tickLine={false}
                 axisLine={false}

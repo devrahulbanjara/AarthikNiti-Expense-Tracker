@@ -4,12 +4,14 @@ import DailyExpensesChart from "./DailyExpensesChart";
 import ExpensesBreakdown from "../Dashboard/expensesbreakdown";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 import { useEffect, useState } from "react";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const ExpenseOverview = ({ activeTab, setActiveTab, refreshKey }) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
+  const { currency, convertAmount, formatCurrency } = useCurrency();
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [loading, setLoading] = useState(false);
   const [expenseData, setExpenseData] = useState([]);
@@ -69,7 +71,7 @@ const ExpenseOverview = ({ activeTab, setActiveTab, refreshKey }) => {
   useEffect(() => {
     fetchTopUIData();
     handleLoadExpense(timeRange);
-  }, [timeRange, refreshKey]);
+  }, [timeRange, refreshKey, currency]);
 
   return (
     <div
@@ -136,7 +138,10 @@ const ExpenseOverview = ({ activeTab, setActiveTab, refreshKey }) => {
         ) : activeTab === "Daily Expenses" ? (
           <DailyExpensesChart data={expenseData} />
         ) : (
-          <ExpensesBreakdown totalExpenses={totalExpenses} refreshKey={refreshKey} />
+          <ExpensesBreakdown
+            totalExpenses={totalExpenses}
+            refreshKey={refreshKey}
+          />
         )}
       </div>
     </div>
