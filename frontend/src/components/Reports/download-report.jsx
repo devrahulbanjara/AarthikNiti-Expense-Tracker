@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Download, Loader2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Download, Loader2, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -14,6 +14,16 @@ const DownloadReport = () => {
   const [transactionType, setTransactionType] = useState("all");
   const [months, setMonths] = useState(3);
   const [isOpen, setIsOpen] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsModalVisible(true);
+    } else {
+      const timer = setTimeout(() => setIsModalVisible(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   const handleDownload = async () => {
     setLoading(true);
@@ -35,16 +45,10 @@ const DownloadReport = () => {
         throw new Error("Failed to generate report");
       }
 
-      // Get raw text and clean it by removing any markdown code block markers
       let csvContent = await res.text();
-
-      // Remove markdown code block markers if present
       csvContent = csvContent.replace(/```csv\s*/g, "").replace(/```\s*$/g, "");
-
-      // Trim any extra whitespace
       csvContent = csvContent.trim();
 
-      // Create file and trigger download
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -68,6 +72,10 @@ const DownloadReport = () => {
     setIsOpen(!isOpen);
   };
 
+  const closeModal = () => {
+    setIsOpen(false);
+  };
+
   return (
     <div className="relative">
       <button
@@ -82,15 +90,29 @@ const DownloadReport = () => {
         <span>Download Report</span>
       </button>
 
-      {isOpen && (
+      {isModalVisible && (
         <div
-          className={`absolute right-0 mt-2 p-4 rounded-md shadow-lg z-10 w-72 ${
+          className={`absolute right-0 mt-2 p-4 rounded-md shadow-lg hover:shadow-xl z-10 w-72 transform transition-all duration-300 ease-out ${
+            isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95"
+          } ${
             darkMode
               ? "bg-gray-800 border border-gray-700"
               : "bg-white border border-gray-200"
           }`}
         >
-          <h3 className="font-medium mb-3">Download Transaction Report</h3>
+          <button
+            onClick={closeModal}
+            className={`absolute top-2 right-2 p-1 rounded-full ${
+              darkMode
+                ? "text-gray-400 hover:bg-gray-700"
+                : "text-gray-500 hover:bg-gray-100"
+            } transition-colors`}
+            aria-label="Close"
+          >
+            <X size={20} />
+          </button>
+
+          <h3 className="font-medium mb-3 text-lg">Download Report</h3>
 
           <div className="mb-3">
             <label className="block text-sm mb-1">Transaction Type:</label>
@@ -127,25 +149,15 @@ const DownloadReport = () => {
             </select>
           </div>
 
-          <div className="flex justify-end">
-            <button
-              onClick={() => setIsOpen(false)}
-              className={`mr-2 px-3 py-1 rounded ${
-                darkMode
-                  ? "bg-gray-700 hover:bg-gray-600"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              Cancel
-            </button>
+          <div className="flex justify-end mt-4">
             <button
               onClick={handleDownload}
               disabled={loading}
-              className={`flex items-center space-x-1 px-3 py-1 rounded ${
+              className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium ${
                 darkMode
                   ? "bg-blue-600 hover:bg-blue-700 text-white"
                   : "bg-blue-500 hover:bg-blue-600 text-white"
-              }`}
+              } transition-all duration-200`}
             >
               {loading ? (
                 <>

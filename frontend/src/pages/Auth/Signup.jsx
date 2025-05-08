@@ -34,12 +34,12 @@ function Signup() {
   });
 
   const currencies = [
+    { code: "NPR", name: "Nepalese Rupee (₨)" },
+    { code: "INR", name: "Indian Rupee (₹)" },
     { code: "USD", name: "US Dollar ($)" },
     { code: "EUR", name: "Euro (€)" },
     { code: "GBP", name: "British Pound (£)" },
     { code: "JPY", name: "Japanese Yen (¥)" },
-    { code: "INR", name: "Indian Rupee (₹)" },
-    { code: "NPR", name: "Nepali Rupee (₨)" },
     { code: "CAD", name: "Canadian Dollar (C$)" },
     { code: "AUD", name: "Australian Dollar (A$)" },
     { code: "CNY", name: "Chinese Yuan (¥)" },

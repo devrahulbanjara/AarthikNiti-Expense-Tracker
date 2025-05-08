@@ -82,7 +82,7 @@ const Reports = () => {
 
               {/* Download Button with animation */}
               <div
-                className={`mt-4 md:mt-0 transition-all duration-300 hover:scale-105 active:scale-95 ${
+                className={`relative z-20 mt-4 md:mt-0 transition-all duration-300 hover:shadow-md active:scale-95 ${
                   isPageLoaded
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-4"
