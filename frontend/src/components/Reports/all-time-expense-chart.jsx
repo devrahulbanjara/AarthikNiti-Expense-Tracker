@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 import {
   LineChart,
   Line,
@@ -20,6 +21,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const AllTimeExpenseChart = () => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
+  const { currency, formatCurrency, convertAmount } = useCurrency();
   const [expenseData, setExpenseData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [animatedData, setAnimatedData] = useState([]);
@@ -44,10 +46,10 @@ const AllTimeExpenseChart = () => {
         if (!res.ok) throw new Error("Failed to fetch all-time expense data");
         const data = await res.json();
 
-        // Format daily data
+        // Format daily data and convert currency
         const formattedData = data.map((item) => {
           const date = new Date(item.date);
-          // Format date for display - shorter format for x-axis
+          const convertedAmt = convertAmount(item.amount, "NPR", currency);
           const formattedDate = date.toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
@@ -56,8 +58,8 @@ const AllTimeExpenseChart = () => {
           return {
             fullDate: item.date,
             formattedDate,
-            amount: item.amount,
-            // Store full date for tooltip
+            amount: convertedAmt,
+            originalNprAmount: item.amount,
             tooltipDate: date.toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
@@ -89,7 +91,7 @@ const AllTimeExpenseChart = () => {
     };
 
     fetchAllExpenseData();
-  }, [getToken]);
+  }, [getToken, currency, convertAmount]);
 
   // Left to right animation effect for the chart data
   useEffect(() => {
@@ -143,6 +145,7 @@ const AllTimeExpenseChart = () => {
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+      const value = payload[0].value;
       return (
         <div
           className={`p-3 border rounded-lg shadow-lg transform transition-all duration-200 ${
@@ -159,7 +162,7 @@ const AllTimeExpenseChart = () => {
               darkMode ? "text-red-400" : "text-red-600"
             }`}
           >
-            ${payload[0].value.toLocaleString()}
+            {formatCurrency(value)}
           </p>
         </div>
       );
@@ -234,9 +237,17 @@ const AllTimeExpenseChart = () => {
               />
               <YAxis
                 stroke={textColor}
-                tickFormatter={(value) =>
-                  `$${value >= 1000 ? (value / 1000).toFixed(1) + "k" : value}`
-                }
+                tickFormatter={(value) => {
+                  const currencySymbol = formatCurrency(0).replace(
+                    /[0-9.,\s]/g,
+                    ""
+                  );
+                  if (value >= 1000000)
+                    return `${currencySymbol}${(value / 1000000).toFixed(1)}M`;
+                  if (value >= 1000)
+                    return `${currencySymbol}${(value / 1000).toFixed(1)}k`;
+                  return `${currencySymbol}${value}`;
+                }}
                 tick={{ fill: textColor, fontSize: 12 }}
                 domain={calculateYDomain()}
                 axisLine={false}
