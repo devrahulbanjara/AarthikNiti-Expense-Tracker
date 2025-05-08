@@ -11,6 +11,7 @@ import UpcomingBills from "../../components/Dashboard/upcomingbills";
 import NetSavings from "../../components/Dashboard/netsavings";
 import IncomeVsExpensesChart from "../../components/Dashboard/income-expenses-chart";
 import ChatAssistant from "../../components/Chatbot/chat-assistant";
+import CurrencyDropdown from "../../components/Dashboard/currency-dropdown";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 
@@ -27,6 +28,8 @@ const DashboardPage = () => {
   });
   const [isTopUILoading, setIsTopUILoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
+
+  const [selectedCurrency, setSelectedCurrency] = useState("USD");
 
   const totalIncome = topUIData.profile_total_income;
   const totalExpenses = topUIData.profile_total_expense;
@@ -75,6 +78,10 @@ const DashboardPage = () => {
     logout();
   };
 
+  const handleCurrencyChange = (newCurrency) => {
+    setSelectedCurrency(newCurrency);
+  };
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
@@ -95,7 +102,7 @@ const DashboardPage = () => {
         }`}
       >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
           <p className={darkMode ? "text-gray-300" : "text-gray-600"}>
             Loading dashboard data...
           </p>
@@ -119,6 +126,12 @@ const DashboardPage = () => {
         />
 
         <div className="pt-28 md:pt-28">
+          {/* Added Currency Dropdown */}
+          <CurrencyDropdown
+            selectedCurrency={selectedCurrency}
+            onCurrencyChange={handleCurrencyChange}
+          />
+
           <DashboardCards
             totalBalance={totalBalance}
             totalIncome={totalIncome}
@@ -156,7 +169,6 @@ const DashboardPage = () => {
   );
 };
 
-// Dashboard Cards Component
 const DashboardCards = ({
   totalBalance,
   totalIncome,
@@ -188,18 +200,16 @@ const DashboardCards = ({
   );
 };
 
-// Card Component with animated counter
 const Card = ({ title, amount, icon: Icon }) => {
   const { darkMode } = useTheme();
   const [displayValue, setDisplayValue] = useState(0);
   const amountValue = parseFloat(amount.replace(/[^0-9.-]+/g, ""));
   
   useEffect(() => {
-    // Extract the numeric value from the amount string
     const targetValue = amountValue;
     let startValue = 0;
-    const duration = 1500; // Animation duration in ms
-    const frameRate = 20; // Update every 20ms
+    const duration = 1500;
+    const frameRate = 20;
     const increment = targetValue / (duration / frameRate);
     let currentValue = 0;
     
@@ -217,26 +227,24 @@ const Card = ({ title, amount, icon: Icon }) => {
   }, [amountValue]);
 
   const getValueColor = (title) => {
-    // Different colors for dark mode and light mode
     if (darkMode) {
       switch (title) {
         case "Total Balance":
-          return "#4ade80"; // Bright green for better contrast in dark mode
+          return "#4ade80";
         case "Total Income":
-          return "#34d399"; // Slightly different bright green for income
+          return "#34d399";
         case "Total Expenses":
-          return "#ef4444"; // Using the same red color as in recent transactions table
+          return "#ef4444";
         default:
           return "white";
       }
     } else {
-      // Light mode colors remain the same
       switch (title) {
         case "Total Balance":
         case "Total Income":
-          return "#0a6e47"; // Original green
+          return "#0a6e47";
         case "Total Expenses":
-          return "#ef4444"; // Original red
+          return "#ef4444";
         default:
           return "rgba(0, 0, 0, 0.6)";
       }
@@ -257,7 +265,7 @@ const Card = ({ title, amount, icon: Icon }) => {
         <h2
           className="text-md font-semibold"
           style={{
-            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)", // Original title color
+            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)",
           }}
         >
           {title}
@@ -283,35 +291,29 @@ const Card = ({ title, amount, icon: Icon }) => {
   );
 };
 
-// Budget Card Component with animated progress bar
 const BudgetCard = ({ percentage, isOverBudget }) => {
   const { darkMode } = useTheme();
   const [animatedPercentage, setAnimatedPercentage] = useState(0);
   const [progressWidth, setProgressWidth] = useState(0);
   
-  // Get color based on percentage with dark mode awareness
   const getPercentColor = () => {
     if (darkMode) {
-      // Dark mode colors with better contrast
-      if (percentage > 80) return "#ef4444"; // Match red color used in recent transactions
-      if (percentage > 60) return "#fbbf24"; // Brighter yellow for dark mode
-      return "#4ade80"; // Brighter green for dark mode
+      if (percentage > 80) return "#ef4444";
+      if (percentage > 60) return "#fbbf24";
+      return "#4ade80";
     } else {
-      // Light mode colors remain the same
-      if (percentage > 80) return "#ef4444"; // Original red
-      if (percentage > 60) return "#f59e0b"; // Original yellow/amber
-      return "#0a6e47"; // Original green
+      if (percentage > 80) return "#ef4444";
+      if (percentage > 60) return "#f59e0b";
+      return "#0a6e47";
     }
   };
   
   useEffect(() => {
-    // Animate percentage counter
-    const duration = 1500; // Animation duration in ms
-    const frameRate = 20; // Update every 20ms
+    const duration = 1500;
+    const frameRate = 20;
     const increment = percentage / (duration / frameRate);
     let currentValue = 0;
     
-    // Start with progress bar at 0%
     setProgressWidth(0);
     
     const timer = setInterval(() => {
@@ -319,7 +321,6 @@ const BudgetCard = ({ percentage, isOverBudget }) => {
       if (currentValue >= percentage) {
         clearInterval(timer);
         setAnimatedPercentage(percentage);
-        // Set final progress bar width after counter finishes
         setTimeout(() => setProgressWidth(percentage), 50);
       } else {
         setAnimatedPercentage(Math.round(currentValue));
@@ -343,7 +344,7 @@ const BudgetCard = ({ percentage, isOverBudget }) => {
         <h2
           className="text-md font-semibold"
           style={{
-            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)", // Same as other card titles
+            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)",
           }}
         >
           Spent
