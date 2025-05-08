@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
-import { useCurrency } from "../../context/CurrencyContext";
 import {
   LineChart,
   Line,
@@ -18,10 +17,13 @@ import LoadingSpinner from "../UI/LoadingSpinner";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const AllTimeIncomeChart = () => {
+const AllTimeIncomeChart = ({
+  currency = "NPR",
+  formatCurrency,
+  convertAmount,
+}) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
-  const { currency, formatCurrency, convertAmount } = useCurrency();
   const [incomeData, setIncomeData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [animatedData, setAnimatedData] = useState([]);
@@ -46,20 +48,26 @@ const AllTimeIncomeChart = () => {
         if (!res.ok) throw new Error("Failed to fetch all-time income data");
         const data = await res.json();
 
-        // Format daily data and convert currency
+        // Format daily data
         const formattedData = data.map((item) => {
           const date = new Date(item.date);
-          const convertedAmt = convertAmount(item.amount, "NPR", currency);
+          // Format date for display - shorter format for x-axis
           const formattedDate = date.toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
           });
 
+          // Convert amount from NPR to selected currency
+          const convertedAmount = convertAmount
+            ? convertAmount(item.amount, "NPR", currency)
+            : item.amount;
+
           return {
             fullDate: item.date,
             formattedDate,
-            amount: convertedAmt,
-            originalNprAmount: item.amount,
+            amount: convertedAmount,
+            originalAmount: item.amount, // Keep original amount for reference
+            // Store full date for tooltip
             tooltipDate: date.toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
@@ -145,7 +153,6 @@ const AllTimeIncomeChart = () => {
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      const value = payload[0].value;
       return (
         <div
           className={`p-3 border rounded-lg shadow-lg transform transition-all duration-200 ${
@@ -162,7 +169,9 @@ const AllTimeIncomeChart = () => {
               darkMode ? "text-green-400" : "text-green-600"
             }`}
           >
-            {formatCurrency(value)}
+            {formatCurrency
+              ? formatCurrency(payload[0].value)
+              : `${currency} ${payload[0].value.toLocaleString()}`}
           </p>
         </div>
       );
@@ -227,17 +236,13 @@ const AllTimeIncomeChart = () => {
               />
               <YAxis
                 stroke={textColor}
-                tickFormatter={(value) => {
-                  const currencySymbol = formatCurrency(0).replace(
-                    /[0-9.,\s]/g,
-                    ""
-                  );
-                  if (value >= 1000000)
-                    return `${currencySymbol}${(value / 1000000).toFixed(1)}M`;
-                  if (value >= 1000)
-                    return `${currencySymbol}${(value / 1000).toFixed(1)}k`;
-                  return `${currencySymbol}${value}`;
-                }}
+                tickFormatter={(value) =>
+                  value >= 1000
+                    ? `${currency.substring(0, 3)} ${(value / 1000).toFixed(
+                        1
+                      )}k`
+                    : `${currency.substring(0, 3)} ${value}`
+                }
                 tick={{ fill: textColor, fontSize: 12 }}
                 domain={calculateYDomain()}
                 axisLine={false}

@@ -4,12 +4,14 @@ import React, { useState, useEffect } from "react";
 import { Download, Loader2, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const DownloadReport = () => {
   const { getToken } = useAuth();
   const { darkMode } = useTheme();
+  const { currency } = useCurrency();
   const [loading, setLoading] = useState(false);
   const [transactionType, setTransactionType] = useState("all");
   const [months, setMonths] = useState(3);
@@ -38,6 +40,7 @@ const DownloadReport = () => {
         body: JSON.stringify({
           transaction_type: transactionType,
           months: months,
+          currency: currency,
         }),
       });
 
@@ -53,7 +56,7 @@ const DownloadReport = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `transactions_${transactionType}_${months}months.csv`;
+      a.download = `transactions_${transactionType}_${months}months_${currency}.csv`;
       document.body.appendChild(a);
       a.click();
       URL.revokeObjectURL(url);
@@ -113,6 +116,12 @@ const DownloadReport = () => {
           </button>
 
           <h3 className="font-medium mb-3 text-lg">Download Report</h3>
+
+          <div className="text-sm mb-3">
+            <span className={darkMode ? "text-gray-400" : "text-gray-600"}>
+              Current currency: <span className="font-medium">{currency}</span>
+            </span>
+          </div>
 
           <div className="mb-3">
             <label className="block text-sm mb-1">Transaction Type:</label>
