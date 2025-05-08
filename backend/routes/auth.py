@@ -11,7 +11,8 @@ from dotenv import load_dotenv
 import os
 import jwt
 from pydantic import BaseModel
-from services.email_service import send_otp_email, verify_otp
+from services.email_service import send_otp_email, verify_otp, send_signup_otp, verify_signup_otp, send_signup_success_email
+from pydantic import BaseModel, EmailStr
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -82,23 +83,55 @@ async def get_next_user_id():
     last_user = await users_collection.find_one({}, sort=[("user_id", -1)])
     return (last_user["user_id"] + 1) if last_user else 1
 
-@router.post("/signup", response_model=UserResponse)
+class OTPResponse(BaseModel):
+    message: str
+    email: str
+
+@router.post("/signup", response_model=OTPResponse)
 async def signup(user: SignupRequest):
     """Registers a new user."""
     existing_user = await users_collection.find_one({"email": user.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    hashed_password = hash_password(user.password)
+    # Send OTP for verification
+    success = await send_signup_otp(user.email)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send OTP for verification")
+    
+    return {"message": "OTP sent to your email for verification", "email": user.email}
+
+class CompleteSignupRequest(BaseModel):
+    email: EmailStr
+    otp: str
+    full_name: str
+    password: str
+    currency_preference: str = "USD"
+
+@router.post("/complete-signup", response_model=UserResponse)
+async def complete_signup(request: CompleteSignupRequest):
+    """Verify OTP and complete user registration."""
+    # Verify OTP
+    is_valid = await verify_signup_otp(request.email, request.otp)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+    
+    # Check if email is already registered
+    existing_user = await users_collection.find_one({"email": request.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create the user
+    hashed_password = hash_password(request.password)
     user_id = await get_next_user_id()
     
     new_user = {
         "user_id": user_id,
-        "full_name": user.full_name,
-        "email": user.email,
+        "full_name": request.full_name,
+        "email": request.email,
         "password": hashed_password,
         "profile_picture": None,
-        "currency_preference": user.currency_preference,
+        "currency_preference": request.currency_preference,
         "active_profile_id": None,
         "created_at": datetime.utcnow()
     }
@@ -106,6 +139,9 @@ async def signup(user: SignupRequest):
     
     active_profile_id = await create_default_profile(user_id)
     await users_collection.update_one({"user_id": user_id}, {"$set": {"active_profile_id": active_profile_id}})
+    
+    # Send welcome email
+    await send_signup_success_email(request.email, request.full_name)
     
     return UserResponse(**new_user)
 
@@ -250,4 +286,28 @@ async def reset_password(request: ResetPasswordRequest):
         {"$set": {"password": hashed_password}}
     )
     
-    return {"message": "Password reset successfully"} 
+    return {"message": "Password reset successfully"}
+
+# Request model for sending signup OTP
+class SignupEmailRequest(BaseModel):
+    email: EmailStr
+
+# Request model for verifying signup OTP
+class VerifySignupOTPRequest(BaseModel):
+    email: EmailStr
+    otp: str
+
+
+@router.post("/send-signup-otp")
+async def send_signup_otp_endpoint(request: SignupEmailRequest):
+    success = await send_signup_otp(request.email)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send OTP")
+    return {"message": "Signup OTP sent successfully"}
+
+@router.post("/verify-signup-otp")
+async def verify_signup_otp_endpoint(request: VerifySignupOTPRequest):
+    is_valid = await verify_signup_otp(request.email, request.otp)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+    return {"message": "Signup OTP verified successfully"}

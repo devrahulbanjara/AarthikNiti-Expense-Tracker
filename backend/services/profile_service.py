@@ -744,3 +744,41 @@ async def get_transaction_report_data(user_id: int, transaction_type: str, month
         "time_period": f"last {months} months",
         "transaction_type": transaction_type
     }
+
+async def get_all_income_expense_transactions(user_id: int, transaction_type: str):
+    """
+    Retrieves all income or expense transactions for a user's active profile.
+    
+    Args:
+        user_id: The user ID
+        transaction_type: Either "income" or "expense"
+        
+    Returns:
+        A list of transactions with date and amount
+    """
+    user = await users_collection.find_one({"user_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    active_profile_id = user.get("active_profile_id")
+    if not active_profile_id:
+        raise HTTPException(status_code=404, detail="No active profile found")
+    
+    # Get all transactions of the specified type
+    transactions = await transactions_collection.find(
+        {
+            "user_id": user_id,
+            "profile_id": active_profile_id,
+            "transaction_type": transaction_type
+        }
+    ).sort("timestamp", 1).to_list(length=None)
+    
+    # Format the data for frontend consumption
+    result = []
+    for transaction in transactions:
+        result.append({
+            "date": transaction["timestamp"].strftime("%Y-%m-%d"),
+            "amount": transaction["transaction_amount"]
+        })
+    
+    return result
