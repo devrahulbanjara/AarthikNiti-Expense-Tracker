@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 const TOKEN_KEY = "access_token";
 const TOKEN_TIMESTAMP_KEY = "token_timestamp";
 const REMEMBER_ME_KEY = "remember_me";
+const USER_DATA_KEY = "user_data";
 const TOKEN_EXPIRY_TIME = 60 * 60 * 1000; // 1 hour in milliseconds
 
 const AuthContext = createContext();
@@ -11,6 +12,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
 
   const getStorage = () => {
     const rememberMe = localStorage.getItem(REMEMBER_ME_KEY) === "true";
@@ -44,6 +46,42 @@ export const AuthProvider = ({ children }) => {
     return true;
   };
 
+  const loadUserData = async () => {
+    try {
+      const token = getToken();
+      if (!token) return null;
+
+      // First check if we have cached user data
+      const storage = getStorage();
+      const cachedUserData = storage.getItem(USER_DATA_KEY);
+
+      if (cachedUserData) {
+        const userData = JSON.parse(cachedUserData);
+        setUser(userData);
+        return userData;
+      }
+
+      // If no cached data, fetch from API
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/auth/me`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to fetch user data");
+
+      const userData = await response.json();
+      setUser(userData);
+      storage.setItem(USER_DATA_KEY, JSON.stringify(userData));
+
+      return userData;
+    } catch (error) {
+      console.error("Error loading user data:", error);
+      return null;
+    }
+  };
+
   const login = (token, rememberMe = false) => {
     const currentTime = new Date().getTime();
     const storage = rememberMe ? localStorage : sessionStorage;
@@ -51,8 +89,10 @@ export const AuthProvider = ({ children }) => {
     // Clear any existing tokens from both storages
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(TOKEN_TIMESTAMP_KEY);
+    localStorage.removeItem(USER_DATA_KEY);
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(TOKEN_TIMESTAMP_KEY);
+    sessionStorage.removeItem(USER_DATA_KEY);
 
     // Store remember me preference in localStorage
     localStorage.setItem(REMEMBER_ME_KEY, rememberMe.toString());
@@ -62,6 +102,9 @@ export const AuthProvider = ({ children }) => {
     storage.setItem(TOKEN_TIMESTAMP_KEY, currentTime.toString());
 
     setIsAuthenticated(true);
+
+    // Load user data after successful login
+    loadUserData();
   };
 
   const logout = () => {
@@ -69,10 +112,13 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(TOKEN_TIMESTAMP_KEY);
     localStorage.removeItem(REMEMBER_ME_KEY);
+    localStorage.removeItem(USER_DATA_KEY);
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(TOKEN_TIMESTAMP_KEY);
+    sessionStorage.removeItem(USER_DATA_KEY);
 
     setIsAuthenticated(false);
+    setUser(null);
     navigate("/");
   };
 
@@ -80,6 +126,11 @@ export const AuthProvider = ({ children }) => {
     // Check token expiration on app initialization
     const isValid = checkTokenExpiration();
     setIsAuthenticated(isValid);
+
+    // If token is valid, load user data
+    if (isValid) {
+      loadUserData();
+    }
 
     // Set up interval to check token expiration every minute
     const interval = setInterval(() => {
@@ -92,7 +143,16 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, getToken }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        login,
+        logout,
+        getToken,
+        user,
+        loadUserData,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -137,6 +137,20 @@ const Expense = () => {
       recurrence_duration: newExpense.recurrence_duration,
     };
 
+    // Validate amount
+    if (isNaN(expenseToAdd.amount) || expenseToAdd.amount <= 0) {
+      toast.error("Please enter a valid positive amount for the expense.");
+      return;
+    }
+    if (!expenseToAdd.description) {
+      toast.error("Please enter a description for the expense.");
+      return;
+    }
+    if (!expenseToAdd.category) {
+      toast.error("Please select a category for the expense.");
+      return;
+    }
+
     try {
       setLoading(true);
       const token = getToken();
@@ -150,7 +164,8 @@ const Expense = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to add expense");
+        const errorData = await response.json(); // Try to parse error response from backend
+        throw { status: response.status, data: errorData }; // Throw an object with status and data
       }
 
       // Show success toast
@@ -170,7 +185,13 @@ const Expense = () => {
       await refreshData();
     } catch (error) {
       console.error("Error adding expense:", error);
-      toast.error("Failed to add expense");
+      if (error.data && error.data.detail) {
+        // If backend provides a specific detail message, show it
+        toast.error(error.data.detail);
+      } else {
+        // Fallback to a generic error message
+        toast.error("Failed to add expense. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

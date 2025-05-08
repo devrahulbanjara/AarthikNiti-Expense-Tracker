@@ -368,7 +368,15 @@ const Card = ({ title, amount, icon: Icon }) => {
             </span>
           </>
         ) : (
-          <span className="tabular-nums">{amount}</span>
+          <>
+            <span className="text-sm mr-0.5">{currencySymbol}</span>
+            <span className="tabular-nums">
+              {amountValue.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </>
         )}
       </p>
     </div>

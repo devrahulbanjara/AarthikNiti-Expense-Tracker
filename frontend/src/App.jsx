@@ -15,6 +15,7 @@ import Expense from "./pages/Dashboard/Expense";
 import ForgotPassword from "./pages/Auth/Forgotpassword";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
 import Reports from "./pages/Dashboard/Reports";
+import Settings from "./pages/Dashboard/settings";
 import ProfilePage from "./pages/Profile/ProfilePage";
 import Layout from "./components/Layout/Layout";
 import LandingPage from "./pages/Landing/LandingPage";
@@ -82,6 +83,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
             </ProtectedRoute>
           }
         />

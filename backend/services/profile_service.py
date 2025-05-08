@@ -152,20 +152,40 @@ async def add_income(user_id: int, amount: float, description: str, category: st
 async def add_expense(user_id: int, description: str, amount: float, category: str, recurring: bool, recurrence_duration: Optional[str]):
     """Adds an expense to the active profile."""
     user = await users_collection.find_one({"user_id": user_id})
+    if not user: # Ensure user exists
+        raise HTTPException(status_code=404, detail="User not found")
+
     profile = await get_active_profile(user_id)
+    if not profile: # Ensure profile exists
+        raise HTTPException(status_code=404, detail="Active profile not found")
 
-    new_expense = profile["profile_total_expense"] + amount
-    new_balance = profile["profile_total_balance"] - amount
+    current_balance = profile.get("profile_total_balance", 0)
+    
+    # Check if the expense amount is valid (positive)
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Expense amount must be positive.")
 
-    if new_balance < 0:
-        raise HTTPException(status_code=400, detail="Insufficient balance")
+    # Calculate potential new balance
+    new_potential_balance = current_balance - amount
+
+    if new_potential_balance < 0:
+        error_detail = f"Cannot add expense. Amount NRs{amount:,.2f} exceeds available balance NRs{current_balance:,.2f}."
+        if profile.get("currency_preference") and profile["currency_preference"] != "NPR":
+             # If user has a different currency preference, we might want to show that too, or convert.
+             # For now, sticking to NPR as base, but this could be enhanced.
+             error_detail = f"Cannot add expense. Amount {amount:,.2f} exceeds available balance {current_balance:,.2f} (shown in base currency NPR)."
+        raise HTTPException(status_code=400, detail=error_detail)
+
+    # Proceed with adding expense if balance is sufficient
+    new_total_expense = profile.get("profile_total_expense", 0) + amount
+    new_actual_balance = current_balance - amount # Recalculate to be sure, though it's same as new_potential_balance
 
     transaction_id = str(uuid.uuid4())  # Generate a unique transaction ID
 
     transaction_data = {
         "transaction_id": transaction_id,  # Add transaction_id
         "user_id": user_id,
-        "profile_id": user["active_profile_id"],
+        "profile_id": profile["profile_id"], # Use profile_id from fetched profile
         "transaction_type": "expense",
         "transaction_description": description,
         "transaction_category": category,
@@ -178,8 +198,8 @@ async def add_expense(user_id: int, description: str, amount: float, category: s
     await transactions_collection.insert_one(transaction_data)
 
     await profiles_collection.update_one(
-        {"user_id": user_id, "profile_id": user["active_profile_id"]},
-        {"$set": {"profile_total_expense": new_expense, "profile_total_balance": new_balance}}
+        {"user_id": user_id, "profile_id": profile["profile_id"]},
+        {"$set": {"profile_total_expense": new_total_expense, "profile_total_balance": new_actual_balance}}
     )
 
     return {"message": "Expense added successfully", "transaction_id": transaction_id}
