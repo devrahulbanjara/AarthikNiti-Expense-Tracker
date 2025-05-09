@@ -70,7 +70,7 @@ const Income = () => {
 
       // Fetch income table data
       const incomeResponse = await fetch(
-        `${BACKEND_URL}/profile/income_expense_table?transaction_type=income&days=30`,
+        `${BACKEND_URL}/profile/all-transactions?transaction_type=income`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -86,11 +86,11 @@ const Income = () => {
       // Transform the data
       const formattedIncomes = incomeData.map((income, index) => ({
         id: index + 1,
-        source: income.category,
+        source: income.category || "Other",
         amount: income.amount,
         date: income.date,
-        description: income.description,
-        recurring: income.recurring,
+        description: income.description || "",
+        recurring: income.recurring || false,
         recurrence_duration: income.recurrence_duration || null,
         transaction_id: income.transaction_id,
       }));

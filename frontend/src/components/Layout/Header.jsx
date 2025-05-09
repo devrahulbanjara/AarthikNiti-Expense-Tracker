@@ -55,11 +55,20 @@ const Header = ({ title, subtitle }) => {
       }`}
     >
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between w-full">
-        <div className="md:ml-0 ml-12 mt-2.5 md:mt-3.5">
-          <div className="flex items-center justify-between w-full md:w-auto">
-            <h1 className="text-xl md:text-2xl font-bold font-poppins ml-[-5px]">
+        <div className="md:ml-0 ml-12 mt-2.5 md:mt-1">
+          <div className="flex flex-col">
+            <h1 className="text-xl md:text-2xl font-bold font-poppins ml-[-5px] mb-2">
               {title}
             </h1>
+            <p
+              className={`text-sm md:text-base ml-[-5px] ${
+                darkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              {subtitle}
+            </p>
+          </div>
+          <div className="flex items-center justify-between w-full md:w-auto">
             <div className="fixed top-4 right-4 flex items-center space-x-3 md:hidden">
               <CompactCurrencyDropdown />
               <button
@@ -178,13 +187,6 @@ const Header = ({ title, subtitle }) => {
               </div>
             </div>
           </div>
-          <p
-            className={`text-sm md:text-base ml-[-5px] ${
-              darkMode ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
-            {subtitle}
-          </p>
         </div>
 
         <div className="hidden md:flex fixed top-6 right-6 items-center space-x-3">

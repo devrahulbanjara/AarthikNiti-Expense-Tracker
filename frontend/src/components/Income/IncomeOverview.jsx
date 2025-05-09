@@ -15,7 +15,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useCurrency } from "../../context/CurrencyContext";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const IncomeOverview = ({ timeRange, setTimeRange, refreshKey }) => {
+const IncomeOverview = ({ timeRange, onTimeRangeChange, refreshKey }) => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
   const { currency, formatCurrency, convertAmount } = useCurrency();
@@ -100,7 +100,7 @@ const IncomeOverview = ({ timeRange, setTimeRange, refreshKey }) => {
         <h2 className="text-xl font-semibold">Income Overview</h2>
         <select
           value={timeRange}
-          onChange={(e) => setTimeRange(e.target.value)}
+          onChange={(e) => onTimeRangeChange(e.target.value)}
           className={`${
             darkMode ? "bg-[#1f2937] text-white" : "bg-gray-100 text-gray-800"
           } border-0 rounded-lg px-3 py-2 text-sm transition-colors duration-300`}

@@ -74,7 +74,7 @@ const Expense = () => {
 
       // Fetch expense table data
       const expenseResponse = await fetch(
-        `${BACKEND_URL}/profile/income_expense_table?transaction_type=expense&days=${timeRange}`,
+        `${BACKEND_URL}/profile/all-transactions?transaction_type=expense`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -89,16 +89,16 @@ const Expense = () => {
       const data = await expenseResponse.json();
       const formattedExpenses = data.map((expense, index) => ({
         id: index + 1,
-        category: expense.category,
+        category: expense.category || "Other",
         amount: expense.amount,
         originalAmount: expense.amount, // Store original amount in NPR
         date: expense.date,
-        description: expense.description,
-        isRecurring: expense.recurring,
+        description: expense.description || "",
+        isRecurring: expense.recurring || false,
         recurringPeriod: expense.recurrence_duration || null,
         transaction_id: expense.transaction_id,
-        recurring: expense.recurring,
-        recurrence_duration: expense.recurrence_duration,
+        recurring: expense.recurring || false,
+        recurrence_duration: expense.recurrence_duration || null,
       }));
 
       setExpenses(formattedExpenses);
@@ -111,11 +111,11 @@ const Expense = () => {
     } finally {
       setLoading(false);
     }
-  }, [getToken, timeRange]);
+  }, [getToken]);
 
   useEffect(() => {
     refreshData();
-  }, [refreshData, timeRange, currency]);
+  }, [refreshData, currency]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
