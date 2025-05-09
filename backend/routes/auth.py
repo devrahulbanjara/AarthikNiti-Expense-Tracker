@@ -361,7 +361,7 @@ async def upload_profile_picture(
         return updated_user
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload profile picture: {str(e)}")
-
+    
 @router.delete("/delete-profile-picture")
 async def delete_profile_picture(user: dict = Depends(get_current_user)):
     """Deletes the user's profile picture."""

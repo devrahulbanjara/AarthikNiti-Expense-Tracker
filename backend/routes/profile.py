@@ -260,13 +260,26 @@ async def extract_receipt_information(
     """
     # Check if the file is an image
     if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="File must be an image")
+        raise HTTPException(status_code=400, detail="File must be an image (JPEG, PNG, etc.)")
+    
+    # Check file size (limit to 10MB)
+    contents = await file.read()
+    file_size = len(contents)
+    if file_size > 10 * 1024 * 1024:  # 10MB
+        raise HTTPException(status_code=400, detail="File size too large. Maximum allowed is 10MB")
+    elif file_size < 1024:  # 1KB
+        raise HTTPException(status_code=400, detail="File appears to be empty or corrupted")
+    
+    # Reset file pointer
+    await file.seek(0)
     
     # Create a temporary file to store the uploaded image
     with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as temp_file:
         # Write the uploaded file content to the temporary file
-        temp_file.write(await file.read())
+        temp_file.write(contents)
         temp_file_path = temp_file.name
+    
+    print(f"Processing receipt image: {file.filename}, size: {file_size/1024:.2f}KB, saved to: {temp_file_path}")
     
     try:
         # Process the image using the receipt information extractor
@@ -274,9 +287,10 @@ async def extract_receipt_information(
         
         # Ensure we have a valid dictionary response
         if not isinstance(result, dict):
+            print(f"Unexpected result type from extractor: {type(result)}")
             result = {
                 "Expense Type": "Other",
-                "Description": "Receipt processing failed to return proper format",
+                "Description": "Receipt processing failed: Invalid response format",
                 "Total Amount": ""
             }
         
@@ -284,6 +298,7 @@ async def extract_receipt_information(
         required_fields = ["Expense Type", "Description", "Total Amount"]
         for field in required_fields:
             if field not in result:
+                print(f"Missing required field in result: {field}")
                 result[field] = ""
         
         print("Returning receipt extraction result:", result)
@@ -293,6 +308,8 @@ async def extract_receipt_information(
     except Exception as e:
         error_msg = f"Error processing receipt: {str(e)}"
         print(error_msg)
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=error_msg)
     finally:
         # Clean up the temporary file
