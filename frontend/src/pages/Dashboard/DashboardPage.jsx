@@ -29,7 +29,6 @@ const DashboardPage = () => {
   });
   const [isTopUILoading, setIsTopUILoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
-  // Animation states
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [showCards, setShowCards] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
@@ -141,7 +140,7 @@ const DashboardPage = () => {
           isPageLoaded ? "opacity-100" : "opacity-0"
         }`}
       >
-        <Header
+        <Header 
           title="Dashboard"
           subtitle="View your financial overview and recent activity."
         />

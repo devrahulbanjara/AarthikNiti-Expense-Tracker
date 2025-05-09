@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, BarChart3, PieChart, Wallet, ArrowUpRight, Shield, Clock, Quote, ChevronDown, Mail, Github, Twitter, Linkedin } from 'lucide-react';
+import { ArrowRight, BarChart3, PieChart, Wallet, ArrowUpRight, Shield, Clock, Quote, ChevronDown, Mail, Github, Twitter, Linkedin, Menu, X } from 'lucide-react';
 import dashboardVideo from "../../assets/Videos/dashboard-preview.mp4";
 import lpImage from "../../assets/ExtraImg/lpimage.jpg";
 import AOS from 'aos';
@@ -8,6 +8,7 @@ import 'aos/dist/aos.css';
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     AOS.init({
@@ -37,7 +38,21 @@ const LandingPage = () => {
           >
             AarthikNiti
           </div>
-          <div className="flex items-center space-x-6">
+          
+          {/* Mobile Menu Button */}
+          <button 
+            className="md:hidden p-2 text-white"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-6">
             <nav className="flex space-x-6">
               <a 
                 href="#features" 
@@ -71,18 +86,69 @@ const LandingPage = () => {
             >
               <button 
                 onClick={handleSignIn}
-                className="px-4 py-2 border border-white text-white rounded-md hover:bg-white hover:text-[#065336] transition-all duration-300"
+                className="px-4 py-2 border border-white text-white rounded-md hover:bg-white hover:text-[#065336] transition-all duration-300 cursor-pointer"
               >
                 Sign In
               </button>
               <button 
                 onClick={handleSignUp}
-                className="px-4 py-2 bg-white text-[#065336] rounded-md hover:bg-white/90 transition-all duration-300 hover:scale-105"
+                className="px-4 py-2 bg-white text-[#065336] rounded-md hover:bg-white/90 transition-all duration-300 hover:scale-105 cursor-pointer"
               >
                 Sign Up
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Mobile Navigation Menu */}
+        <div 
+          className={`md:hidden absolute top-full left-0 right-0 bg-[#065336] shadow-lg transition-all duration-300 ${
+            isMobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
+          }`}
+        >
+          <nav className="flex flex-col p-4 space-y-4">
+            <a 
+              href="#features" 
+              className="font-medium text-white hover:text-white/80 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Features
+            </a>
+            <a 
+              href="#testimonials" 
+              className="font-medium text-white hover:text-white/80 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Testimonials
+            </a>
+            <a 
+              href="#faq" 
+              className="font-medium text-white hover:text-white/80 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              FAQ
+            </a>
+            <div className="flex flex-col space-y-3 pt-2 border-t border-white/20">
+              <button 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleSignIn();
+                }}
+                className="w-full px-4 py-2 border border-white text-white rounded-md hover:bg-white hover:text-[#065336] transition-all duration-300 cursor-pointer"
+              >
+                Sign In
+              </button>
+              <button 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleSignUp();
+                }}
+                className="w-full px-4 py-2 bg-white text-[#065336] rounded-md hover:bg-white/90 transition-all duration-300 hover:scale-105 cursor-pointer"
+              >
+                Sign Up
+              </button>
+            </div>
+          </nav>
         </div>
       </header>
 
@@ -112,7 +178,7 @@ const LandingPage = () => {
             >
               <button
                 onClick={handleSignUp}
-                className="flex items-center gap-2 rounded-md bg-[#065336] px-6 py-3 text-white hover:bg-[#065336]/90 transition-all hover:scale-105"
+                className="flex items-center gap-2 rounded-md bg-[#065336] px-6 py-3 text-white hover:bg-[#065336]/90 transition-all hover:scale-105 cursor-pointer"
               >
                 Get Started <ArrowRight size={18} />
               </button>
@@ -209,7 +275,7 @@ const LandingPage = () => {
               },
               {
                 quote: "The budgeting tools are incredibly intuitive. I finally understand where my money goes each month.",
-                author: "Priya Sharma",
+                author: "Shreeya Pandey",
                 role: "Marketing Manager"
               },
               {
@@ -410,7 +476,7 @@ const LandingPage = () => {
       >
         <button
           onClick={handleSignUp}
-          className="inline-flex h-12 items-center justify-center rounded-md bg-white px-8 text-sm font-medium text-[#065336] shadow transition-all hover:bg-gray-100 hover:scale-105"
+          className="inline-flex h-12 items-center justify-center rounded-md bg-white px-8 text-sm font-medium text-[#065336] shadow transition-all hover:bg-gray-100 hover:scale-105 cursor-pointer"
         >
           Get Started
           <ArrowRight className="ml-2 h-4 w-4" />

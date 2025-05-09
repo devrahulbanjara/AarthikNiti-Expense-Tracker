@@ -131,7 +131,7 @@ const CompactCurrencyDropdown = () => {
     <div className="relative" ref={dropdownRef}>
       <div className="flex items-center">
         <div
-          className="flex items-center space-x-1 cursor-pointer px-2 py-1 rounded-md group"
+          className="flex items-center space-x-2 cursor-pointer px-2 py-1 rounded-md group"
           onClick={toggleTooltip}
         >
           <DollarSign
@@ -173,7 +173,7 @@ const CompactCurrencyDropdown = () => {
       {/* Dropdown on click only */}
       {showTooltip && (
         <div
-          className={`absolute right-0 top-full mt-1 z-50 p-3 rounded-md shadow-lg w-64
+          className={`absolute right-0 top-full mt-1 z-50 p-2 md:p-3 rounded-md shadow-lg w-56 md:w-64
             ${
               darkMode
                 ? "bg-gray-800 border border-gray-700"
@@ -181,10 +181,10 @@ const CompactCurrencyDropdown = () => {
             } animate-fadeIn
           `}
         >
-          <div className="text-xs space-y-2">
+          <div className="text-[11px] md:text-xs space-y-2">
             {/* Current currency detail */}
             <div>
-              <div className={`font-bold text-sm ${textColor} mb-1`}>
+              <div className={`font-bold text-xs md:text-sm ${textColor} mb-1`}>
                 {getCurrentCurrencyInfo().name}
               </div>
               <div className={`flex items-center ${mutedTextColor}`}>
@@ -197,7 +197,7 @@ const CompactCurrencyDropdown = () => {
             {/* Available currencies */}
             <div className="pt-2 border-t border-gray-600">
               <div className="font-medium mb-1">Available Currencies</div>
-              <div className="max-h-36 overflow-y-auto pr-1">
+              <div className="max-h-32 md:max-h-36 overflow-y-auto pr-1">
                 <div className="grid grid-cols-1 gap-1">
                   {ALLOWED_CURRENCIES.map(({ code, name, symbol }) => (
                     <div
@@ -234,7 +234,7 @@ const CompactCurrencyDropdown = () => {
                     : mutedTextColor
                 }`}
               >
-                <span className="text-xs">
+                <span className="text-[10px] md:text-xs">
                   Exchange rates: {formatLastUpdated()}
                 </span>
                 {isLoadingRates && (
@@ -248,12 +248,12 @@ const CompactCurrencyDropdown = () => {
                 <div
                   className={`flex items-center ${
                     rateLimited ? warningColor : errorColor
-                  } text-xs mt-1`}
+                  } text-[10px] md:text-xs mt-1`}
                 >
                   {rateLimited ? (
-                    <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+                    <Clock className="h-2.5 w-2.5 md:h-3 md:w-3 mr-1 flex-shrink-0" />
                   ) : (
-                    <AlertCircle className="h-3 w-3 mr-1 flex-shrink-0" />
+                    <AlertCircle className="h-2.5 w-2.5 md:h-3 md:w-3 mr-1 flex-shrink-0" />
                   )}
                   <span className="break-words">{formatErrorMessage()}</span>
                 </div>

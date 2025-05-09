@@ -327,9 +327,17 @@ const ChatAssistant = ({ darkMode }) => {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
+      {/* Background blur overlay for mobile */}
+      <div
+        className={`fixed inset-0 bg-black/30 backdrop-blur-[2px] transition-opacity duration-300 md:hidden ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={toggleChat}
+      />
+
       <button
         onClick={toggleChat}
-        className={`p-4 rounded-full shadow-xl transform transition-all duration-300 ease-in-out ${
+        className={`p-2.5 md:p-4 rounded-full shadow-xl transform transition-all duration-300 ease-in-out ${
           isAnimating ? 'animate-pulse' : ''
         } ${
           isOpen 
@@ -339,14 +347,14 @@ const ChatAssistant = ({ darkMode }) => {
         aria-label={isOpen ? "Close chat" : "Open chat"}
       >
         {isOpen ? (
-          <X size={24} className="transform transition-transform duration-300" />
+          <X size={16} className="transform transition-transform duration-300 md:w-[20px] md:h-[20px]" />
         ) : (
-          <MessageSquare size={24} className="transform transition-transform duration-300" />
+          <MessageSquare size={18} className="transform transition-transform duration-300 md:w-[24px] md:h-[24px]" />
         )}
       </button>
 
       <div
-        className={`fixed bottom-20 right-4 w-full md:w-[400px] lg:w-[480px] max-h-[600px] overflow-hidden rounded-xl shadow-2xl 
+        className={`fixed bottom-20 right-4 w-[90%] md:w-[400px] lg:w-[480px] max-h-[500px] md:max-h-[600px] overflow-hidden rounded-xl shadow-2xl 
         ${darkMode ? "bg-gray-800 border border-gray-700" : "bg-white border border-gray-200"}
         transform transition-all duration-500 ease-in-out ${
           isOpen
@@ -354,32 +362,32 @@ const ChatAssistant = ({ darkMode }) => {
             : "scale-95 translate-y-10 opacity-0 pointer-events-none"
         }`}
       >
-        <div className="flex flex-col h-[600px]">
+        <div className="flex flex-col h-[500px] md:h-[600px]">
           <div
-            className={`p-4 border-b ${
+            className={`p-3 md:p-4 border-b ${
               darkMode ? "border-gray-700" : "border-gray-200"
             } flex justify-between items-center bg-[#065336] text-white`}
           >
             <div className="flex items-center space-x-2">
-              <MessageSquare className="h-5 w-5" />
-              <h2 className="text-lg font-semibold">
+              <MessageSquare className="h-4 w-4 md:h-5 md:w-5" />
+              <h2 className="text-base md:text-lg font-semibold">
                 Aarthik Assistant
               </h2>
             </div>
             <div className="flex items-center space-x-1">
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className={`p-2 rounded-full hover:bg-[#054328] transition-colors`}
+                className={`p-1.5 md:p-2 rounded-full hover:bg-[#054328] transition-colors`}
                 aria-label="Settings"
               >
-                <Settings size={18} className="text-white" />
+                <Settings size={16} className="text-white md:w-[18px] md:h-[18px]" />
               </button>
               <button
                 onClick={toggleChat}
-                className={`p-2 rounded-full hover:bg-[#054328] transition-colors`}
+                className={`p-1.5 md:p-2 rounded-full hover:bg-[#054328] transition-colors`}
                 aria-label="Close chat"
               >
-                <X size={18} className="text-white" />
+                <X size={16} className="text-white md:w-[18px] md:h-[18px]" />
               </button>
             </div>
             {showSettings && (
