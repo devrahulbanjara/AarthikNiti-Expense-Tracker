@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -17,6 +16,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const navItems = [
@@ -48,11 +48,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch profiles");
-      }
-
+      if (!response.ok) throw new Error("Failed to fetch profiles");
       const data = await response.json();
       setAccounts(data.profiles);
     } catch (err) {
@@ -63,21 +59,14 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const fetchActiveProfile = async () => {
     try {
       const token = getToken();
-      const response = await fetch(
-        `${BACKEND_URL}/profile/active_profile_info`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch active profile");
-      }
-
+      const response = await fetch(`${BACKEND_URL}/profile/active_profile_info`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error("Failed to fetch active profile");
       const data = await response.json();
       setActiveAccount(data.profile_name);
     } catch (err) {
@@ -97,25 +86,16 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
         body: JSON.stringify({ profile_id: profileId }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to switch profile");
-      }
+      if (!response.ok) throw new Error("Failed to switch profile");
 
       setActiveAccount(profileName);
       setShowAccountDropdown(false);
-
       toast.success(`Switched to ${profileName} successfully!`);
-
-      setTimeout(() => {
-        navigate("/");
-      }, 1000);
+      navigate("/");
     } catch (err) {
       console.error("Error switching profile:", err);
       toast.error("Failed to switch profile!");
-
-      setTimeout(() => {
-        navigate("/");
-      }, 1000);
+      navigate("/");
     }
   };
 
@@ -156,7 +136,6 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 
       const newAccount = await response.json();
       setAccounts([...accounts, newAccount]);
-
       setShowAddAccountModal(false);
       setError("");
 
@@ -181,7 +160,11 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
         }`}
       >
         <div className="flex flex-col h-full p-4">
-          <div className="flex justify-between items-center mb-4 md:block">
+          <div
+            className={`flex justify-between items-center mb-4 md:block ${
+              isMobileMenuOpen ? "ml-12" : ""
+            }`}
+          >
             <h2
               className={`text-xl font-bold ${
                 darkMode ? "text-gray-100" : "text-white"
@@ -189,22 +172,11 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
             >
               AarthikNiti
             </h2>
-            <button
-              className={`md:hidden p-2 rounded-full ${
-                darkMode ? "bg-gray-700" : "bg-[#054328]"
-              } text-white cursor-pointer`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <X className="h-5 w-5" />
-            </button>
           </div>
 
-          <hr
-            className={`my-3 ${
-              darkMode ? "border-gray-700" : "border-gray-400"
-            }`}
-          />
+          <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-gray-400"}`} />
 
+          {/* Account Dropdown */}
           <div className="mb-4 relative account-dropdown-container">
             <div
               className={`flex justify-between items-center p-2 border ${
@@ -263,12 +235,9 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
             )}
           </div>
 
-          <hr
-            className={`my-3 ${
-              darkMode ? "border-gray-700" : "border-gray-400"
-            }`}
-          />
+          <hr className={`my-3 ${darkMode ? "border-gray-700" : "border-gray-400"}`} />
 
+          {/* Navigation */}
           <ul>
             {navItems.map((item) => {
               const isActive = location.pathname === item.href;
@@ -294,6 +263,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
             })}
           </ul>
 
+          {/* Bottom Settings */}
           <div className="mt-auto mb-6">
             <hr
               className={`my-3 ${
@@ -323,6 +293,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
         </div>
       </div>
 
+      {/* Add Profile Modal */}
       <AddAccountModal
         isOpen={showAddAccountModal}
         onClose={() => {
