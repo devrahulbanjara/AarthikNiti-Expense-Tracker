@@ -1,38 +1,21 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Moon, Sun, User, Settings, LogOut, ChevronDown } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import CompactCurrencyDropdown from "./CompactCurrencyDropdown";
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+import Profile from "./profile";
 
 const Header = ({ title, subtitle }) => {
   const { darkMode, toggleDarkMode } = useTheme();
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const profileMenuRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
-
-    const handleClickOutside = (event) => {
-      if (
-        profileMenuRef.current &&
-        !profileMenuRef.current.contains(event.target)
-      ) {
-        setShowProfileMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleLogout = () => {
@@ -55,20 +38,11 @@ const Header = ({ title, subtitle }) => {
       }`}
     >
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between w-full">
-        <div className="md:ml-0 ml-12 mt-2.5 md:mt-1">
-          <div className="flex flex-col">
-            <h1 className="text-xl md:text-2xl font-bold font-poppins ml-[-5px] mb-2">
+        <div className="md:ml-0 ml-12 mt-1 md:mt-2">
+          <div className="flex items-center justify-between w-full md:w-auto">
+            <h1 className="text-xl md:text-2xl font-medium font-poppins ml-[-5px]">
               {title}
             </h1>
-            <p
-              className={`text-sm md:text-base ml-[-5px] ${
-                darkMode ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
-              {subtitle}
-            </p>
-          </div>
-          <div className="flex items-center justify-between w-full md:w-auto">
             <div className="fixed top-4 right-4 flex items-center space-x-3 md:hidden">
               <CompactCurrencyDropdown />
               <button
@@ -88,111 +62,20 @@ const Header = ({ title, subtitle }) => {
                   <Moon size={20} className="text-indigo-600" />
                 )}
               </button>
-              <div className="relative" ref={profileMenuRef}>
-                <button
-                  onClick={() => setShowProfileMenu(!showProfileMenu)}
-                  className={`flex items-center space-x-2 p-2 rounded-full transition-colors ${
-                    darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
-                  }`}
-                  aria-expanded={showProfileMenu}
-                  aria-haspopup="true"
-                >
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center overflow-hidden ${
-                      darkMode ? "bg-gray-700" : "bg-gray-200"
-                    }`}
-                  >
-                    {user?.profile_picture ? (
-                      <img
-                        src={`${BACKEND_URL}${user.profile_picture}`}
-                        alt={user?.full_name || "User"}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : user?.full_name ? (
-                      <div
-                        className={`text-sm font-semibold ${
-                          darkMode ? "text-gray-300" : "text-gray-700"
-                        }`}
-                      >
-                        {user.full_name.charAt(0).toUpperCase()}
-                      </div>
-                    ) : (
-                      <User
-                        size={16}
-                        className={darkMode ? "text-gray-300" : "text-gray-700"}
-                      />
-                    )}
-                  </div>
-                  <ChevronDown
-                    size={16}
-                    className={`transition-transform duration-200 ${
-                      showProfileMenu ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                {showProfileMenu && (
-                  <div
-                    className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 ${
-                      darkMode
-                        ? "bg-gray-800 border border-gray-700"
-                        : "bg-white border border-gray-200"
-                    } transform origin-top-right transition-all duration-200 animate-fadeIn`}
-                  >
-                    <button
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        navigate("/profile");
-                      }}
-                      className={`flex items-center w-full px-4 py-2 text-sm ${
-                        darkMode
-                          ? "hover:bg-gray-700 text-gray-300"
-                          : "hover:bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      <User size={16} className="mr-2" />
-                      Profile
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        navigate("/settings");
-                      }}
-                      className={`flex items-center w-full px-4 py-2 text-sm ${
-                        darkMode
-                          ? "hover:bg-gray-700 text-gray-300"
-                          : "hover:bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      <Settings size={16} className="mr-2" />
-                      Settings
-                    </button>
-                    <hr
-                      className={
-                        darkMode ? "border-gray-700 my-1" : "border-gray-200 my-1"
-                      }
-                    />
-                    <button
-                      onClick={handleLogout}
-                      className={`flex items-center w-full px-4 py-2 text-sm ${
-                        darkMode
-                          ? "hover:bg-gray-700 text-red-400"
-                          : "hover:bg-gray-100 text-red-600"
-                      }`}
-                    >
-                      <LogOut size={16} className="mr-2" />
-                      Log out
-                    </button>
-                  </div>
-                )}
-              </div>
+              <Profile handleLogout={handleLogout} />
             </div>
           </div>
+          <p
+            className={`text-sm md:text-base ml-[-5px] mt-2 ${
+              darkMode ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
+            {subtitle}
+          </p>
         </div>
 
         <div className="hidden md:flex fixed top-6 right-6 items-center space-x-3">
-          {/* Currency Dropdown */}
           <CompactCurrencyDropdown />
-
           <button
             onClick={toggleDarkMode}
             className={`p-2 rounded-full transition-colors ${
@@ -210,104 +93,7 @@ const Header = ({ title, subtitle }) => {
               <Moon size={20} className="text-indigo-600" />
             )}
           </button>
-
-          <div className="relative" ref={profileMenuRef}>
-            <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className={`flex items-center space-x-2 p-2 rounded-full transition-colors ${
-                darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
-              }`}
-              aria-expanded={showProfileMenu}
-              aria-haspopup="true"
-            >
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center overflow-hidden ${
-                  darkMode ? "bg-gray-700" : "bg-gray-200"
-                }`}
-              >
-                {user?.profile_picture ? (
-                  <img
-                    src={`${BACKEND_URL}${user.profile_picture}`}
-                    alt={user?.full_name || "User"}
-                    className="w-full h-full object-cover"
-                  />
-                ) : user?.full_name ? (
-                  <div
-                    className={`text-sm font-semibold ${
-                      darkMode ? "text-gray-300" : "text-gray-700"
-                    }`}
-                  >
-                    {user.full_name.charAt(0).toUpperCase()}
-                  </div>
-                ) : (
-                  <User
-                    size={16}
-                    className={darkMode ? "text-gray-300" : "text-gray-700"}
-                  />
-                )}
-              </div>
-              <ChevronDown
-                size={16}
-                className={`transition-transform duration-200 ${
-                  showProfileMenu ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-            {showProfileMenu && (
-              <div
-                className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 ${
-                  darkMode
-                    ? "bg-gray-800 border border-gray-700"
-                    : "bg-white border border-gray-200"
-                } transform origin-top-right transition-all duration-200 animate-fadeIn`}
-              >
-                <button
-                  onClick={() => {
-                    setShowProfileMenu(false);
-                    navigate("/profile");
-                  }}
-                  className={`flex items-center w-full px-4 py-2 text-sm ${
-                    darkMode
-                      ? "hover:bg-gray-700 text-gray-300"
-                      : "hover:bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  <User size={16} className="mr-2" />
-                  Profile
-                </button>
-                <button
-                  onClick={() => {
-                    setShowProfileMenu(false);
-                    navigate("/settings");
-                  }}
-                  className={`flex items-center w-full px-4 py-2 text-sm ${
-                    darkMode
-                      ? "hover:bg-gray-700 text-gray-300"
-                      : "hover:bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  <Settings size={16} className="mr-2" />
-                  Settings
-                </button>
-                <hr
-                  className={
-                    darkMode ? "border-gray-700 my-1" : "border-gray-200 my-1"
-                  }
-                />
-                <button
-                  onClick={handleLogout}
-                  className={`flex items-center w-full px-4 py-2 text-sm ${
-                    darkMode
-                      ? "hover:bg-gray-700 text-red-400"
-                      : "hover:bg-gray-100 text-red-600"
-                  }`}
-                >
-                  <LogOut size={16} className="mr-2" />
-                  Log out
-                </button>
-              </div>
-            )}
-          </div>
+          <Profile handleLogout={handleLogout} />
         </div>
       </div>
     </header>
