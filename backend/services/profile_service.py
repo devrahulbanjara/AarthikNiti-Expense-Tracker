@@ -774,7 +774,7 @@ async def get_all_income_expense_transactions(user_id: int, transaction_type: st
         transaction_type: Either "income" or "expense"
         
     Returns:
-        A list of transactions with date and amount
+        A list of transactions with all necessary fields for the frontend
     """
     user = await users_collection.find_one({"user_id": user_id})
     if not user:
@@ -791,14 +791,25 @@ async def get_all_income_expense_transactions(user_id: int, transaction_type: st
             "profile_id": active_profile_id,
             "transaction_type": transaction_type
         }
-    ).sort("timestamp", 1).to_list(length=None)
+    ).sort("timestamp", -1).to_list(length=None)
     
     # Format the data for frontend consumption
     result = []
     for transaction in transactions:
-        result.append({
-            "date": transaction["timestamp"].strftime("%Y-%m-%d"),
-            "amount": transaction["transaction_amount"]
-        })
+        transaction_data = {
+            "date": transaction["timestamp"].strftime("%b %d, %Y"),
+            "amount": transaction["transaction_amount"],
+            "category": transaction["transaction_category"],
+            "description": transaction["transaction_description"],
+            "transaction_id": transaction["transaction_id"]
+        }
+        
+        # Add recurring info for expenses (just in case)
+        if transaction_type == "expense":
+            transaction_data["recurring"] = transaction.get("recurring", False)
+            if transaction_data["recurring"]:
+                transaction_data["recurrence_duration"] = transaction.get("recurrence_duration", None)
+        
+        result.append(transaction_data)
     
     return result

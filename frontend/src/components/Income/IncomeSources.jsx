@@ -42,7 +42,7 @@ const IncomeSources = ({
     try {
       const token = getToken();
       const response = await fetch(
-        `${BACKEND_URL}/profile/income_expense_table?transaction_type=income&days=30`,
+        `${BACKEND_URL}/profile/all-transactions?transaction_type=income`,
         {
           method: "GET",
           headers: {
