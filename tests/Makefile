@@ -1,10 +1,13 @@
-.PHONY: test test-simple
+.PHONY: test test-simple all-tests
 
 test:
-	python -m pytest test_backend.py::test_home_endpoint -v
+	python -m pytest test_backend.py -v
 
 test-simple:
 	python simple_test.py
 
 all-tests:
-	python -m pytest -v 
+	python -m pytest -v
+
+log-tests:
+	./run_all_tests.sh 
