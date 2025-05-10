@@ -43,14 +43,10 @@ const RecentTransactions = ({ onTransactionsChange }) => {
         amount: transaction.transaction_amount,
         category: transaction.transaction_category,
         description: transaction.transaction_description,
-        date: new Date(transaction.timestamp).toISOString().split("T")[0],
+        date: new Date(transaction.timestamp),
       }));
 
-      setTransactions(
-        formattedTransactions.sort(
-          (a, b) => new Date(b.date) - new Date(a.date)
-        )
-      );
+      setTransactions(formattedTransactions.sort((a, b) => b.date - a.date));
     } catch (error) {
       console.error("Error fetching transactions:", error);
     } finally {
@@ -193,10 +189,11 @@ const RecentTransactions = ({ onTransactionsChange }) => {
                           darkMode ? "text-gray-400" : "text-gray-500"
                         }`}
                       >
-                        {new Date(transaction.date).toLocaleDateString(
-                          "en-US",
-                          { year: "numeric", month: "short", day: "numeric" }
-                        )}
+                        {transaction.date.toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
                       </span>
                     </div>
                   </div>
