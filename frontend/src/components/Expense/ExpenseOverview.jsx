@@ -130,7 +130,7 @@ const ExpenseOverview = ({ activeTab, setActiveTab, refreshKey }) => {
         </button>
       </div>
 
-      <div className="h-[400px]">
+      <div className="h-[300px] md:h-[350px] lg:h-[400px]">
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>

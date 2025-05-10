@@ -83,10 +83,10 @@ const DownloadReport = () => {
     <div className="relative">
       <button
         onClick={toggleDropdown}
-        className={`flex items-center space-x-2 py-2 px-4 rounded-md ${
+        className={`flex items-center space-x-2 py-2 px-4 rounded-md cursor-pointer ${
           darkMode
-            ? "bg-blue-600 hover:bg-blue-700 text-white"
-            : "bg-blue-500 hover:bg-blue-600 text-white"
+            ? "bg-green-900 hover:bg-green-800 text-white"
+            : "bg-green-800 hover:bg-green-900 text-white"
         } transition-all duration-200`}
       >
         <Download size={16} />
@@ -112,7 +112,7 @@ const DownloadReport = () => {
             } transition-colors`}
             aria-label="Close"
           >
-            <X size={20} />
+            <X size={20} className="cursor-pointer"/>
           </button>
 
           <h3 className="font-medium mb-3 text-lg">Download Report</h3>
@@ -128,7 +128,7 @@ const DownloadReport = () => {
             <select
               value={transactionType}
               onChange={(e) => setTransactionType(e.target.value)}
-              className={`w-full p-2 rounded border ${
+              className={`w-full p-2 rounded border cursor-pointer ${
                 darkMode
                   ? "bg-gray-700 border-gray-600 text-white"
                   : "bg-white border-gray-300"
@@ -148,7 +148,7 @@ const DownloadReport = () => {
               className={`w-full p-2 rounded border ${
                 darkMode
                   ? "bg-gray-700 border-gray-600 text-white"
-                  : "bg-white border-gray-300"
+                  : "bg-white border-gray-300 cursor-pointer"
               }`}
             >
               <option value={1}>Last Month</option>
@@ -162,10 +162,10 @@ const DownloadReport = () => {
             <button
               onClick={handleDownload}
               disabled={loading}
-              className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium ${
+              className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium cursor-pointer ${
                 darkMode
-                  ? "bg-blue-600 hover:bg-blue-700 text-white"
-                  : "bg-blue-500 hover:bg-blue-600 text-white"
+                  ? "bg-green-700 hover:bg-green-800 text-white"
+                  : "bg-green-800 hover:bg-green-900 text-white"
               } transition-all duration-200`}
             >
               {loading ? (

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Request, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, Request
 from starlette.responses import RedirectResponse
 from database import users_collection
 from models.user import SignupRequest, LoginRequest, UserResponse
@@ -10,12 +10,10 @@ from authlib.integrations.starlette_client import OAuth
 from dotenv import load_dotenv
 import os
 import jwt
-from pydantic import BaseModel
-from services.email_service import send_otp_email, verify_otp, send_signup_otp, verify_signup_otp, send_signup_success_email, send_two_factor_code
 from pydantic import BaseModel, EmailStr
+from services.email_service import send_otp_email, verify_otp, send_signup_otp, verify_signup_otp, send_signup_success_email, send_two_factor_code
 import random
 import string
-import uuid
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -32,6 +30,11 @@ oauth.register(
     client_kwargs={"scope": "openid email profile"},
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration"
 )
+
+# --- Helper to generate DiceBear URL ---
+def generate_default_avatar_url(name_or_email: str, style: str = "initials") -> str:
+    seed = name_or_email.replace(' ', '+') # Basic seed generation
+    return f"https://api.dicebear.com/7.x/{style}/svg?seed={seed}&backgroundColor=065336,0a6e47,0f9764,16a34a,22c55e,4ade80&backgroundType=gradientLinear"
 
 @router.get("/google/login")
 async def google_login(request: Request):
@@ -52,33 +55,45 @@ async def google_callback(request: Request):
         
         email = decoded_token["email"]
         full_name = decoded_token["name"]
-        profile_picture = decoded_token.get("picture", None)
-        
+        # google_profile_picture = decoded_token.get("picture", None) # We'll generate our own
+
         existing_user = await users_collection.find_one({"email": email})
         
+        default_avatar_url = generate_default_avatar_url(full_name)
+
         if not existing_user:
             user_id = await get_next_user_id()
             new_user = {
                 "user_id": user_id,
                 "full_name": full_name,
                 "email": email,
-                "password": None,
-                "profile_picture": profile_picture,
-                "currency_preference": "USD",
-                "active_profile_id": 1,
+                "password": None, # For OAuth users
+                "profile_picture": default_avatar_url, # Assign default DiceBear avatar
+                "currency_preference": "USD", # Default currency
+                "active_profile_id": None, # Will be set after profile creation
                 "created_at": datetime.utcnow(),
+                "two_factor_enabled": False
             }
             await users_collection.insert_one(new_user)
-            await create_default_profile(user_id)
+            active_profile_id = await create_default_profile(user_id)
+            await users_collection.update_one({"user_id": user_id}, {"$set": {"active_profile_id": active_profile_id}})
         else:
             user_id = existing_user["user_id"]
+            # Optionally update avatar if they don't have one or we want to enforce ours
+            if not existing_user.get("profile_picture"):
+                 await users_collection.update_one(
+                    {"user_id": user_id},
+                    {"$set": {"profile_picture": default_avatar_url}}
+                )
         
-        jwt_token = create_jwt_token({"user_id": user_id, "email": email}, expires_delta=timedelta(hours=1))
+        jwt_token = create_jwt_token({"user_id": user_id, "email": email}, expires_delta=timedelta(hours=24)) # Increased expiry
         frontend_url = os.getenv("FRONTEND_URL")
         frontend_redirect_url = f"{frontend_url}/?access_token={jwt_token}"
         return RedirectResponse(frontend_redirect_url)
     
     except Exception as e:
+        # Log the exception for debugging
+        print(f"Google OAuth Callback Error: {e}")
         raise HTTPException(status_code=400, detail=f"OAuth Callback Failed: {str(e)}")
 
 async def get_next_user_id():
@@ -88,7 +103,7 @@ async def get_next_user_id():
 
 class OTPResponse(BaseModel):
     message: str
-    email: str
+    email: EmailStr
 
 @router.post("/signup", response_model=OTPResponse)
 async def signup(user: SignupRequest):
@@ -128,17 +143,20 @@ async def complete_signup(request: CompleteSignupRequest):
     hashed_password = hash_password(request.password)
     user_id = await get_next_user_id()
     
-    new_user = {
+    default_avatar_url = generate_default_avatar_url(request.full_name)
+
+    new_user_data = {
         "user_id": user_id,
         "full_name": request.full_name,
         "email": request.email,
         "password": hashed_password,
-        "profile_picture": None,
+        "profile_picture": default_avatar_url, # Assign default DiceBear avatar
         "currency_preference": request.currency_preference,
-        "active_profile_id": None,
-        "created_at": datetime.utcnow()
+        "active_profile_id": None, # Will be set after profile creation
+        "created_at": datetime.utcnow(),
+        "two_factor_enabled": False
     }
-    await users_collection.insert_one(new_user)
+    await users_collection.insert_one(new_user_data)
     
     active_profile_id = await create_default_profile(user_id)
     await users_collection.update_one({"user_id": user_id}, {"$set": {"active_profile_id": active_profile_id}})
@@ -146,7 +164,16 @@ async def complete_signup(request: CompleteSignupRequest):
     # Send welcome email
     await send_signup_success_email(request.email, request.full_name)
     
-    return UserResponse(**new_user)
+    # Ensure all fields for UserResponse are present, including potentially missing ones for new users
+    return UserResponse(
+        user_id=new_user_data["user_id"],
+        full_name=new_user_data["full_name"],
+        email=new_user_data["email"],
+        currency_preference=new_user_data["currency_preference"],
+        profile_picture=new_user_data["profile_picture"],
+        two_factor_enabled=new_user_data.get("two_factor_enabled", False),
+        active_profile_id=active_profile_id
+    )
 
 # Security Settings Models
 class SecuritySettingsResponse(BaseModel):
@@ -294,12 +321,12 @@ class PasswordChangeRequest(BaseModel):
 async def change_password(request: PasswordChangeRequest, user: dict = Depends(get_current_user)):
     """Changes the user's password after verifying the current password."""
     # Get user with password
-    db_user = await users_collection.find_one({"user_id": user["user_id"]})
-    if not db_user:
+    db_user_with_password = await users_collection.find_one({"user_id": user["user_id"]})
+    if not db_user_with_password:
         raise HTTPException(status_code=404, detail="User not found")
     
     # Verify current password
-    if not verify_password(request.current_password, db_user["password"]):
+    if not verify_password(request.current_password, db_user_with_password["password"]):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     
     # Hash the new password
@@ -313,99 +340,52 @@ async def change_password(request: PasswordChangeRequest, user: dict = Depends(g
     
     return {"message": "Password changed successfully"}
 
-@router.post("/upload-profile-picture")
-async def upload_profile_picture(
-    profile_picture: UploadFile = File(...),
-    user: dict = Depends(get_current_user)
-):
-    """Uploads and sets a new profile picture for the user."""
-    try:
-        # Read the file content
-        contents = await profile_picture.read()
-        
-        # Validate file type
-        if not profile_picture.content_type.startswith('image/'):
-            raise HTTPException(status_code=400, detail="File must be an image")
-        
-        # Generate a unique filename
-        file_extension = profile_picture.filename.split('.')[-1]
-        filename = f"{user['user_id']}_{uuid.uuid4()}.{file_extension}"
-        
-        # Path to save file - in practice, you'd use cloud storage
-        # For this example, we'll save to a local directory
-        save_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'profile_pictures')
-        os.makedirs(save_dir, exist_ok=True)
-        
-        file_path = os.path.join(save_dir, filename)
-        
-        # Write file to disk
-        with open(file_path, "wb") as f:
-            f.write(contents)
-        
-        # Generate URL for the profile picture
-        # In production, this would be a CDN or cloud storage URL
-        profile_picture_url = f"/static/profile_pictures/{filename}"
-        
-        # Update the user's profile picture in the database
-        await users_collection.update_one(
-            {"user_id": user["user_id"]},
-            {"$set": {"profile_picture": profile_picture_url}}
-        )
-        
-        # Return the updated user data
-        updated_user = await users_collection.find_one(
-            {"user_id": user["user_id"]},
-            {"_id": 0, "password": 0}
-        )
-        
-        return updated_user
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to upload profile picture: {str(e)}")
-    
-@router.delete("/delete-profile-picture")
-async def delete_profile_picture(user: dict = Depends(get_current_user)):
-    """Deletes the user's profile picture."""
-    try:
-        # Get current user data to find profile picture path
-        current_user = await users_collection.find_one({"user_id": user["user_id"]})
-        
-        # Check if user has a profile picture
-        if not current_user or not current_user.get("profile_picture"):
-            raise HTTPException(status_code=404, detail="No profile picture found")
-        
-        # In a production app, you'd delete the file from storage
-        # For this example with local storage:
-        profile_pic_path = current_user["profile_picture"]
-        if profile_pic_path.startswith("/static/"):
-            full_path = os.path.join(os.path.dirname(__file__), '..', profile_pic_path.lstrip('/'))
-            if os.path.exists(full_path):
-                os.remove(full_path)
-        
-        # Update user record to remove profile picture reference
-        await users_collection.update_one(
-            {"user_id": user["user_id"]},
-            {"$set": {"profile_picture": None}}
-        )
-        
-        # Return the updated user data
-        updated_user = await users_collection.find_one(
-            {"user_id": user["user_id"]},
-            {"_id": 0, "password": 0}
-        )
-        
-        return updated_user
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete profile picture: {str(e)}")
+# --- New Avatar Endpoints ---
+AVATAR_STYLES_CONFIG = [
+    {"name": "Initials", "style": "initials"},
+    {"name": "Adventurer", "style": "adventurer"},
+    {"name": "Pixel Art", "style": "pixel-art"},
+    {"name": "Bottts", "style": "bottts"},
+    {"name": "Avataaars", "style": "avataaars"},
+    {"name": "Micah", "style": "micah"},
+    {"name": "Big Ears", "style": "big-ears"},
+    {"name": "Miniavs", "style": "miniavs"},
+    {"name": "Open Peeps", "style": "open-peeps"},
+    {"name": "Thumbs", "style": "thumbs"},
+]
+
+@router.get("/avatars")
+async def get_available_avatars():
+    """Returns a list of available DiceBear avatar styles."""
+    return AVATAR_STYLES_CONFIG
+
+class AvatarSelectRequest(BaseModel):
+    avatar_url: str
+
+@router.post("/select-avatar", response_model=UserResponse)
+async def select_avatar(request: AvatarSelectRequest, user: dict = Depends(get_current_user)):
+    """Updates the user's profile picture with the selected DiceBear avatar URL."""
+    await users_collection.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"profile_picture": request.avatar_url}}
+    )
+    updated_user_data = await users_collection.find_one(
+        {"user_id": user["user_id"]},
+        {"_id": 0, "password": 0} # Exclude _id and password
+    )
+    if not updated_user_data:
+         raise HTTPException(status_code=404, detail="User not found after update")
+    return UserResponse(**updated_user_data)
 
 class PasswordResetRequest(BaseModel):
-    email: str
+    email: EmailStr
 
 class VerifyOTPRequest(BaseModel):
-    email: str
+    email: EmailStr
     otp: str
 
 class ResetPasswordRequest(BaseModel):
-    email: str
+    email: EmailStr
     otp: str
     new_password: str
 
