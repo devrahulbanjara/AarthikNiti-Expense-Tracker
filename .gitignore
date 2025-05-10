@@ -137,6 +137,16 @@ ENV/
 env.bak/
 venv.bak/
 
+# Environment variables
+.env
+frontend/.env
+backend/.env
+*/**/.env
+
+# Keep example env files
+!frontend/.env.example
+!backend/.env.example
+
 # Spyder project settings
 .spyderproject
 .spyproject
