@@ -28,7 +28,8 @@ const Layout = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="fixed top-7 left-3 z-50 p-2 rounded-full bg-[#065336] text-white md:hidden"
+            className="fixed top-4 left-3 z-50 p-2 rounded-full bg-[#065336] text-white md:hidden"
+            aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? (
               <X className="h-5 w-5" />

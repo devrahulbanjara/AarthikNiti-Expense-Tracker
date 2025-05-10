@@ -147,9 +147,11 @@ const IncomeVsExpensesChart = () => {
     >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
         <div>
-          <h2 className="text-xl font-semibold mb-1">Income vs Expenses</h2>
+          <h2 className="text-lg md:text-xl font-semibold mb-1">
+            Income vs Expenses
+          </h2>
           <p
-            className={`text-sm ${
+            className={`text-xs md:text-sm ${
               darkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >
@@ -158,7 +160,7 @@ const IncomeVsExpensesChart = () => {
         </div>
         <div className="relative mt-2 sm:mt-0">
           <button
-            className={`flex items-center gap-1 px-3 py-2 border rounded-lg text-sm cursor-pointer transition-colors duration-200 
+            className={`flex items-center gap-1 px-2 py-1 md:px-3 md:py-2 border rounded-lg text-xs md:text-sm cursor-pointer transition-colors duration-200 
               ${
                 darkMode
                   ? "bg-gray-700 border-gray-600 hover:bg-gray-600 text-white"
@@ -170,14 +172,14 @@ const IncomeVsExpensesChart = () => {
           >
             {timeRange}
             <ChevronDown
-              className={`h-4 w-4 transition-transform duration-200 ${
+              className={`h-3 w-3 md:h-4 md:w-4 transition-transform duration-200 ${
                 showTimeDropdown ? "rotate-180" : ""
               }`}
             />
           </button>
           {showTimeDropdown && (
             <div
-              className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg border 
+              className={`absolute right-0 mt-1 w-36 md:w-48 rounded-lg shadow-lg border 
               ${
                 darkMode
                   ? "bg-gray-700 border-gray-600"
@@ -188,7 +190,7 @@ const IncomeVsExpensesChart = () => {
               {timeRangeOptions.map((option) => (
                 <div
                   key={option}
-                  className={`px-4 py-2 text-sm cursor-pointer transition-colors duration-200 
+                  className={`px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm cursor-pointer transition-colors duration-200 
                   ${
                     darkMode
                       ? "hover:bg-gray-600 text-white"
@@ -217,10 +219,10 @@ const IncomeVsExpensesChart = () => {
       </div>
 
       {loading ? (
-        <div className="flex flex-col justify-center items-center h-[350px]">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+        <div className="flex flex-col justify-center items-center h-[250px] md:h-[350px]">
+          <div className="animate-spin rounded-full h-8 w-8 md:h-10 md:w-10 border-b-2 border-blue-500"></div>
           <span
-            className={`mt-3 text-sm ${
+            className={`mt-3 text-xs md:text-sm ${
               darkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >
@@ -228,9 +230,9 @@ const IncomeVsExpensesChart = () => {
           </span>
         </div>
       ) : data.length === 0 ? (
-        <div className="flex justify-center items-center h-[350px]">
+        <div className="flex justify-center items-center h-[250px] md:h-[350px]">
           <p
-            className={`text-center text-sm ${
+            className={`text-center text-xs md:text-sm ${
               darkMode ? "text-gray-400" : "text-gray-500"
             }`}
           >
@@ -239,16 +241,21 @@ const IncomeVsExpensesChart = () => {
         </div>
       ) : (
         <>
-          <div className="h-[300px] w-full">
+          <div className="h-[250px] md:h-[300px] lg:h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={data}
-                margin={{ top: 5, right: 0, left: -15, bottom: 5 }}
+                margin={{
+                  top: 5,
+                  right: 0,
+                  left: window.innerWidth < 768 ? -25 : -15,
+                  bottom: 5,
+                }}
                 barGap={4}
                 barCategoryGap="20%"
                 onMouseMove={(e) => {
                   if (e && e.activePayload && e.activePayload.length > 0) {
-                    setHoveredBar(e.activePayload[0].payload);
+                    setHoveredBar(e.activeLabel);
                   }
                 }}
                 onMouseLeave={() => setHoveredBar(null)}
@@ -257,157 +264,112 @@ const IncomeVsExpensesChart = () => {
                   strokeDasharray="3 3"
                   vertical={false}
                   stroke={darkMode ? "#374151" : "#e5e7eb"}
-                  strokeOpacity={0.5}
                 />
                 <XAxis
                   dataKey="month"
-                  axisLine={false}
-                  tickLine={false}
                   tick={{
-                    fontSize: 12,
                     fill: darkMode ? "#9ca3af" : "#6b7280",
+                    fontSize: window.innerWidth < 768 ? 10 : 12,
                   }}
-                  dy={10}
+                  tickLine={false}
+                  axisLine={false}
                 />
                 <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(value) => {
-                    const convertedValue = convertAmount(value, "NPR");
-                    const formatted = formatCurrency(convertedValue);
-                    const numericPart = formatted.replace(/[^0-9.]/g, "");
-                    const currencySymbol = formatted
-                      .replace(numericPart, "")
-                      .trim();
-
-                    return value >= 1000
-                      ? `${currencySymbol}${(
-                          parseFloat(numericPart) / 1000
-                        ).toFixed(0)}k`
-                      : formatted;
-                  }}
                   tick={{
-                    fontSize: 12,
                     fill: darkMode ? "#9ca3af" : "#6b7280",
+                    fontSize: window.innerWidth < 768 ? 10 : 12,
                   }}
-                  dx={-10}
+                  tickFormatter={(value) =>
+                    formatCurrency(value, undefined, true)
+                  }
+                  tickLine={false}
+                  axisLine={false}
+                  width={window.innerWidth < 768 ? 35 : 60}
                 />
-                <Tooltip
-                  content={<CustomTooltip />}
-                  cursor={{ fill: "transparent" }}
-                />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend
                   verticalAlign="top"
-                  align="right"
+                  height={window.innerWidth < 768 ? 30 : 36}
+                  iconSize={window.innerWidth < 768 ? 8 : 10}
                   iconType="circle"
-                  iconSize={10}
-                  wrapperStyle={{ top: -10, right: 0 }}
+                  formatter={(value) => (
+                    <span
+                      style={{
+                        color: darkMode
+                          ? value === "income"
+                            ? "#4ade80"
+                            : "#f87171"
+                          : value === "income"
+                          ? "#16a34a"
+                          : "#ef4444",
+                        fontSize: window.innerWidth < 768 ? 10 : 12,
+                      }}
+                    >
+                      {value === "income" ? "Income" : "Expenses"}
+                    </span>
+                  )}
                 />
                 <Bar
                   dataKey="income"
-                  name="Income"
-                  fill={darkMode ? "#10b981" : "#059669"}
-                  stroke={darkMode ? "#ffffff" : "#000000"}
-                  strokeWidth={1}
+                  name="income"
+                  fill={darkMode ? "#4ade80" : "#16a34a"}
                   radius={[4, 4, 0, 0]}
-                  cursor="pointer"
-                  animationDuration={800}
-                  animationBegin={0}
-                  animationEasing="ease-in-out"
+                  barSize={window.innerWidth < 768 ? 8 : 16}
+                  animationDuration={1500}
                 />
                 <Bar
                   dataKey="expenses"
-                  name="Expenses"
-                  fill={darkMode ? "#ef4444" : "#dc2626"}
-                  stroke={darkMode ? "#ffffff" : "#000000"}
-                  strokeWidth={1}
+                  name="expenses"
+                  fill={darkMode ? "#f87171" : "#ef4444"}
                   radius={[4, 4, 0, 0]}
-                  cursor="pointer"
-                  animationDuration={800}
-                  animationBegin={300}
-                  animationEasing="ease-in-out"
+                  barSize={window.innerWidth < 768 ? 8 : 16}
+                  animationDuration={1500}
                 />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <div
-              className={`p-4 rounded-lg border ${
-                darkMode
-                  ? "bg-gray-700 border-gray-600"
-                  : "bg-gray-50 border-gray-200"
-              }`}
-            >
-              <p
-                className={`text-sm ${
-                  darkMode ? "text-gray-300" : "text-gray-600"
-                } mb-2`}
-              >
-                Total Summary
-              </p>
-              <div className="flex justify-between mb-2">
-                <span className={darkMode ? "text-white" : "text-gray-800"}>
-                  Total Income:
-                </span>
-                <span className="font-semibold text-green-500">
-                  {formatCurrency(convertAmount(totalIncome, "NPR"))}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className={darkMode ? "text-white" : "text-gray-800"}>
-                  Total Expenses:
-                </span>
-                <span className="font-semibold text-red-500">
-                  {formatCurrency(convertAmount(totalExpenses, "NPR"))}
-                </span>
-              </div>
-            </div>
-
-            <div
-              className={`p-4 rounded-lg border ${
-                darkMode
-                  ? "bg-gray-700 border-gray-600"
-                  : "bg-gray-50 border-gray-200"
-              }`}
-            >
-              <p
-                className={`text-sm ${
-                  darkMode ? "text-gray-300" : "text-gray-600"
-                } mb-2`}
-              >
-                Savings Analysis
-              </p>
-              <div className="flex justify-between mb-2">
-                <span className={darkMode ? "text-white" : "text-gray-800"}>
-                  Savings Rate:
-                </span>
-                <span
-                  className={`font-semibold ${
-                    savingsRate > 0 ? "text-green-500" : "text-red-500"
-                  }`}
-                >
-                  {savingsRate}%
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className={darkMode ? "text-white" : "text-gray-800"}>
-                  Avg. Monthly Savings:
-                </span>
-                <span
-                  className={`font-semibold ${
-                    averageMonthlySavings > 0
-                      ? "text-green-500"
-                      : "text-red-500"
-                  }`}
-                >
-                  {formatCurrency(convertAmount(averageMonthlySavings, "NPR"))}
-                </span>
-              </div>
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-4 mt-4 text-center">
+            <StatBox
+              label="Total Income"
+              value={formatCurrency(totalIncome)}
+              color={darkMode ? "#4ade80" : "#16a34a"}
+            />
+            <StatBox
+              label="Total Expenses"
+              value={formatCurrency(totalExpenses)}
+              color={darkMode ? "#f87171" : "#ef4444"}
+            />
+            <StatBox
+              label="Savings Rate"
+              value={`${savingsRate}%`}
+              color={darkMode ? "#60a5fa" : "#3b82f6"}
+            />
+            <StatBox
+              label="Avg. Monthly Savings"
+              value={formatCurrency(averageMonthlySavings)}
+              color={darkMode ? "#818cf8" : "#6366f1"}
+            />
           </div>
         </>
       )}
+    </div>
+  );
+};
+
+const StatBox = ({ label, value, color }) => {
+  const { darkMode } = useTheme();
+
+  return (
+    <div
+      className={`p-2 md:p-3 rounded-lg ${
+        darkMode ? "bg-gray-700" : "bg-gray-50"
+      } transition-all duration-200 hover:shadow-md`}
+    >
+      <p className="text-xs md:text-sm font-medium opacity-75 mb-1">{label}</p>
+      <p className="text-sm md:text-base font-bold" style={{ color }}>
+        {value}
+      </p>
     </div>
   );
 };

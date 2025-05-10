@@ -280,7 +280,7 @@ const ChatAssistant = ({ darkMode }) => {
   const toggleChat = () => {
     setIsAnimating(true);
     setIsOpen(!isOpen);
-    
+
     // Reset animation state after animation completes
     setTimeout(() => {
       setIsAnimating(false);
@@ -326,10 +326,10 @@ const ChatAssistant = ({ darkMode }) => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-[9999]">
       {/* Background blur overlay for mobile */}
       <div
-        className={`fixed inset-0 bg-black/30 backdrop-blur-[2px] transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 bg-black/30 backdrop-blur-[2px] transition-opacity duration-300 md:hidden z-[9998] ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={toggleChat}
@@ -338,25 +338,40 @@ const ChatAssistant = ({ darkMode }) => {
       <button
         onClick={toggleChat}
         className={`p-2.5 md:p-4 rounded-full shadow-xl transform transition-all duration-300 ease-in-out ${
-          isAnimating ? 'animate-pulse' : ''
+          isAnimating ? "animate-pulse" : ""
         } ${
-          isOpen 
-            ? 'rotate-90 bg-red-500 hover:bg-red-600' 
+          isOpen
+            ? "rotate-90 bg-red-500 hover:bg-red-600"
             : `${darkMode ? "bg-[#065336]" : "bg-[#065336]"} hover:scale-110`
         } text-white`}
+        style={{
+          position: "fixed",
+          bottom: "1rem",
+          right: "1rem",
+        }}
         aria-label={isOpen ? "Close chat" : "Open chat"}
       >
         {isOpen ? (
-          <X size={16} className="transform transition-transform duration-300 md:w-[20px] md:h-[20px]" />
+          <X
+            size={16}
+            className="transform transition-transform duration-300 md:w-[20px] md:h-[20px]"
+          />
         ) : (
-          <MessageSquare size={18} className="transform transition-transform duration-300 md:w-[24px] md:h-[24px]" />
+          <MessageSquare
+            size={18}
+            className="transform transition-transform duration-300 md:w-[24px] md:h-[24px]"
+          />
         )}
       </button>
 
       <div
-        className={`fixed bottom-20 right-4 w-[90%] md:w-[400px] lg:w-[480px] max-h-[500px] md:max-h-[600px] overflow-hidden rounded-xl shadow-2xl 
-        ${darkMode ? "bg-gray-800 border border-gray-700" : "bg-white border border-gray-200"}
-        transform transition-all duration-500 ease-in-out ${
+        className={`fixed bottom-20 right-4 w-[90%] md:w-[400px] lg:w-[480px] max-h-[80vh] md:max-h-[600px] overflow-hidden rounded-xl shadow-2xl 
+        ${
+          darkMode
+            ? "bg-gray-800 border border-gray-700"
+            : "bg-white border border-gray-200"
+        }
+        transform transition-all duration-500 ease-in-out z-[9999] ${
           isOpen
             ? "scale-100 translate-y-0 opacity-100"
             : "scale-95 translate-y-10 opacity-0 pointer-events-none"
@@ -380,7 +395,10 @@ const ChatAssistant = ({ darkMode }) => {
                 className={`p-1.5 md:p-2 rounded-full hover:bg-[#054328] transition-colors`}
                 aria-label="Settings"
               >
-                <Settings size={16} className="text-white md:w-[18px] md:h-[18px]" />
+                <Settings
+                  size={16}
+                  className="text-white md:w-[18px] md:h-[18px]"
+                />
               </button>
               <button
                 onClick={toggleChat}
@@ -396,11 +414,7 @@ const ChatAssistant = ({ darkMode }) => {
                   darkMode ? "bg-gray-700" : "bg-white"
                 } ring-1 ring-black ring-opacity-5 z-10 transform transition-all duration-300 ease-in-out animate-slideDown`}
               >
-                <div
-                  className="py-1"
-                  role="menu"
-                  aria-orientation="vertical"
-                >
+                <div className="py-1" role="menu" aria-orientation="vertical">
                   <button
                     onClick={clearChatHistory}
                     className={`flex items-center w-full px-4 py-2 text-sm ${
@@ -420,7 +434,9 @@ const ChatAssistant = ({ darkMode }) => {
 
           <div
             ref={messagesContainerRef}
-            className={`flex-1 overflow-y-auto p-4 ${darkMode ? "scrollbar-dark" : "scrollbar-light"}`}
+            className={`flex-1 overflow-y-auto p-4 ${
+              darkMode ? "scrollbar-dark" : "scrollbar-light"
+            }`}
           >
             {chatMessages.map((message, index) => (
               <div
@@ -441,14 +457,18 @@ const ChatAssistant = ({ darkMode }) => {
                   `}
                 >
                   {message.text}
-                  <div 
+                  <div
                     className={`text-xs mt-1 ${
-                      message.sender === "user" ? "text-green-200" : darkMode ? "text-gray-400" : "text-gray-500"
+                      message.sender === "user"
+                        ? "text-green-200"
+                        : darkMode
+                        ? "text-gray-400"
+                        : "text-gray-500"
                     }`}
                   >
                     {new Date(message.timestamp).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit'
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </div>
                 </div>
@@ -459,15 +479,21 @@ const ChatAssistant = ({ darkMode }) => {
                 <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700 max-w-[85%] rounded-tl-none">
                   <div className="flex space-x-2">
                     <div
-                      className={`w-2 h-2 ${darkMode ? "bg-gray-400" : "bg-gray-500"} rounded-full animate-bounce`}
+                      className={`w-2 h-2 ${
+                        darkMode ? "bg-gray-400" : "bg-gray-500"
+                      } rounded-full animate-bounce`}
                       style={{ animationDelay: "0ms" }}
                     ></div>
                     <div
-                      className={`w-2 h-2 ${darkMode ? "bg-gray-400" : "bg-gray-500"} rounded-full animate-bounce`}
+                      className={`w-2 h-2 ${
+                        darkMode ? "bg-gray-400" : "bg-gray-500"
+                      } rounded-full animate-bounce`}
                       style={{ animationDelay: "150ms" }}
                     ></div>
                     <div
-                      className={`w-2 h-2 ${darkMode ? "bg-gray-400" : "bg-gray-500"} rounded-full animate-bounce`}
+                      className={`w-2 h-2 ${
+                        darkMode ? "bg-gray-400" : "bg-gray-500"
+                      } rounded-full animate-bounce`}
                       style={{ animationDelay: "300ms" }}
                     ></div>
                   </div>
@@ -480,7 +506,9 @@ const ChatAssistant = ({ darkMode }) => {
           {/* Template Messages */}
           <div
             className={`px-4 py-2 border-t ${
-              darkMode ? "border-gray-700 bg-gray-800" : "border-gray-200 bg-gray-50"
+              darkMode
+                ? "border-gray-700 bg-gray-800"
+                : "border-gray-200 bg-gray-50"
             } transform transition-all duration-300 ease-in-out`}
           >
             <div className="grid grid-cols-2 gap-2 mb-2">
@@ -541,7 +569,11 @@ const ChatAssistant = ({ darkMode }) => {
             </div>
           </div>
 
-          <div className={`p-4 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+          <div
+            className={`p-4 border-t ${
+              darkMode ? "border-gray-700" : "border-gray-200"
+            }`}
+          >
             <form
               onSubmit={(e) => {
                 e.preventDefault();

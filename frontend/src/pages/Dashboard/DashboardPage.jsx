@@ -136,16 +136,16 @@ const DashboardPage = () => {
       <Sidebar scrolled={scrolled} />
 
       <div
-        className={`w-full md:w-4/5 md:ml-[20%] p-4 md:p-6 min-h-screen relative transition-opacity duration-500 ease-out ${
+        className={`w-full md:w-4/5 md:ml-[20%] p-3 md:p-6 min-h-screen relative transition-opacity duration-500 ease-out ${
           isPageLoaded ? "opacity-100" : "opacity-0"
         }`}
       >
-        <Header 
+        <Header
           title="Dashboard"
           subtitle="View your financial overview and recent activity."
         />
 
-        <div className="pt-28 md:pt-28">
+        <div className="pt-24 md:pt-28">
           {/* Dashboard Cards with fade-in */}
           <div
             className={`transition-all duration-500 delay-200 ease-out ${
@@ -165,7 +165,7 @@ const DashboardPage = () => {
 
           {/* First row of charts with fade-in */}
           <div
-            className={`grid grid-cols-1 md:grid-cols-10 gap-4 md:gap-6 mt-4 md:mt-6 transition-all duration-700 delay-300 ease-out ${
+            className={`grid grid-cols-1 md:grid-cols-10 gap-3 md:gap-6 mt-3 md:mt-6 transition-all duration-700 delay-300 ease-out ${
               showCharts
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
@@ -181,7 +181,7 @@ const DashboardPage = () => {
 
           {/* Second row of charts with fade-in */}
           <div
-            className={`grid grid-cols-1 md:grid-cols-10 gap-4 md:gap-6 mt-4 md:mt-6 transition-all duration-700 delay-500 ease-out ${
+            className={`grid grid-cols-1 md:grid-cols-10 gap-3 md:gap-6 mt-3 md:mt-6 transition-all duration-700 delay-500 ease-out ${
               showCharts
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
@@ -197,7 +197,7 @@ const DashboardPage = () => {
 
           {/* Bottom chart with fade-in */}
           <div
-            className={`mt-4 md:mt-6 transition-all duration-700 delay-700 ease-out ${
+            className={`mt-3 md:mt-6 transition-all duration-700 delay-700 ease-out ${
               showCharts
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
@@ -228,20 +228,8 @@ const DashboardCards = ({
   const convertedIncome = convertAmount(totalIncome, "NPR");
   const convertedExpenses = convertAmount(totalExpenses, "NPR");
 
-  // Log conversion details for debugging
-  console.log("Currency conversion:", {
-    currency,
-    original: { totalBalance, totalIncome, totalExpenses },
-    converted: { convertedBalance, convertedIncome, convertedExpenses },
-    formatted: {
-      balance: formatCurrency(convertedBalance),
-      income: formatCurrency(convertedIncome),
-      expenses: formatCurrency(convertedExpenses),
-    },
-  });
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mt-2">
       <Card
         title="Total Balance"
         amount={formatCurrency(convertedBalance)}
@@ -251,133 +239,49 @@ const DashboardCards = ({
         title="Total Income"
         amount={formatCurrency(convertedIncome)}
         icon={ArrowUp}
+        iconBg="bg-green-100"
+        iconColor="text-green-600"
       />
       <Card
         title="Total Expenses"
         amount={formatCurrency(convertedExpenses)}
         icon={ArrowDown}
+        iconBg="bg-red-100"
+        iconColor="text-red-600"
       />
       <BudgetCard percentage={spentPercentage} isOverBudget={isOverBudget} />
     </div>
   );
 };
 
-const Card = ({ title, amount, icon: Icon }) => {
+const Card = ({ title, amount, icon: Icon, iconBg, iconColor }) => {
   const { darkMode } = useTheme();
-  const [displayValue, setDisplayValue] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(true);
-  const { currency } = useCurrency();
-
-  // Extract the numeric part from the formatted amount
-  const amountValue = parseFloat(amount.replace(/[^0-9.-]+/g, ""));
-
-  // Extract the currency symbol for animation purposes
-  const currencySymbol = amount.replace(/[0-9.,]+/g, "").trim();
-
-  useEffect(() => {
-    setIsAnimating(true);
-    const targetValue = amountValue;
-    let startValue = 0;
-    const duration = 1500;
-    const frameRate = 20;
-    const increment = targetValue / (duration / frameRate);
-    let currentValue = 0;
-
-    const timer = setInterval(() => {
-      currentValue += increment;
-      if (currentValue >= targetValue) {
-        clearInterval(timer);
-        setDisplayValue(targetValue);
-        setIsAnimating(false);
-      } else {
-        setDisplayValue(currentValue);
-      }
-    }, frameRate);
-
-    return () => clearInterval(timer);
-  }, [amountValue, currency]); // Add currency as dependency to re-animate when it changes
-
-  const getValueColor = (title) => {
-    if (darkMode) {
-      switch (title) {
-        case "Total Balance":
-          return "#4ade80";
-        case "Total Income":
-          return "#34d399";
-        case "Total Expenses":
-          return "#ef4444";
-        default:
-          return "white";
-      }
-    } else {
-      switch (title) {
-        case "Total Balance":
-        case "Total Income":
-          return "#0a6e47";
-        case "Total Expenses":
-          return "#ef4444";
-        default:
-          return "rgba(0, 0, 0, 0.6)";
-      }
-    }
-  };
-
-  const valueColor = getValueColor(title);
-
-  // Format the number according to locale and precision
-  const formattedDisplayValue = displayValue.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
   return (
     <div
-      className={`${
-        darkMode ? "bg-gray-800" : "bg-white"
-      } p-3 rounded-lg border ${
-        darkMode ? "border-gray-700" : "border-gray-300"
-      } text-center transition-all duration-300 hover:scale-105 hover:shadow-lg animate-fadeIn`}
+      className={`p-3 md:p-5 rounded-xl border transition-colors duration-200 ${
+        darkMode
+          ? "bg-gray-800 border-gray-700 hover:bg-gray-700"
+          : "bg-white border-gray-200 hover:bg-gray-50"
+      } hover:shadow-md`}
     >
-      <div className="flex items-center justify-between">
-        <h2
-          className="text-md font-semibold"
-          style={{
-            color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)",
-          }}
+      <div className="flex items-center mb-2">
+        <div
+          className={`w-7 h-7 md:w-10 md:h-10 rounded-full flex items-center justify-center mr-2 md:mr-3 ${
+            iconBg || (darkMode ? "bg-blue-900/30" : "bg-blue-100")
+          }`}
         >
-          {title}
-        </h2>
-        <Icon
-          className="h-5 w-5 transform transition-all duration-700 hover:rotate-12 hover:scale-110 animate-pulse"
-          style={{
-            color: valueColor,
-            animationDuration: "3s",
-          }}
-        />
+          <Icon
+            className={`w-3.5 h-3.5 md:w-5 md:h-5 ${
+              iconColor || (darkMode ? "text-blue-400" : "text-blue-600")
+            }`}
+          />
+        </div>
+        <span className="text-xs md:text-sm font-medium">{title}</span>
       </div>
-      <p
-        className="text-2xl font-bold mt-2 flex justify-center items-baseline"
-        style={{ color: valueColor }}
-      >
-        {isAnimating ? (
-          <>
-            <span className="text-sm mr-1">{currencySymbol}</span>
-            <span className="tabular-nums transition-all">
-              {formattedDisplayValue}
-            </span>
-          </>
-        ) : (
-          <>
-            <span className="text-sm mr-0.5">{currencySymbol}</span>
-            <span className="tabular-nums">
-              {amountValue.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </>
-        )}
-      </p>
+      <div className="mt-1 text-center md:text-left">
+        <div className="text-sm md:text-xl font-semibold">{amount}</div>
+      </div>
     </div>
   );
 };
@@ -433,7 +337,7 @@ const BudgetCard = ({ percentage, isOverBudget }) => {
     >
       <div className="flex items-center justify-between">
         <h2
-          className="text-md font-semibold"
+          className="text-xs md:text-md font-semibold"
           style={{
             color: darkMode ? "white" : "rgba(0, 0, 0, 0.6)",
           }}
@@ -441,7 +345,7 @@ const BudgetCard = ({ percentage, isOverBudget }) => {
           Spent
         </h2>
         <Percent
-          className="h-5 w-5 transform transition-all duration-700 hover:rotate-12 hover:scale-110 animate-pulse"
+          className="h-4 w-4 md:h-5 md:w-5 transform transition-all duration-700 hover:rotate-12 hover:scale-110 animate-pulse"
           style={{
             color: percentColor,
             animationDuration: "3s",
@@ -449,7 +353,7 @@ const BudgetCard = ({ percentage, isOverBudget }) => {
         />
       </div>
       <p
-        className="text-2xl font-bold mt-2 relative"
+        className="text-lg md:text-2xl font-bold mt-2 relative"
         style={{ color: percentColor }}
       >
         <span className="inline-block tabular-nums transition-all">

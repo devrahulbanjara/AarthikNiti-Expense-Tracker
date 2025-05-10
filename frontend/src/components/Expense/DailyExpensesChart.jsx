@@ -11,10 +11,24 @@ import {
 } from "recharts";
 import { useTheme } from "../../context/ThemeContext";
 import { useCurrency } from "../../context/CurrencyContext";
+import { useState, useEffect } from "react";
 
 const DailyExpensesChart = ({ data }) => {
   const { darkMode } = useTheme();
   const { currency, convertAmount, formatCurrency } = useCurrency();
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const chartData = Array.isArray(data)
     ? data.map((day) => ({
@@ -46,7 +60,12 @@ const DailyExpensesChart = ({ data }) => {
     <ResponsiveContainer width="100%" height="100%">
       <BarChart
         data={chartData}
-        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+        margin={{
+          top: 20,
+          right: windowWidth < 768 ? 10 : 30,
+          left: windowWidth < 768 ? 10 : 20,
+          bottom: 20,
+        }}
       >
         <CartesianGrid
           strokeDasharray="3 3"
@@ -55,15 +74,24 @@ const DailyExpensesChart = ({ data }) => {
         />
         <XAxis
           dataKey="date"
-          tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }}
+          tick={{
+            fill: darkMode ? "#9ca3af" : "#6b7280",
+            fontSize: windowWidth < 768 ? 10 : 12,
+          }}
           tickLine={false}
           axisLine={false}
+          height={40}
+          interval={windowWidth < 768 ? 1 : 0}
         />
         <YAxis
           tickFormatter={(value) => formatCurrency(value, undefined, true)}
-          tick={{ fill: darkMode ? "#9ca3af" : "#6b7280", fontSize: 12 }}
+          tick={{
+            fill: darkMode ? "#9ca3af" : "#6b7280",
+            fontSize: windowWidth < 768 ? 10 : 12,
+          }}
           tickLine={false}
           axisLine={false}
+          width={windowWidth < 768 ? 40 : 60}
         />
         <Tooltip
           content={<CustomTooltip />}
@@ -77,7 +105,7 @@ const DailyExpensesChart = ({ data }) => {
           stroke={darkMode ? "#7f1d1d" : "#b91c1c"} // Darker stroke for better visibility
           strokeWidth={2}
           radius={[4, 4, 0, 0]}
-          barSize={40}
+          barSize={windowWidth < 768 ? 20 : 40}
           animationDuration={800}
         />
       </BarChart>

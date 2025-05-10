@@ -25,7 +25,7 @@ const Header = ({ title, subtitle }) => {
 
   return (
     <header
-      className={`fixed top-0 left-0 md:left-1/5 right-0 z-30 p-4 md:p-6 transition-all duration-300 ${
+      className={`fixed top-0 left-0 md:left-1/5 right-0 z-30 p-3 md:p-6 transition-all duration-300 ${
         darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"
       } ${
         scrolled
@@ -38,16 +38,16 @@ const Header = ({ title, subtitle }) => {
       }`}
     >
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between w-full">
-        <div className="md:ml-0 ml-12 mt-1 md:mt-2">
+        <div className="md:ml-0 ml-14 mt-1 md:mt-2">
           <div className="flex items-center justify-between w-full md:w-auto">
-            <h1 className="text-xl md:text-2xl font-medium font-poppins ml-[-5px]">
+            <h1 className="text-lg md:text-2xl font-medium font-poppins truncate max-w-[180px] md:max-w-full">
               {title}
             </h1>
-            <div className="fixed top-4 right-4 flex items-center space-x-3 md:hidden">
+            <div className="fixed top-3 right-3 flex items-center space-x-2 md:hidden">
               <CompactCurrencyDropdown />
               <button
                 onClick={toggleDarkMode}
-                className={`p-2 rounded-full transition-colors ${
+                className={`p-1.5 rounded-full transition-colors ${
                   darkMode
                     ? "hover:bg-gray-700 text-gray-300"
                     : "hover:bg-gray-100 text-gray-700"
@@ -57,16 +57,16 @@ const Header = ({ title, subtitle }) => {
                 }
               >
                 {darkMode ? (
-                  <Sun size={20} className="text-amber-300" />
+                  <Sun size={18} className="text-amber-300" />
                 ) : (
-                  <Moon size={20} className="text-indigo-600" />
+                  <Moon size={18} className="text-indigo-600" />
                 )}
               </button>
               <Profile handleLogout={handleLogout} />
             </div>
           </div>
           <p
-            className={`text-sm md:text-base ml-[-5px] mt-2 ${
+            className={`text-xs md:text-base ml-0 mt-1 md:mt-2 truncate max-w-[230px] md:max-w-full ${
               darkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >

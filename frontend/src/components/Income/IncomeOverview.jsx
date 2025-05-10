@@ -21,6 +21,19 @@ const IncomeOverview = ({ timeRange, onTimeRangeChange, refreshKey }) => {
   const { currency, formatCurrency, convertAmount } = useCurrency();
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchIncomeData = async () => {
@@ -127,11 +140,16 @@ const IncomeOverview = ({ timeRange, onTimeRangeChange, refreshKey }) => {
           </p>
         </div>
       ) : (
-        <div className="h-[470px] w-full">
+        <div className="h-[300px] md:h-[400px] lg:h-[470px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={convertedChartData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+              margin={{
+                top: 20,
+                right: 10,
+                left: 10,
+                bottom: 20,
+              }}
             >
               <CartesianGrid
                 strokeDasharray="3 3"
@@ -140,17 +158,26 @@ const IncomeOverview = ({ timeRange, onTimeRangeChange, refreshKey }) => {
               />
               <XAxis
                 dataKey="date"
-                tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }}
+                tick={{
+                  fill: darkMode ? "#9ca3af" : "#6b7280",
+                  fontSize: windowWidth < 768 ? 10 : 12,
+                }}
                 tickLine={false}
                 axisLine={false}
+                height={40}
+                interval={windowWidth < 768 ? 1 : 0}
               />
               <YAxis
                 tickFormatter={(value) =>
                   formatCurrency(value, undefined, true)
                 }
-                tick={{ fill: darkMode ? "#9ca3af" : "#6b7280", fontSize: 12 }}
+                tick={{
+                  fill: darkMode ? "#9ca3af" : "#6b7280",
+                  fontSize: windowWidth < 768 ? 10 : 12,
+                }}
                 tickLine={false}
                 axisLine={false}
+                width={windowWidth < 768 ? 40 : 60}
               />
               <Tooltip
                 content={<CustomTooltip />}
@@ -166,7 +193,7 @@ const IncomeOverview = ({ timeRange, onTimeRangeChange, refreshKey }) => {
                 stroke={darkMode ? "#065f46" : "#047857"} // Stroke for bars
                 strokeWidth={1.5}
                 radius={[4, 4, 0, 0]}
-                barSize={40} // Consistent bar size
+                barSize={windowWidth < 768 ? 20 : 40} // Smaller bar size on mobile
                 animationDuration={800}
               />
             </BarChart>
