@@ -143,7 +143,7 @@ cd AarthikNiti-Expense-Tracker
 
 ### Backend Setup (FastAPI & MongoDB)
 
-1. **Set up virtual environment**:
+1. **Set up virtual environment and install dependencies**:
 
    ```sh
    cd backend
@@ -154,11 +154,11 @@ cd AarthikNiti-Expense-Tracker
 
 2. **Configure environment variables**:
 
-   Create a `.env` file inside the `backend` directory and add the following:
+   Create a `.env` file inside the `backend` directory with the following keys:
 
    ```
    # MongoDB Configuration
-   MONGODB_URL=mongodb+srv://<username>:<password>@<cluster-url>/?retryWrites=true&w=majority
+   MONGODB_URL=your_mongodb_connection_string
    DATABASE_NAME=aarthikniti
 
    # Security
@@ -174,6 +174,9 @@ cd AarthikNiti-Expense-Tracker
 
    # Frontend URL for CORS
    FRONTEND_URL=http://localhost:5173
+
+   # AI Integration
+   GEMINI_API=your_gemini_api_key_here
    ```
 
 3. **Run the FastAPI server**:
@@ -186,14 +189,22 @@ cd AarthikNiti-Expense-Tracker
 
 ### Frontend Setup (React & Tailwind CSS)
 
-1. **Navigate to frontend and install dependencies**:
+1. **Configure environment variables**:
+
+   Create a `.env` file inside the `frontend` directory with the following:
+
+   ```
+   VITE_API_URL=http://localhost:8000
+   ```
+
+2. **Navigate to frontend and install dependencies**:
 
    ```sh
-   cd ../frontend
+   cd frontend
    npm install
    ```
 
-2. **Start development server**:
+3. **Start development server**:
 
    ```sh
    npm run dev
@@ -277,9 +288,24 @@ This will run all tests and save the results to a log file. For more details on 
 
 - FastAPI 0.115.8
 - Uvicorn 0.34.0
-- MongoDB (Motor 3.7.0)
+- Motor 3.7.0 (MongoDB async driver)
+- PyMongo 4.11.3
+- Pydantic 2.2.0
+- Python-dotenv 1.0.1
+- Passlib 1.7.4
+- BCrypt 4.0.1
 - PyJWT 2.10.1
+- Authlib 1.5.1
+- itsdangerous 2.2.0
+- httpx 0.28.1
+- Python-dateutil 2.9.0.post0
 - Google GenAI 1.13.0
+- Python-multipart 0.0.9
+
+### Testing
+
+- Pytest 7.4.3
+- Python-jose 3.3.0
 
 ### Development & Deployment
 
@@ -291,9 +317,9 @@ This will run all tests and save the results to a log file. For more details on 
 
 AarthikNiti is developed by a team of skilled developers:
 
-- **Rahul Dev Banjara** - Backend and Machine Learning Engineer
+- **Rahul Dev Banjara** - Machine Learning and Backend Engineer
 - **Shreeya Pandey** - Frontend Engineer
-- **Diwash Adhikari** - Backend and Database Engineer
+- **Diwash Adhikari** - Backend Engineer
 - **Prajwal Dahal** - Frontend Engineer
 
 ## Contributing
