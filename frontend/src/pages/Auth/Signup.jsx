@@ -7,6 +7,7 @@ import aarthiknitiImg from "../../assets/Logo/aarthikniti.png";
 import girlImg from "../../assets/ExtraImg/girl.jpg";
 import { useAuth } from "../../context/AuthContext";
 import { useCurrency } from "../../context/CurrencyContext";
+import { useTheme } from "../../context/ThemeContext";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -14,6 +15,7 @@ function Signup() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { getSupportedCurrencies } = useCurrency();
+  const { darkMode } = useTheme();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +25,6 @@ function Signup() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isSigningUp, setIsSigningUp] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [error, setError] = useState("");
   const [isHovered, setIsHovered] = useState(false);
   const [step, setStep] = useState(1); // 1: Signup form, 2: OTP verification
@@ -212,10 +213,18 @@ function Signup() {
       {/* Right side - Scrollable Signup Form */}
       <div className="w-full md:w-1/2 md:ml-[50%] flex flex-col items-center justify-center p-4 md:p-8 lg:p-16 transition-all duration-500 min-h-screen">
         <div className="w-full max-w-md transform transition-all duration-500 hover:scale-[1.01]">
-          <h2 className="text-2xl md:text-3xl mb-2 font-semibold text-gray-800 animate-fade-in">
+          <h2
+            className={`text-2xl md:text-3xl mb-2 font-semibold ${
+              darkMode ? "text-gray-200" : "text-gray-800"
+            } animate-fade-in`}
+          >
             {step === 1 ? "Create an account" : "Verify your email"}
           </h2>
-          <p className="mb-6 text-gray-600 text-sm md:text-base animate-fade-in-delay">
+          <p
+            className={`mb-6 ${
+              darkMode ? "text-gray-400" : "text-gray-600"
+            } text-sm md:text-base animate-fade-in-delay`}
+          >
             {step === 1
               ? "Enter your details to get started"
               : "Enter the OTP sent to your email"}
@@ -226,7 +235,9 @@ function Signup() {
               <div className="space-y-2">
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-gray-700 transition-colors duration-200"
+                  className={`block text-sm font-medium ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  } transition-colors duration-200`}
                 >
                   Full Name
                 </label>
@@ -236,7 +247,11 @@ function Signup() {
                   placeholder="Enter your full name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg transition-all duration-200 focus:border-[#0a6e47] focus:ring-2 focus:ring-[#0a6e47]/20 outline-none"
+                  className={`w-full p-3 border ${
+                    darkMode
+                      ? "border-gray-700 bg-gray-800 text-gray-200"
+                      : "border-gray-300 text-gray-900"
+                  } rounded-lg transition-all duration-200 focus:border-[#0a6e47] focus:ring-2 focus:ring-[#0a6e47]/20 outline-none`}
                   required
                 />
               </div>
@@ -244,7 +259,9 @@ function Signup() {
               <div className="space-y-2">
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 transition-colors duration-200"
+                  className={`block text-sm font-medium ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  } transition-colors duration-200`}
                 >
                   Email
                 </label>
@@ -254,7 +271,11 @@ function Signup() {
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg transition-all duration-200 focus:border-[#0a6e47] focus:ring-2 focus:ring-[#0a6e47]/20 outline-none"
+                  className={`w-full p-3 border ${
+                    darkMode
+                      ? "border-gray-700 bg-gray-800 text-gray-200"
+                      : "border-gray-300 text-gray-900"
+                  } rounded-lg transition-all duration-200 focus:border-[#0a6e47] focus:ring-2 focus:ring-[#0a6e47]/20 outline-none`}
                   required
                 />
               </div>
@@ -262,7 +283,9 @@ function Signup() {
               <div className="space-y-2">
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 transition-colors duration-200"
+                  className={`block text-sm font-medium ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  } transition-colors duration-200`}
                 >
                   Password
                 </label>
@@ -276,7 +299,11 @@ function Signup() {
                       setPassword(e.target.value);
                       validatePassword(e.target.value);
                     }}
-                    className="w-full p-3 border border-gray-300 rounded-lg transition-all duration-200 focus:border-[#0a6e47] focus:ring-2 focus:ring-[#0a6e47]/20 outline-none pr-10"
+                    className={`w-full p-3 border ${
+                      darkMode
+                        ? "border-gray-700 bg-gray-800 text-gray-200"
+                        : "border-gray-300 text-gray-900"
+                    } rounded-lg transition-all duration-200 focus:border-[#0a6e47] focus:ring-2 focus:ring-[#0a6e47]/20 outline-none pr-10`}
                     required
                   />
                   <span
@@ -286,7 +313,11 @@ function Signup() {
                     {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
                   </span>
                 </div>
-                <div className="mt-2 space-y-1 text-xs text-gray-600">
+                <div
+                  className={`mt-2 space-y-1 text-xs ${
+                    darkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
                   <div className="flex items-center">
                     {passwordRequirements.length ? (
                       <Check className="w-4 h-4 text-[#0a6e47] mr-1" />
@@ -325,7 +356,9 @@ function Signup() {
               <div className="space-y-2">
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-700 transition-colors duration-200"
+                  className={`block text-sm font-medium ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  } transition-colors duration-200`}
                 >
                   Confirm Password
                 </label>
@@ -336,7 +369,11 @@ function Signup() {
                     placeholder="Confirm your password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg transition-all duration-200 focus:border-[#0a6e47] focus:ring-2 focus:ring-[#0a6e47]/20 outline-none pr-10"
+                    className={`w-full p-3 border ${
+                      darkMode
+                        ? "border-gray-700 bg-gray-800 text-gray-200"
+                        : "border-gray-300 text-gray-900"
+                    } rounded-lg transition-all duration-200 focus:border-[#0a6e47] focus:ring-2 focus:ring-[#0a6e47]/20 outline-none pr-10`}
                     required
                   />
                   <span
@@ -355,7 +392,9 @@ function Signup() {
               <div className="space-y-2">
                 <label
                   htmlFor="currency"
-                  className="block text-sm font-medium text-gray-700 transition-colors duration-200"
+                  className={`block text-sm font-medium ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  } transition-colors duration-200`}
                 >
                   Currency
                 </label>
@@ -363,7 +402,11 @@ function Signup() {
                   id="currency"
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg transition-all duration-200 focus:border-[#0a6e47] focus:ring-2 focus:ring-[#0a6e47]/20 outline-none"
+                  className={`w-full p-3 border ${
+                    darkMode
+                      ? "border-gray-700 bg-gray-800 text-gray-200"
+                      : "border-gray-300 text-gray-900"
+                  } rounded-lg transition-all duration-200 focus:border-[#0a6e47] focus:ring-2 focus:ring-[#0a6e47]/20 outline-none`}
                 >
                   {availableCurrencies.map((curr) => (
                     <option key={curr.code} value={curr.code}>
@@ -381,7 +424,12 @@ function Signup() {
                   onChange={(e) => setTermsAccepted(e.target.checked)}
                   className="w-4 h-4 text-[#0a6e47] border-gray-300 rounded focus:ring-[#0a6e47] transition-colors duration-200"
                 />
-                <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
+                <label
+                  htmlFor="terms"
+                  className={`ml-2 text-sm ${
+                    darkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
                   I agree to the{" "}
                   <Link
                     to="/terms"
@@ -443,7 +491,9 @@ function Signup() {
               <div className="space-y-2">
                 <label
                   htmlFor="otp"
-                  className="block text-sm font-medium text-gray-700"
+                  className={`block text-sm font-medium ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
                 >
                   Enter OTP
                 </label>
@@ -453,10 +503,18 @@ function Signup() {
                   placeholder="Enter 6-digit OTP"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:border-[#0a6e47] focus:ring-2 focus:ring-[#0a6e47]/20 outline-none"
+                  className={`w-full p-3 border ${
+                    darkMode
+                      ? "border-gray-700 bg-gray-800 text-gray-200"
+                      : "border-gray-300 text-gray-900"
+                  } rounded-lg focus:border-[#0a6e47] focus:ring-2 focus:ring-[#0a6e47]/20 outline-none`}
                   required
                 />
-                <p className="text-sm text-gray-500">
+                <p
+                  className={`text-sm ${
+                    darkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
                   An OTP has been sent to your email {email}
                 </p>
               </div>
@@ -471,7 +529,11 @@ function Signup() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="flex-1 py-3 bg-gray-100 rounded-lg text-gray-800 font-medium hover:bg-gray-200 transition-all duration-300"
+                  className={`flex-1 py-3 ${
+                    darkMode
+                      ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  } rounded-lg font-medium transition-all duration-300`}
                 >
                   Back
                 </button>
@@ -516,7 +578,11 @@ function Signup() {
             </form>
           )}
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p
+            className={`mt-6 text-center text-sm ${
+              darkMode ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
             Already have an account?{" "}
             <Link
               to="/login"
