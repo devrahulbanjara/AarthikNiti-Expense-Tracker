@@ -365,6 +365,7 @@ export const CurrencyProvider = ({ children }) => {
         lastUpdated,
         refreshRates,
         apiError,
+        currencyConfig,
       }}
     >
       {children}

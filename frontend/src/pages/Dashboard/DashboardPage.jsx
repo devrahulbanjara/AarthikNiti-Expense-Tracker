@@ -221,30 +221,45 @@ const DashboardCards = ({
   isOverBudget,
 }) => {
   const { darkMode } = useTheme();
-  const { currency, formatCurrency, convertAmount } = useCurrency();
+  const { currency, convertAmount, currencyConfig = {} } = useCurrency();
 
   // Convert all amounts to the selected currency
   const convertedBalance = convertAmount(totalBalance, "NPR");
   const convertedIncome = convertAmount(totalIncome, "NPR");
   const convertedExpenses = convertAmount(totalExpenses, "NPR");
 
+  // Get currency symbol from context
+  const config = (currencyConfig && currencyConfig[currency]) || {};
+  const currencySymbol = config.symbol || currency;
+
+  // Format the amounts without currency symbol
+  const formatNumberWithCommas = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: config.precision || 2,
+      maximumFractionDigits: config.precision || 2,
+    }).format(amount);
+  };
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mt-2">
       <Card
         title="Total Balance"
-        amount={formatCurrency(convertedBalance)}
+        amountValue={formatNumberWithCommas(convertedBalance)}
+        currencySymbol={currencySymbol}
         icon={DollarSign}
       />
       <Card
         title="Total Income"
-        amount={formatCurrency(convertedIncome)}
+        amountValue={formatNumberWithCommas(convertedIncome)}
+        currencySymbol={currencySymbol}
         icon={ArrowUp}
         iconBg="bg-green-100"
         iconColor="text-green-600"
       />
       <Card
         title="Total Expenses"
-        amount={formatCurrency(convertedExpenses)}
+        amountValue={formatNumberWithCommas(convertedExpenses)}
+        currencySymbol={currencySymbol}
         icon={ArrowDown}
         iconBg="bg-red-100"
         iconColor="text-red-600"
@@ -254,7 +269,14 @@ const DashboardCards = ({
   );
 };
 
-const Card = ({ title, amount, icon: Icon, iconBg, iconColor }) => {
+const Card = ({
+  title,
+  amountValue,
+  currencySymbol,
+  icon: Icon,
+  iconBg,
+  iconColor,
+}) => {
   const { darkMode } = useTheme();
 
   return (
@@ -280,7 +302,10 @@ const Card = ({ title, amount, icon: Icon, iconBg, iconColor }) => {
         <span className="text-xs md:text-sm font-medium">{title}</span>
       </div>
       <div className="mt-1 text-center md:text-left">
-        <div className="text-sm md:text-xl font-semibold">{amount}</div>
+        <div className="text-sm md:text-xl font-semibold flex items-baseline">
+          <span className="text-[0.5em] mr-0.5">{currencySymbol}</span>
+          <span>{amountValue}</span>
+        </div>
       </div>
     </div>
   );

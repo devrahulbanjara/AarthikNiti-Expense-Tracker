@@ -19,7 +19,8 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const IncomeVsExpensesChart = () => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
-  const { currency, formatCurrency, convertAmount } = useCurrency();
+  const { currency, formatCurrency, convertAmount, currencyConfig } =
+    useCurrency();
   const [timeRange, setTimeRange] = useState("Last 6 months");
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
   const [hoveredBar, setHoveredBar] = useState(null);
@@ -77,23 +78,32 @@ const IncomeVsExpensesChart = () => {
     fetchData();
   }, [timeRange]);
 
-  const totalIncome = data.reduce((sum, item) => sum + item.income, 0);
-  const totalExpenses = data.reduce((sum, item) => sum + item.expenses, 0);
+  const displayData = data.map((item) => ({
+    ...item,
+    income: convertAmount(item.income, "NPR"),
+    expenses: convertAmount(item.expenses, "NPR"),
+  }));
+
+  const totalIncome = displayData.reduce((sum, item) => sum + item.income, 0);
+  const totalExpenses = displayData.reduce(
+    (sum, item) => sum + item.expenses,
+    0
+  );
   const savingsRate =
     totalIncome > 0
       ? Math.round(((totalIncome - totalExpenses) / totalIncome) * 100)
       : 0;
   const averageMonthlySavings =
-    data.length > 0
-      ? Math.round((totalIncome - totalExpenses) / data.length)
+    displayData.length > 0
+      ? Math.round((totalIncome - totalExpenses) / displayData.length)
       : 0;
 
   const timeRangeOptions = ["Last 3 months", "Last 6 months", "Last year"];
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      const incomeValue = convertAmount(payload[0].value, "NPR");
-      const expensesValue = convertAmount(payload[1].value, "NPR");
+      const incomeValue = payload[0].value;
+      const expensesValue = payload[1].value;
       const savingsValue = incomeValue - expensesValue;
 
       return (
@@ -132,12 +142,6 @@ const IncomeVsExpensesChart = () => {
     }
     return null;
   };
-
-  const displayData = data.map((item) => ({
-    ...item,
-    displayIncome: convertAmount(item.income, "NPR"),
-    displayExpenses: convertAmount(item.expenses, "NPR"),
-  }));
 
   return (
     <div
@@ -244,11 +248,11 @@ const IncomeVsExpensesChart = () => {
           <div className="h-[250px] md:h-[300px] lg:h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={data}
+                data={displayData}
                 margin={{
                   top: 5,
-                  right: 0,
-                  left: window.innerWidth < 768 ? -25 : -15,
+                  right: 10,
+                  left: window.innerWidth < 768 ? 5 : 20,
                   bottom: 5,
                 }}
                 barGap={4}
@@ -279,12 +283,23 @@ const IncomeVsExpensesChart = () => {
                     fill: darkMode ? "#9ca3af" : "#6b7280",
                     fontSize: window.innerWidth < 768 ? 10 : 12,
                   }}
-                  tickFormatter={(value) =>
-                    formatCurrency(value, undefined, true)
-                  }
+                  tickFormatter={(value) => {
+                    const config = currencyConfig
+                      ? currencyConfig[currency]
+                      : { symbol: currency };
+                    const symbol = config?.symbol || "";
+
+                    if (value >= 1000000) {
+                      return `${symbol}${(value / 1000000).toFixed(1)}M`;
+                    } else if (value >= 1000) {
+                      return `${symbol}${(value / 1000).toFixed(1)}K`;
+                    } else {
+                      return formatCurrency(value);
+                    }
+                  }}
                   tickLine={false}
                   axisLine={false}
-                  width={window.innerWidth < 768 ? 35 : 60}
+                  width={window.innerWidth < 768 ? 60 : 80}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
