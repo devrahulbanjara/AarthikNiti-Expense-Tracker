@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 import {
   AreaChart,
   Area,
@@ -18,6 +19,17 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const IncomeChart = () => {
   const { darkMode } = useTheme();
   const { getToken } = useAuth();
+  const {
+    currency,
+    convertAmount,
+    formatCurrency,
+    currencyConfig = {},
+  } = useCurrency();
+
+  // Get currency symbol from context
+  const config = (currencyConfig && currencyConfig[currency]) || {};
+  const currencySymbol = config.symbol || currency;
+
   const [incomeData, setIncomeData] = useState([]);
   const [timeRange, setTimeRange] = useState(30);
   const [loading, setLoading] = useState(false);
@@ -58,6 +70,9 @@ const IncomeChart = () => {
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+      // Convert the value to the selected currency
+      const convertedValue = convertAmount(payload[0].value, "USD");
+
       return (
         <div
           className={`p-2 border rounded shadow ${
@@ -66,7 +81,7 @@ const IncomeChart = () => {
         >
           <div>{label}</div>
           <div>
-            <strong>${payload[0].value.toLocaleString()}</strong>
+            <strong>{formatCurrency(convertedValue)}</strong>
           </div>
         </div>
       );
@@ -125,7 +140,7 @@ const IncomeChart = () => {
         <ResponsiveContainer width="100%" height={250}>
           <AreaChart
             data={incomeData}
-            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            margin={{ top: 10, right: 10, left: 5, bottom: 5 }}
           >
             <XAxis
               dataKey="date"
@@ -134,8 +149,24 @@ const IncomeChart = () => {
             />
             <YAxis
               stroke={darkMode ? "#cbd5e1" : "#374151"}
-              tickFormatter={(value) => `$${(value / 1000).toFixed(1)}k`}
+              tickFormatter={(value) => {
+                // Convert the value to the selected currency
+                const convertedValue = convertAmount(value, "USD");
+
+                if (convertedValue >= 1000000) {
+                  return `${currencySymbol}${(convertedValue / 1000000).toFixed(
+                    1
+                  )}M`;
+                } else if (convertedValue >= 1000) {
+                  return `${currencySymbol}${(convertedValue / 1000).toFixed(
+                    1
+                  )}K`;
+                } else {
+                  return `${currencySymbol}${convertedValue.toFixed(0)}`;
+                }
+              }}
               tick={{ fill: darkMode ? "#9ca3af" : "#6b7280" }}
+              width={60}
             />
             <Tooltip content={<CustomTooltip />} />
             <ReferenceLine y={0} stroke="#8884d8" strokeDasharray="3 3" />

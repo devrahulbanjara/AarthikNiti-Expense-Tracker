@@ -453,9 +453,10 @@ const AddExpenseModal = ({
           darkMode
             ? "bg-gray-800 text-white bg-opacity-95"
             : "bg-white text-gray-800 bg-opacity-95"
-        } rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden`}
+        } rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto`}
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-inherit z-10">
           <h2 className="text-xl font-semibold">Add Expense</h2>
           <button
             onClick={() => setShowAddModal(false)}

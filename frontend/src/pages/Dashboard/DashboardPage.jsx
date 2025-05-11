@@ -234,10 +234,18 @@ const DashboardCards = ({
 
   // Format the amounts without currency symbol
   const formatNumberWithCommas = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: config.precision || 2,
-      maximumFractionDigits: config.precision || 2,
-    }).format(amount);
+    try {
+      return new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: config.precision || 2,
+        maximumFractionDigits: config.precision || 2,
+      }).format(amount);
+    } catch (error) {
+      console.error("Error formatting number:", error);
+      // Fallback to basic formatting
+      return Number(amount)
+        .toFixed(2)
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
   };
 
   return (
