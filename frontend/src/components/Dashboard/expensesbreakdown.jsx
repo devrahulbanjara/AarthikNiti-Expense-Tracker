@@ -173,7 +173,7 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
         darkMode ? "border-gray-700" : "border-gray-300"
       } h-full w-full ${
         location.pathname === "/dashboard" ? "max-w-md" : "w-full"
-      } transition-all duration-300 hover:shadow-lg`}
+      } transition-all duration-300 hover:shadow-lg overflow-y-auto`}
       ref={chartRef}
       onMouseMove={handleMouseMove}
     >
@@ -275,8 +275,12 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
             className={`grid ${
               location.pathname === "/dashboard"
                 ? "grid-cols-2"
-                : "grid-cols-3 "
-            } gap-2`}
+                : expenseBreakdownData.length > 9
+                  ? "grid-cols-4"
+                  : expenseBreakdownData.length > 6
+                    ? "grid-cols-3"
+                    : "grid-cols-3"
+            } gap-2 max-h-[400px] overflow-y-auto pr-1`}
           >
             {expenseBreakdownData.map((entry, index) => {
               const percentage = (
@@ -299,8 +303,8 @@ const ExpensesBreakdown = ({ totalExpenses }) => {
                     className="w-3 h-3 rounded-full transition-transform duration-200 hover:scale-125"
                     style={{ backgroundColor: entry.color }}
                   ></div>
-                  <div>
-                    <div className="text-xs font-medium">{entry.name}</div>
+                  <div className="overflow-hidden">
+                    <div className="text-xs font-medium truncate max-w-[100px]">{entry.name}</div>
                     <div
                       className={`text-xs ${
                         darkMode ? "text-gray-400" : "text-gray-500"

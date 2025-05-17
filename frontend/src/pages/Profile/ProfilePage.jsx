@@ -84,7 +84,7 @@ const ProfilePage = () => {
 
   const generateAvatarUrl = (style, seed) => {
     const safeSeed = encodeURIComponent(seed || "defaultUser");
-    const backgroundColorOptions = "&backgroundColor=065336,bbf7d0"; // Dark green, light green
+    const backgroundColorOptions = "&backgroundColor=065336,bbf7d0";
     return `https://api.dicebear.com/7.x/${style}/svg?seed=${safeSeed}${backgroundColorOptions}`;
   };
 

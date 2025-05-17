@@ -330,7 +330,7 @@ const Expense = () => {
           <div
             className={`border ${
               darkMode ? "border-gray-800" : "border-gray-200"
-            } rounded-xl overflow-hidden shadow-md mb-6`}
+            } rounded-xl overflow-hidden shadow-md mb-6 h-auto`}
           >
             <ExpenseOverview
               activeTab={activeTab}
